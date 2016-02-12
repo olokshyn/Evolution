@@ -17,7 +17,7 @@ static double getDoubleFromSubString(char* begin, char* end) {
     return res;
 }
 
-void small_test() {
+void four_points_test() {
     size_t i, vectors_count = 4, vector_length = 2;
     double** vectors = (double**)malloc(vectors_count * sizeof(double*));
     for (i = 0; i < vectors_count; ++i) {
@@ -82,7 +82,7 @@ void fisher_iris_test() {
                         vectors_count,
                         vector_length,
                         1,
-                        0.5);
+                        0.05);
 
     size_t right = 1;
     size_t cluster_number = w[0];

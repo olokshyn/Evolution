@@ -10,7 +10,7 @@
 
 #include "Wishart.h"
 
-void small_test();
+void four_points_test();
 
 void fisher_iris_test();
 

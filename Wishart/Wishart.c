@@ -5,7 +5,6 @@
 #include "Wishart.h"
 
 typedef struct graph {
-    Vectors* vectors;
     size_t n;
     short** edges;
 } Graph;
@@ -107,6 +106,7 @@ static void countDistances(Vectors* vectors) {
     size_t i, j, k;
     for (i = 0; i < vectors->count - 1; ++i) {
         for (j = i + 1; j < vectors->count; ++j) {
+            vectors->distances[i][j] = 0;
             for (k = 0; k < vectors->vector_length; ++k) {
                 vectors->distances[i][j] +=
                         pow(vectors->v[i].x[k] - vectors->v[j].x[k], 2);
@@ -175,14 +175,13 @@ static void releaseGraph(Graph* graph) {
 
 static Graph* buildGraph(Vectors* vectors) {
     Graph* graph = _initGraph(vectors->count);
-    graph->vectors = vectors;
     size_t i, j;
-    for (i = 0; i < vectors->count; ++i) {
-        for (j = 0; j < vectors->count; ++j) {
-            if (i != j
-                && vectors->distances[i][j]
-                   <= vectors->v[i].kDistance) {
+    for (i = 0; i < vectors->count - 1; ++i) {
+        for (j = i + 1; j < vectors->count; ++j) {
+            if (vectors->distances[i][j]
+                    <= vectors->v[i].kDistance) {
                 graph->edges[i][j] = 1;
+                graph->edges[j][i] = 1;
             }
         }
     }
@@ -270,6 +269,8 @@ size_t* Wishart(const double* const* vectors,
     countDensities(wVectors, k);
 
     sortVectorsByKDistance(wVectors);
+
+    countDistances(wVectors);
 
     Graph* graph_n = buildGraph(wVectors);
     // end of step 1
