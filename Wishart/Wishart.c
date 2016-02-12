@@ -105,16 +105,14 @@ static void releaseVectors(Vectors* vectors) {
 
 static void countDistances(Vectors* vectors) {
     size_t i, j, k;
-    for (i = 0; i < vectors->count; ++i) {
-        for (j = 0; j < vectors->count; ++j) {
-            if (i == j) {
-                continue;
-            }
+    for (i = 0; i < vectors->count - 1; ++i) {
+        for (j = i + 1; j < vectors->count; ++j) {
             for (k = 0; k < vectors->vector_length; ++k) {
                 vectors->distances[i][j] +=
                         pow(vectors->v[i].x[k] - vectors->v[j].x[k], 2);
             }
             vectors->distances[i][j] = sqrt(vectors->distances[i][j]);
+            vectors->distances[j][i] = vectors->distances[i][j];
         }
     }
 }
@@ -220,26 +218,40 @@ static List getConnectedClustersNumbers(Graph* graph,
     return clusters_numbers;
 }
 
-double getClusterHeight(Vectors* vectors,
+//double getClusterHeight(Vectors* vectors,
+//                        size_t cluster_number,
+//                        size_t* w) {
+//    long i_max = -1, i_min = -1;
+//    for (size_t i = 0; i < vectors->count; ++i) {
+//        if (w[i] == cluster_number) {
+//            if (i_max == -1
+//                || vectors->v[i].density > vectors->v[i_max].density) {
+//                i_max = i;
+//            }
+//            if (i_min == -1
+//                || vectors->v[i].density < vectors->v[i_min].density) {
+//                i_min = i;
+//            }
+//        }
+//    }
+//    if (i_max == -1 || i_min == -1) {  // TODO: error handling
+//        return 0.0;
+//    }
+//    return fabs(vectors->v[i_max].density - vectors->v[i_min].density);
+//}
+
+char isMeangfullCluster(Vectors* vectors,
                         size_t cluster_number,
-                        size_t* w) {
-    long i_max = -1, i_min = -1;
-    for (size_t i = 0; i < vectors->count; ++i) {
-        if (w[i] == cluster_number) {
-            if (i_max == -1
-                || vectors->v[i].density > vectors->v[i_max].density) {
-                i_max = i;
-            }
-            if (i_min == -1
-                || vectors->v[i].density < vectors->v[i_min].density) {
-                i_min = i;
+                        size_t* w, double h) {
+    for (size_t i = 0; i < vectors->count - 1; ++i) {
+        for (size_t j = i + 1; j < vectors->count; ++j) {
+            if (w[i] == cluster_number && w[j] == cluster_number
+                && fabs(vectors->v[i].density - vectors->v[j].density) >= h) {
+                return 1;
             }
         }
     }
-    if (i_max == -1 || i_min == -1) {  // TODO: error handling
-        return 0.0;
-    }
-    return fabs(vectors->v[i_max].density - vectors->v[i_min].density);
+    return 0;
 }
 
 size_t* Wishart(const double* const* vectors,
@@ -357,9 +369,9 @@ size_t* Wishart(const double* const* vectors,
             else {
                 for (i = 0; i < clusters_numbers.length; ++i) {
                     if (connected_clusters_numbers[i]
-                        && getClusterHeight(wVectors,
-                                            connected_clusters_numbers[i],
-                                            w) >= h) {
+                        && isMeangfullCluster(wVectors,
+                                              connected_clusters_numbers[i],
+                                              w, h)) {
                         temp = (size_t*)malloc(sizeof(size_t));
                         *temp = connected_clusters_numbers[i];
                         pushBack(&significant_clusters_numbers, temp);
