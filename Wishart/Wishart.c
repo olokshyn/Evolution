@@ -151,6 +151,7 @@ static void sortVectorsByKDistance(Vectors* vectors) {
           vectors->count,
           sizeof(Vector),
           _VectorCmp);
+    countDistances(vectors);
 }
 
 
@@ -176,12 +177,11 @@ static void releaseGraph(Graph* graph) {
 static Graph* buildGraph(Vectors* vectors) {
     Graph* graph = _initGraph(vectors->count);
     size_t i, j;
-    for (i = 0; i < vectors->count - 1; ++i) {
-        for (j = i + 1; j < vectors->count; ++j) {
-            if (vectors->distances[i][j]
-                    <= vectors->v[i].kDistance) {
+    for (i = 0; i < vectors->count; ++i) {
+        for (j = 0; j < vectors->count; ++j) {
+            if (i != j
+                && vectors->distances[i][j] <= vectors->v[i].kDistance) {
                 graph->edges[i][j] = 1;
-                graph->edges[j][i] = 1;
             }
         }
     }
@@ -239,9 +239,9 @@ static List getConnectedClustersNumbers(Graph* graph,
 //    return fabs(vectors->v[i_max].density - vectors->v[i_min].density);
 //}
 
-char isMeangfullCluster(Vectors* vectors,
-                        size_t cluster_number,
-                        size_t* w, double h) {
+short isSignificantCluster(Vectors* vectors,
+                           size_t cluster_number,
+                           size_t* w, double h) {
     for (size_t i = 0; i < vectors->count - 1; ++i) {
         for (size_t j = i + 1; j < vectors->count; ++j) {
             if (w[i] == cluster_number && w[j] == cluster_number
@@ -258,7 +258,7 @@ size_t* Wishart(const double* const* vectors,
                 size_t vector_length,
                 size_t k,
                 double h) {
-    size_t i;
+    size_t i, j;
 
     Vectors* wVectors = createVectors(vectors,
                                       vectors_count,
@@ -269,8 +269,6 @@ size_t* Wishart(const double* const* vectors,
     countDensities(wVectors, k);
 
     sortVectorsByKDistance(wVectors);
-
-    countDistances(wVectors);
 
     Graph* graph_n = buildGraph(wVectors);
     // end of step 1
@@ -316,6 +314,7 @@ size_t* Wishart(const double* const* vectors,
 
         // step 3.2
         else if (clusters_numbers.length == 1) {
+            // find cluster in Clusters list by number in clusters_numbers
             it = findByVal(&Clusters,
                            begin(&clusters_numbers).current->value);
 
@@ -370,9 +369,9 @@ size_t* Wishart(const double* const* vectors,
             else {
                 for (i = 0; i < clusters_numbers.length; ++i) {
                     if (connected_clusters_numbers[i]
-                        && isMeangfullCluster(wVectors,
-                                              connected_clusters_numbers[i],
-                                              w, h)) {
+                        && isSignificantCluster(wVectors,
+                                                connected_clusters_numbers[i],
+                                                w, h)) {
                         temp = (size_t*)malloc(sizeof(size_t));
                         *temp = connected_clusters_numbers[i];
                         pushBack(&significant_clusters_numbers, temp);
@@ -407,14 +406,16 @@ size_t* Wishart(const double* const* vectors,
                 // step 3.3.2.2
                 else {
                     w[iter] = connected_clusters_numbers[0];
-                    for (i = 0; i < wVectors->count; ++i) {
-                        if (w[i] == 0
-                            || w[i] == connected_clusters_numbers[0]) {
-                            continue;
+                    for (i = 0; i < iter; ++i) {  // TODO: check bounds
+                        for (j = 1; j < clusters_numbers.length; ++j) {
+                            if (w[i] == connected_clusters_numbers[j]) {
+                                w[i] = connected_clusters_numbers[0];
+                                break;
+                            }
                         }
-                        removeByVal(&Clusters, w + i);
-                        // Can remove unexisting cluster
-                        w[i] = connected_clusters_numbers[0];
+                    }
+                    for (i = 1; i < clusters_numbers.length; ++i) {
+                        removeByVal(&Clusters, connected_clusters_numbers + i);
                     }
                 }
                 // end of step 3.3.2.2

@@ -121,6 +121,7 @@ short removeFromList(ListIterator it) {
     }
     it.list->d(it.current->value);
     free(it.current);
+    --it.list->length;
     return 1;
 }
 

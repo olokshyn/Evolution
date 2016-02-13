@@ -7,8 +7,9 @@
 #include "Wishart/WishartTest.h"
 
 int main(int argc, char* argv[]) {
-    // runAllTests();
+    // runAllListTests();
     // four_points_test();
-    fisher_iris_test();
+    eight_points_test();
+    // fisher_iris_test();
     return 0;
 }

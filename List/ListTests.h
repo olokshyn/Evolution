@@ -7,7 +7,7 @@
 
 #include "List.h"
 
-void runAllTests();
+void runAllListTests();
 
 void testInsertInEmptyList();
 

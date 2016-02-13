@@ -38,7 +38,57 @@ void four_points_test() {
     v[3][0] = 0.1;
     v[3][1] = 0.1;
 
-    size_t* w = Wishart((const double* const*)v, vectors_count, vector_length, 1, 0.5);
+    size_t* w = Wishart((const double* const*)v,
+                        vectors_count,
+                        vector_length,
+                        1,
+                        0.5);
+
+    for (i = 0; i < vectors_count; ++i) {
+        printf("%zu%c", w[i], (i < vectors_count - 1) ? ' ' : '\n');
+    }
+
+    free(w);
+}
+
+void eight_points_test() {
+    size_t i, vectors_count = 8, vector_length = 2;
+    double** vectors = (double**)malloc(vectors_count * sizeof(double*));
+    for (i = 0; i < vectors_count; ++i) {
+        vectors[i] = (double*)calloc(vector_length, sizeof(double));
+    }
+
+    double** v = vectors;
+
+    v[0][0] = 1.0;
+    v[0][1] = 1.0;
+
+    v[1][0] = 0.8;
+    v[1][1] = 0.8;
+
+    v[2][0] = 0.0;
+    v[2][1] = 0.0;
+
+    v[3][0] = 0.1;
+    v[3][1] = 0.1;
+
+    v[4][0] = 0.4;
+    v[4][1] = 0.1;
+
+    v[5][0] = 0.1;
+    v[5][1] = 0.25;
+
+    v[6][0] = 0.9;
+    v[6][1] = 0.8;
+
+    v[7][0] = 0.8;
+    v[7][1] = 1.0;
+
+    size_t* w = Wishart((const double* const*)v,
+                        vectors_count,
+                        vector_length,
+                        1,
+                        0.001);
 
     for (i = 0; i < vectors_count; ++i) {
         printf("%zu%c", w[i], (i < vectors_count - 1) ? ' ' : '\n');
@@ -82,7 +132,7 @@ void fisher_iris_test() {
                         vectors_count,
                         vector_length,
                         1,
-                        0.05);
+                        0.5);
 
     size_t right = 1;
     size_t cluster_number = w[0];

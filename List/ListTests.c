@@ -15,7 +15,7 @@ static void printFailureMsg(const char* testName) {
     printf("Test %30s: FAILURE\n", testName);
 }
 
-void runAllTests() {
+void runAllListTests() {
     testInsertInEmptyList();
     testPushBackInEmptyList();
     testFindByValInEmptyList();
@@ -186,6 +186,12 @@ void testFindByVal() {
     i = 3;
     ListIterator it = findByVal(&list, &i);
     if (comp(it.current->value, &i) != 0) {
+        printFailureMsg(testName);
+        return;
+    }
+    i = 10;
+    it = findByVal(&list, &i);
+    if (it.current) {
         printFailureMsg(testName);
         return;
     }
