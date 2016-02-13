@@ -233,28 +233,6 @@ static List getConnectedClustersNumbers(Graph* graph,
     return clusters_numbers;
 }
 
-//double getClusterHeight(Vectors* vectors,
-//                        size_t cluster_number,
-//                        size_t* w) {
-//    long i_max = -1, i_min = -1;
-//    for (size_t i = 0; i < vectors->count; ++i) {
-//        if (w[i] == cluster_number) {
-//            if (i_max == -1
-//                || vectors->v[i].density > vectors->v[i_max].density) {
-//                i_max = i;
-//            }
-//            if (i_min == -1
-//                || vectors->v[i].density < vectors->v[i_min].density) {
-//                i_min = i;
-//            }
-//        }
-//    }
-//    if (i_max == -1 || i_min == -1) {  // TODO: error handling
-//        return 0.0;
-//    }
-//    return fabs(vectors->v[i_max].density - vectors->v[i_min].density);
-//}
-
 static short isSignificantCluster(Vectors* vectors,
                                   size_t cluster_number,
                                   double h) {
@@ -406,9 +384,8 @@ size_t* Wishart(const double* const* vectors,
                          !isIteratorAtEnd(it);
                          next(&it)) {
                         it2 = findByVal(&Clusters, it.current->value);
-                        if (it2.current) {  // TODO: error handling
-                            ((Cluster*)it2.current->value)->formed = 1;
-                        }
+                        assert(it2.current);
+                        ((Cluster*)it2.current->value)->formed = 1;
                     }
                     for (i = 0; i < wVectors->count; ++i) {
                         if (wVectors->v[i].w == 0) {
@@ -427,7 +404,7 @@ size_t* Wishart(const double* const* vectors,
                 // step 3.3.2.2
                 else {
                     wVectors->v[iter].w = connected_clusters_numbers[0];
-                    for (i = 0; i < iter; ++i) {  // TODO: check bounds
+                    for (i = 0; i < iter; ++i) {
                         for (j = 1; j < clusters_numbers.length; ++j) {
                             if (wVectors->v[i].w == connected_clusters_numbers[j]) {
                                 wVectors->v[i].w = connected_clusters_numbers[0];
