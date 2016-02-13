@@ -78,6 +78,7 @@ static Vectors* createVectors(const double* const* dVectors,
         vectors->v[i].x = dVectors[i];
         vectors->v[i].kDistance = 0.0;
         vectors->v[i].density = 0.0;
+        vectors->v[i].w = 0;
     }
     vectors->count = vectors_count;
     vectors->vector_length = vector_length;
@@ -86,6 +87,21 @@ static Vectors* createVectors(const double* const* dVectors,
         vectors->distances[i] = (double*)calloc(vectors_count, sizeof(double));
     }
     return vectors;
+}
+
+static size_t* getW(const double* const* dVectors,
+                    Vectors* vectors) {
+    size_t i, j;
+    size_t* w = (size_t*)calloc(vectors->count, sizeof(size_t));
+
+    for (i = 0; i < vectors->count; ++i) {  // for dVectors
+        for (j = 0; j < vectors->count; ++j) {  // for vectors
+            if (dVectors[i] == vectors->v[j].x) {
+                w[i] = vectors->v[j].w;
+            }
+        }
+    }
+    return w;
 }
 
 static void releaseVectors(Vectors* vectors) {
@@ -198,18 +214,18 @@ static Graph buildSubGraph(Graph* graph, size_t n) {
 }
 
 static List getConnectedClustersNumbers(Graph* graph,
-                                        size_t vector_index,
-                                        size_t* w) {
+                                        Vectors* vectors,
+                                        size_t vector_index) {
     List clusters_numbers;  // List of size_t
     initList(&clusters_numbers, _intCmp, _intDst);
     ListIterator it;
     size_t* temp;
     for (size_t i = 0; i < graph->n; ++i) {
         if (graph->edges[vector_index][i]) {
-            it = findByVal(&clusters_numbers, w + i);
+            it = findByVal(&clusters_numbers, &vectors->v[i].w);
             if (!it.current) {
                 temp = (size_t*)malloc(sizeof(size_t));
-                *temp = w[i];
+                *temp = vectors->v[i].w;
                 pushBack(&clusters_numbers, temp);
             }
         }
@@ -239,12 +255,13 @@ static List getConnectedClustersNumbers(Graph* graph,
 //    return fabs(vectors->v[i_max].density - vectors->v[i_min].density);
 //}
 
-short isSignificantCluster(Vectors* vectors,
-                           size_t cluster_number,
-                           size_t* w, double h) {
+static short isSignificantCluster(Vectors* vectors,
+                                  size_t cluster_number,
+                                  double h) {
     for (size_t i = 0; i < vectors->count - 1; ++i) {
         for (size_t j = i + 1; j < vectors->count; ++j) {
-            if (w[i] == cluster_number && w[j] == cluster_number
+            if (vectors->v[i].w == cluster_number
+                && vectors->v[j].w == cluster_number
                 && fabs(vectors->v[i].density - vectors->v[j].density) >= h) {
                 return 1;
             }
@@ -274,8 +291,9 @@ size_t* Wishart(const double* const* vectors,
     // end of step 1
 
     // step 2
+    // every vector owns it`s cluster number w, w = 0.
     // this buffer is returned, and must be freed by calling side
-    size_t* w = (size_t*)calloc(vectors_count, sizeof(size_t));
+    size_t* w;
     // end of step 2
 
     size_t* connected_clusters_numbers;
@@ -298,7 +316,9 @@ size_t* Wishart(const double* const* vectors,
         // step 3
         graph_i = buildSubGraph(graph_n, iter + 1);
 
-        clusters_numbers = getConnectedClustersNumbers(&graph_i, iter, w);
+        clusters_numbers = getConnectedClustersNumbers(&graph_i,
+                                                       wVectors,
+                                                       iter);
 
         // step 3.1
         if (clusters_numbers.length == 0) {
@@ -308,7 +328,7 @@ size_t* Wishart(const double* const* vectors,
 
             pushBack(&Clusters, new_cluster);
 
-            w[iter] = new_cluster->number;
+            wVectors->v[iter].w = new_cluster->number;
         }
         // end of step 3.1
 
@@ -320,13 +340,13 @@ size_t* Wishart(const double* const* vectors,
 
             // step 3.2.1
             if (it.current && ((Cluster*)it.current->value)->formed) {
-                w[iter] = 0;
+                wVectors->v[iter].w = 0;
             }
             // end of step 3.2.1
 
             // step 3.2.2
             else if (it.current) {
-                w[iter] = ((Cluster*)it.current->value)->number;
+                wVectors->v[iter].w = ((Cluster*)it.current->value)->number;
             }
             // if !it.current then do nothing (zero class)
             // end of step 3.2.2
@@ -361,7 +381,7 @@ size_t* Wishart(const double* const* vectors,
 
             // step 3.3.1
             if (all_clusters_formed) {
-                w[iter] = 0;
+                wVectors->v[iter].w = 0;
             }
             // end of step 3.3.1
 
@@ -371,7 +391,7 @@ size_t* Wishart(const double* const* vectors,
                     if (connected_clusters_numbers[i]
                         && isSignificantCluster(wVectors,
                                                 connected_clusters_numbers[i],
-                                                w, h)) {
+                                                h)) {
                         temp = (size_t*)malloc(sizeof(size_t));
                         *temp = connected_clusters_numbers[i];
                         pushBack(&significant_clusters_numbers, temp);
@@ -381,7 +401,7 @@ size_t* Wishart(const double* const* vectors,
                 // step 3.3.2.1
                 if (significant_clusters_numbers.length > 1
                     || connected_clusters_numbers[0] == 0) {
-                    w[iter] = 0;
+                    wVectors->v[iter].w = 0;
                     for (it = begin(&significant_clusters_numbers);
                          !isIteratorAtEnd(it);
                          next(&it)) {
@@ -391,13 +411,14 @@ size_t* Wishart(const double* const* vectors,
                         }
                     }
                     for (i = 0; i < wVectors->count; ++i) {
-                        if (w[i] == 0) {
+                        if (wVectors->v[i].w == 0) {
                             continue;
                         }
-                        it = findByVal(&significant_clusters_numbers, w + i);
+                        it = findByVal(&significant_clusters_numbers,
+                                       &wVectors->v[i].w);
                         if (!it.current) {
-                            removeByVal(&Clusters, w + i);
-                            w[i] = 0;
+                            removeByVal(&Clusters, &wVectors->v[i].w);
+                            wVectors->v[i].w = 0;
                         }
                     }
                 }
@@ -405,11 +426,11 @@ size_t* Wishart(const double* const* vectors,
 
                 // step 3.3.2.2
                 else {
-                    w[iter] = connected_clusters_numbers[0];
+                    wVectors->v[iter].w = connected_clusters_numbers[0];
                     for (i = 0; i < iter; ++i) {  // TODO: check bounds
                         for (j = 1; j < clusters_numbers.length; ++j) {
-                            if (w[i] == connected_clusters_numbers[j]) {
-                                w[i] = connected_clusters_numbers[0];
+                            if (wVectors->v[i].w == connected_clusters_numbers[j]) {
+                                wVectors->v[i].w = connected_clusters_numbers[0];
                                 break;
                             }
                         }
@@ -432,6 +453,8 @@ size_t* Wishart(const double* const* vectors,
         // end of step 3
 
     }
+
+    w = getW(vectors, wVectors);
 
     releaseGraph(graph_n);
     releaseVectors(wVectors);

@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[]) {
     // runAllListTests();
-    // four_points_test();
+    four_points_test();
     eight_points_test();
     // fisher_iris_test();
     return 0;

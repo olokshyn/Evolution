@@ -14,6 +14,7 @@ typedef struct vector {
     const double* x;
     double kDistance;
     double density;
+    size_t w;  // Cluster number
 } Vector;
 
 typedef struct vectors {
