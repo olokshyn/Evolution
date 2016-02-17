@@ -98,6 +98,7 @@ static size_t* getW(const double* const* dVectors,
         for (j = 0; j < vectors->count; ++j) {  // for vectors
             if (dVectors[i] == vectors->v[j].x) {
                 w[i] = vectors->v[j].w;
+                break;
             }
         }
     }

@@ -14,6 +14,8 @@ void four_points_test();
 
 void eight_points_test();
 
+void twelve_points_test();
+
 void fisher_iris_test();
 
 #endif //WISHART_WISHARTTEST_H
