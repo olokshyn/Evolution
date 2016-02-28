@@ -440,3 +440,41 @@ size_t* Wishart(const double* const* vectors,
 
     return w;
 }
+
+List* WishartWrapped(const double* const* vectors,
+                     size_t vectors_count,
+                     size_t vector_length,
+                     size_t k,
+                     double h) {
+    size_t* w = Wishart(vectors, vectors_count, vector_length, k, h);
+    List* clusters = (List*)malloc(sizeof(List));
+    initList(clusters, NULL, (void (*)(void*))clearList);
+
+    List done_numbers;
+    initList(&done_numbers, _intCmp, _intDst);
+
+    List* new_cluster;
+    ListIterator it;
+    size_t* new;
+    for (size_t i = 0; i < vectors_count; ++i) {
+        it = findByVal(&done_numbers, w + i);
+        if (it.current) {
+            continue;
+        }
+        new = (size_t*)malloc(sizeof(size_t));
+        *new = w[i];
+        pushBack(&done_numbers, new);
+
+        new_cluster = (List*)malloc(sizeof(List));
+        initList(new_cluster, NULL, NULL);
+        for (size_t j = i; j < vectors_count; ++j) {
+            if (w[i] == w[j]) {
+                pushBack(new_cluster, (void*)vectors[j]);
+            }
+        }
+        pushBack(clusters, new_cluster);
+    }
+    clearList(&done_numbers);
+    free(w);
+    return clusters;
+}

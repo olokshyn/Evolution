@@ -17,7 +17,7 @@ short initList(List* list, comparator c, destructor d) {
 }
 
 short clearList(List* list) {
-    if (!list) {
+    if (!list || !list->d) {
         return 0;
     }
     if (!list->length || !list->head) {
@@ -85,7 +85,7 @@ ListIterator findByVal(List* list, void* value) {
             list,
             NULL
     };
-    if (!list || !list->length) {
+    if (!list || !list->length || !list->c) {
         return it;
     }
     it.current = list->head;

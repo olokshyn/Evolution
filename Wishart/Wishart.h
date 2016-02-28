@@ -36,4 +36,10 @@ size_t* Wishart(const double* const* vectors,
                 size_t k,
                 double h);
 
+List* WishartWrapped(const double* const* vectors,
+                     size_t vectors_count,
+                     size_t vector_length,
+                     size_t k,
+                     double h);
+
 #endif //WISHART_WISHART_H
