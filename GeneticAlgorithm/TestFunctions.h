@@ -1,7 +1,6 @@
 #ifndef TESTFUNCTIONSHEADER
 #define TESTFUNCTIONSHEADER
 
-#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include "Lib.h"

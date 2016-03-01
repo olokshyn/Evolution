@@ -3,6 +3,8 @@
 #include "GeneticAlgorithm.h"
 #include "TestFunctions.h"
 
+#define EPS 0.001
+
 int RunSimulation(size_t iterations_count,
                   size_t individuals_count,
                   size_t chromosome_size,
