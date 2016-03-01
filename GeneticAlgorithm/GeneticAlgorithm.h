@@ -26,28 +26,35 @@ typedef struct limit {
     double max;
 } Limit;
 
-typedef double(*Objective)(double*, int);
+typedef double(*ObjectiveFunc)(double*, int);
+
+typedef struct objective {
+    ObjectiveFunc func;
+    double min;
+    double max;
+    size_t max_args_count;  // 0 if no limit on args count
+    double optimum;  // not used
+    size_t best_k;  // not used
+    double best_h;  // not used
+} Objective;
 
 typedef struct world {
     List species;
-    Limit* limits;
-    Objective Ofunc;
     size_t world_size;
     size_t chr_size;
     double mutation_prob;
     size_t k;
     double h;
+    Objective obj;
 } World;
 
 void CreateWorld(World* world,
                  size_t world_size,
                  size_t chromosome_size,
                  double mutation_probability,
-                 double min_limit, 
-                 double max_limit,
-                 Objective Ofunc,
                  size_t k,
-                 double h);
+                 double h,
+                 Objective objective);
 
 void ClearWorld(World* world);
 

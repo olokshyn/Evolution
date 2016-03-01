@@ -11,7 +11,7 @@ static List* CreateEntitiesList();
 static void CrossEntities(Entity* parent1,
                           Entity* parent2,
                           Entity* child,
-                          Objective Ofunc,
+                          ObjectiveFunc Ofunc,
                           size_t chromosome_size);
 static void SetError(int error_code);
 
@@ -19,11 +19,9 @@ void CreateWorld(World* world,
                  size_t world_size,
                  size_t chromosome_size,
                  double mutation_probability,
-                 double min_limit, 
-                 double max_limit,
-                 Objective Ofunc,
                  size_t k,
-                 double h) {
+                 double h,
+                 Objective objective) {
     List* new_entities = NULL;
     Entity* new_entity = NULL;
 
@@ -33,21 +31,18 @@ void CreateWorld(World* world,
     }
     initList(&world->species, NULL, (void (*)(void*))clearListPointer);
     world->world_size = world_size;
-    world->chr_size = chromosome_size;
+    if (objective.max_args_count > 0) {
+        world->chr_size = chromosome_size <= objective.max_args_count
+                            ? chromosome_size
+                            : objective.max_args_count;
+    }
+    else {
+        world->chr_size = chromosome_size;
+    }
     world->mutation_prob = mutation_probability;
-    world->limits = NULL;
-    world->Ofunc = Ofunc;
     world->k = k;
     world->h = h;
-
-    world->limits = (Limit*)malloc(sizeof(Limit) * world->chr_size);
-    if (!world->limits) {
-        goto error_CreateWorld;
-    }
-    for (int i = 0; i < world->chr_size; ++i) {
-        world->limits[i].min = min_limit;
-        world->limits[i].max = max_limit;
-    }
+    world->obj = objective;
 
     new_entities = CreateEntitiesList();
 
@@ -64,10 +59,10 @@ void CreateWorld(World* world,
         }
         for (int j = 0; j < world->chr_size; ++j) {
             new_entity->chr[j] =
-                getRand(world->limits[j].min, world->limits[j].max);
+                getRand(world->obj.min, world->obj.max);
         }
-        new_entity->fitness = Ofunc(new_entity->chr,
-                                    (int)world->chr_size);
+        new_entity->fitness = world->obj.func(new_entity->chr,
+                                              (int)world->chr_size);
         if (!pushBack(new_entities, new_entity)) {
             goto error_CreateWorld;
         }
@@ -81,8 +76,7 @@ void CreateWorld(World* world,
     return;
 
 error_CreateWorld:
-    clearList(&world->species);
-    free(&world->limits);
+    ClearWorld(world);
     clearListPointer(new_entities);
     EntityDestructor(new_entity);
     SetError(ERROR_ALLOCATING_MEMORY);
@@ -90,7 +84,6 @@ error_CreateWorld:
 
 void ClearWorld(World* world) {
     clearList(&world->species);
-    free(world->limits);
 }
 
 void PerformClustering(World* world) {
@@ -157,8 +150,8 @@ void PerformClustering(World* world) {
             for (size_t i = 0; i < world->chr_size; ++i) {
                 new_entity->chr[i] = ((double*)vectorIt.current->value)[i];
             }
-            new_entity->fitness = world->Ofunc(new_entity->chr,
-                                               (int)world->chr_size);
+            new_entity->fitness = world->obj.func(new_entity->chr,
+                                                  (int)world->chr_size);
             if (!pushBack(new_entities, new_entity)) {
                 goto error_PerformClustering;
             }
@@ -201,10 +194,10 @@ void PerformMutation(World* world) {
             if (doWithProbability(world->mutation_prob)) {
                 size_t i = (size_t)selectRandom(0, (int)world->chr_size - 1);
                 ((Entity*)entityIt.current->value)->chr[i] =
-                        getRand(world->limits[i].min, world->limits[i].max);
+                        getRand(world->obj.min, world->obj.max);
                 ((Entity*)entityIt.current->value)->fitness =
-                        world->Ofunc(((Entity*)entityIt.current->value)->chr,
-                                     (int)world->chr_size);
+                        world->obj.func(((Entity*)entityIt.current->value)->chr,
+                                        (int)world->chr_size);
             }
         }
     }
@@ -242,7 +235,7 @@ void PerformCrossover(World* world) {
                 CrossEntities((Entity*)findByIndex(speciesList, i).current->value,
                               (Entity*)findByIndex(speciesList, j).current->value,
                               new_entity,
-                              world->Ofunc,
+                              world->obj.func,
                               world->chr_size);
                 if (!pushBack(new_entities, new_entity)) {
                     goto error_PerformCrossover;
@@ -389,7 +382,7 @@ static List* CreateEntitiesList() {
 static void CrossEntities(Entity* parent1,
                           Entity* parent2, 
                           Entity* child,
-                          Objective Ofunc,
+                          ObjectiveFunc Ofunc,
                           size_t chromosome_size) {
     size_t crossover_point = (chromosome_size % 2 == 0) ?
                                 (chromosome_size / 2) :

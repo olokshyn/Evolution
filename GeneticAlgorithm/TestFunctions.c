@@ -1,6 +1,95 @@
 #include "TestFunctions.h"
 
 
+Objective DeJongF1Objective = {
+    .func = DeJongF1,
+    .min = -5.12,
+    .max = 5.12,
+    .optimum = 0,
+};
+Objective DeJongF2Objective = {
+    .func = DeJongF2,
+    .min = -2.048,
+    .max = 2.048,
+    .optimum = 0,
+};
+Objective DeJongF3Objective = {
+    .func = DeJongF3,
+    .min = -5.12,
+    .max = 5.12,
+    .optimum = 25,
+};
+Objective DeJongF4Objective = {
+    .func = DeJongF4,
+    .min = -1.28,
+    .max = 1.28,
+    .optimum = 0,
+};
+Objective DeJongF5Objective = {
+    .func = DeJongF5,
+    .min = -65.536,
+    .max = 65.536,
+    .optimum = 500,
+    .max_args_count = 2,
+};
+
+Objective RastriginFuncObjective = {
+    .func = RastriginFunc,
+    .min = -5.12,
+    .max = 5.12,
+    .optimum = 0,
+};
+
+Objective SchwefelFuncObjective = {
+    .func = SchwefelFunc,
+    .min = -500,
+    .max = 500,
+    .optimum = 0,
+};
+
+Objective GriewangkFuncObjective = {
+    .func = GriewangkFunc,
+    .min = -500,
+    .max = 500,
+    .optimum = 0,
+};
+
+Objective StretchedVSineWaveFuncObjective = {
+    .func = StretchedVSineWaveFunc,
+    .min = -10,
+    .max = 10,
+    .optimum = 0,
+};
+
+Objective AckleyFuncObjective = {
+    .func = AckleyFunc,
+    .min = 32.768,
+    .max = -32.768,
+    .optimum = 0,
+};
+
+Objective EggHolderFuncObjective = {
+    .func = EggHolderFunc,
+    .min = -512,
+    .max = 512,
+    .optimum = -959.6497,
+};
+
+Objective RanaFuncObjective = {
+    .func = RanaFunc,
+    .min = -500,
+    .max = 500,
+    .optimum = 0,
+};
+
+Objective PathologicalFuncObjective = {
+    .func = PathologicalFunc,
+    .min = -100,
+    .max = 100,
+    .optimum = 0,
+};
+
+
 double DeJongF1(double* args, int args_size) {
     double res = 0;
     for (int i = 0; i < args_size; i++) {

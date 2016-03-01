@@ -5,7 +5,30 @@
 #include <math.h>
 
 #include "Lib.h"
+#include "GeneticAlgorithm.h"
 
+
+extern Objective DeJongF1Objective;
+extern Objective DeJongF2Objective;
+extern Objective DeJongF3Objective;
+extern Objective DeJongF4Objective;
+extern Objective DeJongF5Objective;
+
+extern Objective RastriginFuncObjective;
+
+extern Objective SchwefelFuncObjective;
+
+extern Objective GriewangkFuncObjective;
+
+extern Objective StretchedVSineWaveFuncObjective;
+
+extern Objective AckleyFuncObjective;
+
+extern Objective EggHolderFuncObjective;
+
+extern Objective RanaFuncObjective;
+
+extern Objective PathologicalFuncObjective;
 
 double DeJongF1(double* args, int args_size);  // De Jong`s F1 function, [-5.12, 5.12], max - 0, inversed
 double DeJongF2(double* args, int args_size);  // De Jong`s F2 function, [-2.048, 2.048], max - 0, inversed
@@ -17,7 +40,7 @@ double RastriginFunc(double* args, int args_size);  // Rastrigin`s function, [-5
 
 double SchwefelFunc(double* args, int args_size);  // Schwefel`s function, [-500, 500], max - 0, inversed, trouble
 
-double GriewangkFunc(double* args, int args_size);  // Griewangk’s function, [-500, 500], max - 0, inversed
+double GriewangkFunc(double* args, int args_size);  // Griewangk`s function, [-500, 500], max - 0, inversed
 
 double StretchedVSineWaveFunc(double* args, int args_size);  // Stretched V sine wave function, [-10, 10], max - 0, inversed
 

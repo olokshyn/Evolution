@@ -2,14 +2,12 @@
 
 
 int RunSimulation(size_t iterations_count,
-                   size_t individuals_count,
-                   size_t chromosome_size,
-                   double mutation_probability,
-                   double min_limit,
-                   double max_limit,
-                   Objective Ofunc,
-                   size_t k_neighbour,
-                   double cluster_height) {
+                  size_t individuals_count,
+                  size_t chromosome_size,
+                  double mutation_probability,
+                  size_t k_neighbour,
+                  double cluster_height,
+                  Objective objective) {
     int k = 0;
     double max_fitness = 0, cur_fitness = 0;
     World world;
@@ -17,11 +15,9 @@ int RunSimulation(size_t iterations_count,
                 individuals_count,
                 chromosome_size,
                 mutation_probability,
-                min_limit,
-                max_limit,
-                Ofunc,
                 k_neighbour,
-                cluster_height);
+                cluster_height,
+                objective);
     if (GetLastError()) {
         printf("Error creating world\n");
         goto end;

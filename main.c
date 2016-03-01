@@ -22,9 +22,8 @@ int main(int argc, char* argv[]) {
                   100,  // individuals_count
                   5,  // chromosome_size
                   0.5,  // mutation_probability
-                  -5.12,  // min_limits
-                  5.12,  // max_limit
-                  RastriginFunc,  // Objective func
                   1,  // k_neighbour
-                  0.01334);  // cluster_height
+                  0.01334, // cluster_height
+                  DeJongF1Objective  // Objective function
+                 );
 }
