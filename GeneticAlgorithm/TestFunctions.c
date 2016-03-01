@@ -124,7 +124,8 @@ double RanaFunc(double* args, int args_size) {
 double PathologicalFunc(double* args, int args_size) {
     double res = 0;
     for (int i = 0; i < args_size - 1; i++) {
-        double temp = 1 + 0.001 * pow(args[i] - args[i + 1], 4);
+        // TODO: check this function
+        // double temp = 1 + 0.001 * pow(args[i] - args[i + 1], 4);
         res += 0.5 
             + (pow(sin(sqrt(100 * pow(args[i], 2) + pow(args[i + 1], 2))), 2) - 0.5)
             / (1 + 0.001 * pow(args[i] - args[i + 1], 4));

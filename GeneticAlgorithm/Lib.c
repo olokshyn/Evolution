@@ -55,7 +55,7 @@ int selectRandom(int rangeLow, int rangeHigh) {
 //    size_t i, n = 0;
 //    do
 //    {
-//        for (i = 0; i < sizeof (double); i++)
+//        for (i = 0; i < sizeof (double); ++i)
 //        {
 //            p[i] = rand() / (RAND_MAX + 1.0) * (UCHAR_MAX + 1.0);
 //        }

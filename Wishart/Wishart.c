@@ -395,7 +395,7 @@ size_t* Wishart(const double* const* vectors,
                         it = findByVal(&significant_clusters_numbers,
                                        &wVectors->v[i].w);
                         if (!it.current) {
-                            removeByVal(&Clusters, &wVectors->v[i].w);
+                            removeByValue(&Clusters, &wVectors->v[i].w);
                             wVectors->v[i].w = 0;
                         }
                     }
@@ -414,7 +414,7 @@ size_t* Wishart(const double* const* vectors,
                         }
                     }
                     for (i = 1; i < clusters_numbers.length; ++i) {
-                        removeByVal(&Clusters, connected_clusters_numbers + i);
+                        removeByValue(&Clusters, connected_clusters_numbers + i);
                     }
                 }
                 // end of step 3.3.2.2
@@ -448,7 +448,7 @@ List* WishartWrapped(const double* const* vectors,
                      double h) {
     size_t* w = Wishart(vectors, vectors_count, vector_length, k, h);
     List* clusters = (List*)malloc(sizeof(List));
-    initList(clusters, NULL, (void (*)(void*))clearList);
+    initList(clusters, NULL, (void (*)(void*))clearListPointer);
 
     List done_numbers;
     initList(&done_numbers, _intCmp, _intDst);

@@ -34,13 +34,19 @@ short initList(List* list, comparator c, destructor d);
 
 short clearList(List* list);
 
+short clearListPointer(List* list);
+
 short pushBack(List* list, void* value);
 
 short insert(ListIterator next, void* value);
 
 ListIterator findByVal(List* list, void* value);
 
-short removeByVal(List* list, void* value);
+ListIterator findByIndex(List* list, size_t index);
+
+short removeByValue(List* list, void* value);
+
+short removeByIndex(List* list, size_t index);
 
 short removeFromList(ListIterator it);
 

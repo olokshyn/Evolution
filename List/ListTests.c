@@ -220,7 +220,7 @@ void testRemoveByVal() {
         }
     }
     i = 3;
-    if (!removeByVal(&list, &i)) {
+    if (!removeByValue(&list, &i)) {
         printFailureMsg(testName);
         return;
     }

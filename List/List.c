@@ -17,7 +17,7 @@ short initList(List* list, comparator c, destructor d) {
 }
 
 short clearList(List* list) {
-    if (!list || !list->d) {
+    if (!list) {
         return 0;
     }
     if (!list->length || !list->head) {
@@ -26,7 +26,9 @@ short clearList(List* list) {
     Node* temp;
     while (list->head != NULL) {
         temp = list->head->next;
-        list->d(list->head->value);
+        if (list->d) {
+            list->d(list->head->value);
+        }
         free(list->head);
         list->head = temp;
     }
@@ -36,11 +38,20 @@ short clearList(List* list) {
     return 1;
 }
 
+short clearListPointer(List* list) {
+    short result = clearList(list);
+    free(list);
+    return result;
+}
+
 short pushBack(List* list, void* value) {
     if (!list) {
         return 0;
     }
     Node* new = (Node*)malloc(sizeof(Node));
+    if (!new) {
+        return 0;
+    }
     new->value = value;
     new->prev = list->tail;
     new->next = NULL;
@@ -60,6 +71,9 @@ short insert(ListIterator nextIt, void* value) {
         return 0;
     }
     Node* new = (Node*)malloc(sizeof(Node));
+    if (!new) {
+        return 0;
+    }
     new->value = value;
     new->next = nextIt.current;
     if (new->next) {
@@ -98,8 +112,30 @@ ListIterator findByVal(List* list, void* value) {
     return it;
 }
 
-short removeByVal(List* list, void* value) {
+ListIterator findByIndex(List* list, size_t index) {
+    ListIterator it = {
+            list,
+            NULL
+    };
+    if (!list || index >= list->length) {
+        return it;
+    }
+    it.current = list->head;
+    size_t curr_index = 0;
+    while (curr_index < index) {
+        it.current = it.current->next;
+        ++curr_index;
+    }
+    return it;
+}
+
+short removeByValue(List* list, void* value) {
     ListIterator it = findByVal(list, value);
+    return removeFromList(it);
+}
+
+short removeByIndex(List* list, size_t index) {
+    ListIterator it = findByIndex(list, index);
     return removeFromList(it);
 }
 
@@ -119,7 +155,9 @@ short removeFromList(ListIterator it) {
     else {
         it.list->head = it.current->next;
     }
-    it.list->d(it.current->value);
+    if (it.list->d) {
+        it.list->d(it.current->value);
+    }
     free(it.current);
     --it.list->length;
     return 1;

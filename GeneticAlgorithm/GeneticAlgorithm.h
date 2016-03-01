@@ -5,6 +5,8 @@
 #include <math.h>
 #include <time.h>
 
+#include "../List/List.h"
+
 #include "Lib.h"
 
 
@@ -15,7 +17,7 @@
 #define ERROR_INVALID_POINTER -2
 
 typedef struct entity {
-    double chr[CHROMOSOME_SIZE];
+    double* chr;
     double fitness;
 } Entity;
 
@@ -27,29 +29,37 @@ typedef struct limit {
 typedef double(*Objective)(double*, int);
 
 typedef struct world {
-    Entity* entities;
+    List species;
     Limit* limits;
     Objective Ofunc;
-    int world_size;
-    int chromosome_size;
+    size_t world_size;
+    size_t chr_size;
+    double mutation_prob;
+    size_t k;
+    double h;
 } World;
 
 void CreateWorld(World* world,
-                 int world_size, 
+                 size_t world_size,
+                 size_t chromosome_size,
+                 double mutation_probability,
                  double min_limit, 
                  double max_limit,
-                 Objective Ofunc);
+                 Objective Ofunc,
+                 size_t k,
+                 double h);
 
 void ClearWorld(World* world);
 
-void PerformMutation(World* world,
-                     double mutation_prob);
+void PerformClustering(World* world);
+
+void PerformMutation(World* world);
+
 void PerformCrossover(World* world);
 
 double GetMaxFitness(World* world);
 
-double Step(World* world, 
-            double mutation_prob);
+double Step(World* world);
 
 int GetLastError();
 
