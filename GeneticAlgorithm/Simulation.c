@@ -26,7 +26,9 @@ int RunSimulation(size_t iterations_count,
                   double mutation_probability,
                   size_t k_neighbour,
                   double cluster_height,
-                  Objective objective) {
+                  Objective objective,
+                  size_t* iterations_made,
+                  short silent) {
     int k = 0;
     double max_fitness = 0, cur_fitness = 0;
     World world;
@@ -57,19 +59,29 @@ int RunSimulation(size_t iterations_count,
             max_fitness = cur_fitness;
         }
         if (fabs(objective.optimum - max_fitness) < EPS) {
-            printf(success_template,
-                   objective.optimum,
-                   max_fitness,
-                   i);
+            if (!silent) {
+                printf(success_template,
+                       objective.optimum,
+                       max_fitness,
+                       i);
+            }
             ClearWorld(&world);
+            if (iterations_made) {
+                *iterations_made = i;
+            }
             return 1;
         }
     }
-    printf(failure_template,
-           objective.optimum,
-           max_fitness,
-           iterations_count);
+    if (!silent) {
+        printf(failure_template,
+               objective.optimum,
+               max_fitness,
+               iterations_count);
+    }
     ClearWorld(&world);
+    if (iterations_made) {
+        *iterations_made = iterations_count;
+    }
     return 0;
 
 error_RunSimulation:
@@ -78,5 +90,8 @@ error_RunSimulation:
            max_fitness,
            iterations_count);
     ClearWorld(&world);
-    return GetLastError();
+    if (iterations_made) {
+        *iterations_made = iterations_count;
+    }
+    return 0;
 }

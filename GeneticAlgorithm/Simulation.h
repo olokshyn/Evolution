@@ -11,4 +11,6 @@ int RunSimulation(size_t iterations_count,
                   double mutation_probability,
                   size_t k_neighbour,
                   double cluster_height,
-                  Objective objective);
+                  Objective objective,
+                  size_t* iterations_made,
+                  short silent);

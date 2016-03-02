@@ -39,16 +39,16 @@ double RastriginFunc(double* args, int args_size);  // Rastrigin`s function, [-5
 
 double SchwefelFunc(double* args, int args_size);  // Schwefel`s function, [-500, 500], max - 0, inversed, trouble
 
-double GriewangkFunc(double* args, int args_size);  // Griewangk`s function, [-500, 500], max - 0, inversed
+double GriewangkFunc(double* args, int args_size);  // Griewangk`s function, [-600, 600], max - 0, inversed
 
 double StretchedVSineWaveFunc(double* args, int args_size);  // Stretched V sine wave function, [-10, 10], max - 0, inversed
 
 double AckleyFunc(double* args, int args_size);  // Ackley`s function, [-32.768, 32.768], max - 0, inversed
 
-double EggHolderFunc(double* args, int args_size);  // Egg Holder function, [-512, 512], max - 959.6407, inversed, trouble - solved
+double EggHolderFunc(double* args, int args_size);  // Egg Holder function, [-512, 512], min - -959.6407, inversed, trouble - solved
 
-double RanaFunc(double* args, int args_size);  // Rana`s function, [-500, 500], max - 0, inversed, trouble
+double RanaFunc(double* args, int args_size);  // Rana`s function, [-500, 500], max - 0, trouble
 
-double PathologicalFunc(double* args, int args_size);  // Pathological test function, [-100, 100], max - 0, inversed
+double PathologicalFunc(double* args, int args_size);  // Pathological test function, [-100, 100], min - 0, inversed
 
 #endif

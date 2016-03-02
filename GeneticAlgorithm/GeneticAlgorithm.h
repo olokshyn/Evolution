@@ -10,8 +10,9 @@
 #include "Lib.h"
 
 
+#define ENABLE_CLUSTERING 1
+
 #define DOUBLE_EPS 0.0001
-#define CHROMOSOME_SIZE 2
 
 #define ERROR_ALLOCATING_MEMORY -1
 #define ERROR_INVALID_POINTER -2

@@ -46,7 +46,7 @@ void CreateWorld(World* world,
 
     new_entities = CreateEntitiesList();
 
-    srand((unsigned int)time(NULL));
+//    srand((unsigned int)time(NULL));
     for (size_t i = 0; i < world_size; ++i) {
         new_entity = (Entity*)malloc(sizeof(Entity));
         if (!new_entity) {
@@ -312,10 +312,12 @@ double GetMaxFitness(World* world) {
 
 double Step(World* world) {
     ResetLastError();
+#if defined(ENABLE_CLUSTERING) && ENABLE_CLUSTERING
     PerformClustering(world);
     if (GetLastError()) {
         return 0.0;
     }
+#endif
     PerformMutation(world);
     if (GetLastError()) {
         return 0.0;
