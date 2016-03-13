@@ -8,6 +8,9 @@ set(LIST_SOURCE_FILES
 set(WISHART_SOURCE_FILES
         Wishart/Wishart.h Wishart/Wishart.c
         Wishart/WishartTest.c Wishart/WishartTest.h)
+set(AGGLOMERATIVE_SOURCE_FILES
+        AgglomerativeClustering/AgglomerativeClustering.cpp
+        AgglomerativeClustering/AgglomerativeClustering.h)
 set(GENETIC_ALGORITHM_SOURCE_FILES
         GeneticAlgorithm/Simulation.h GeneticAlgorithm/Simulation.c
         GeneticAlgorithm/Lib.h GeneticAlgorithm/Lib.c
@@ -17,5 +20,7 @@ set(SOURCE_FILES
         main.c
         ${LIST_SOURCE_FILES}
         ${WISHART_SOURCE_FILES}
+        ${AGGLOMERATIVE_SOURCE_FILES}
         ${GENETIC_ALGORITHM_SOURCE_FILES})
-add_executable(Wishart ${SOURCE_FILES})
+add_executable(Evolution ${SOURCE_FILES})
+target_compile_features(Evolution PRIVATE cxx_range_for)

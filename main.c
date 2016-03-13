@@ -122,24 +122,24 @@ int main(int argc, char* argv[]) {
     size_t chromosome_size = 2;
     double mutation_probability = 0.5;
     size_t k_neighbour = 5;
-    double cluster_height = 0.4;
+    double cluster_height = 0.0;
 
-//    runForAllFucntions(iterations_count,
-//                       individuals_count,
-//                       chromosome_size,
-//                       mutation_probability,
-//                       k_neighbour,
-//                       cluster_height);
+    runForAllFucntions(iterations_count,
+                       individuals_count,
+                       chromosome_size,
+                       mutation_probability,
+                       k_neighbour,
+                       cluster_height);
 
-    double avg = getAvgIterCount(5,
-                                 iterations_count,
-                                 individuals_count,
-                                 chromosome_size,
-                                 mutation_probability,
-                                 k_neighbour,
-                                 cluster_height,
-                                 SchwefelFuncObjective);
-    printf("Average iterations count: %.3f\n", avg);
+//    double avg = getAvgIterCount(5,
+//                                 iterations_count,
+//                                 individuals_count,
+//                                 chromosome_size,
+//                                 mutation_probability,
+//                                 k_neighbour,
+//                                 cluster_height,
+//                                 DeJongF3Objective);
+//    printf("Average iterations count: %.3f\n", avg);
 
     return 0;
 }

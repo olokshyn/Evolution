@@ -1,6 +1,8 @@
 #include "GeneticAlgorithm.h"
 #include "../Wishart/Wishart.h"
+#include "../AgglomerativeClustering/AgglomerativeClustering.h"
 
+#define CLUSTERING_ALGORITHM WishartWrapped
 
 static int last_error = 0;
 
@@ -118,11 +120,11 @@ void PerformClustering(World* world) {
     }
 
     // TODO: add memory allocation checks
-    clustered_species = WishartWrapped((const double* const*)vectors,
-                                       world->world_size,
-                                       world->chr_size,
-                                       world->k,
-                                       world->h);
+    clustered_species = CLUSTERING_ALGORITHM((const double* const*)vectors,
+                                             world->world_size,
+                                             world->chr_size,
+                                             world->k,
+                                             world->h);
     if (!clustered_species) {
         goto error_PerformClustering;
     }
@@ -213,6 +215,9 @@ void PerformCrossover(World* world) {
             !isIteratorAtEnd(speciesIt);
             next(&speciesIt)) {
         List* speciesList = (List*)speciesIt.current->value;
+        if (speciesList->length == 1) {
+            continue;
+        }
         new_entities = CreateEntitiesList();
         if (!new_entities) {
             goto error_PerformCrossover;

@@ -254,6 +254,7 @@ size_t* Wishart(const double* const* vectors,
                 size_t vector_length,
                 size_t k,
                 double h) {
+    assert(h >= 0.0);
     size_t i, j;
 
     Vectors* wVectors = createVectors(vectors,
