@@ -73,7 +73,8 @@ List* AgglomerativeClustering(const double* const* vectors,
         ++level;
     }
 
-    size_t selected_level = (level > 2) ? level - 2 : level;
+    size_t selected_level = (level > 2) ? level - 2
+                                        : ((level > 1) ? level - 1 : level);
     return ConvertToList(levels[selected_level]);
 }
 

@@ -18,6 +18,7 @@ Objective DeJongF3Objective = {
     .min = -5.12,
     .max = 5.12,
     .optimum = 25,
+    .max_args_count = 5
 };
 Objective DeJongF4Objective = {
     .func = DeJongF4,

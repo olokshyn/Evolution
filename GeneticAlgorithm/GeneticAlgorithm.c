@@ -2,7 +2,7 @@
 #include "../Wishart/Wishart.h"
 #include "../AgglomerativeClustering/AgglomerativeClustering.h"
 
-#define CLUSTERING_ALGORITHM WishartWrapped
+#define CLUSTERING_ALGORITHM AgglomerativeClustering
 
 static int last_error = 0;
 

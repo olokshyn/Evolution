@@ -12,7 +12,9 @@
 #include "GeneticAlgorithm/Simulation.h"
 
 
-void runForAllFucntions(size_t iterations_count,
+void runForAllFucntions(size_t max_iterations_count,
+                        size_t stable_value_iterations_count,
+                        double stable_value_eps,
                         size_t individuals_count,
                         size_t chromosome_size,
                         double mutation_probability,
@@ -30,7 +32,6 @@ void runForAllFucntions(size_t iterations_count,
             "Stretched V sine wave function",
             "Ackley`s function",
             "EggHolder function",
-            "Rana`s function",
             "Pathological test function"
     };
 
@@ -46,7 +47,6 @@ void runForAllFucntions(size_t iterations_count,
             StretchedVSineWaveFuncObjective,
             AckleyFuncObjective,
             EggHolderFuncObjective,
-            RanaFuncObjective,
             PathologicalFuncObjective
     };
 
@@ -57,7 +57,9 @@ void runForAllFucntions(size_t iterations_count,
 
     for (size_t i = 0; i < functionsCount; ++i) {
         printf("%s\n", functionNames[i]);
-        RunSimulation(iterations_count,
+        RunSimulation(max_iterations_count,
+                      stable_value_iterations_count,
+                      stable_value_eps,
                       individuals_count,
                       chromosome_size,
                       mutation_probability,
@@ -71,7 +73,9 @@ void runForAllFucntions(size_t iterations_count,
 }
 
 double getAvgIterCount(size_t tests_count,
-                       size_t iterations_count,
+                       size_t max_iterations_count,
+                       size_t stable_value_iterations_count,
+                       double stable_value_eps,
                        size_t individuals_count,
                        size_t chromosome_size,
                        double mutation_probability,
@@ -84,7 +88,9 @@ double getAvgIterCount(size_t tests_count,
     int status;
     for (size_t i = 0; i < tests_count; ++i) {
         iterations_made = 0;
-        status = RunSimulation(iterations_count,
+        status = RunSimulation(max_iterations_count,
+                               stable_value_iterations_count,
+                               stable_value_eps,
                                individuals_count,
                                chromosome_size,
                                mutation_probability,
@@ -117,14 +123,18 @@ int main(int argc, char* argv[]) {
     // twelve_points_test();
     // fisher_iris_test();
 
-    size_t iterations_count = 2000;
+    size_t max_iterations_count = 100000;
+    size_t stable_value_iterations_count = 1000;
+    double stable_value_eps = 1e-5;
     size_t individuals_count = 100;
-    size_t chromosome_size = 2;
+    size_t chromosome_size = 200;
     double mutation_probability = 0.5;
     size_t k_neighbour = 5;
     double cluster_height = 0.0;
 
-    runForAllFucntions(iterations_count,
+    runForAllFucntions(max_iterations_count,
+                       stable_value_iterations_count,
+                       stable_value_eps,
                        individuals_count,
                        chromosome_size,
                        mutation_probability,
