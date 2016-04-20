@@ -62,7 +62,7 @@ int InitThreads(size_t threads_number) {
 
 int DestroyThreads() {
     int status = JoinTasks();
-    if (status != 0) {
+    if (status) {
         return status;
     }
 
@@ -88,20 +88,20 @@ int DestroyThreads() {
 }
 
 
-int AddTasks(const task_info* tasks, size_t tasks_number) {
+int AddTasks(task_info* tasks, size_t tasks_number) {
     int status = 0;
     if (tasks_data) {
         status = JoinTasks();
-        if (status != 0) {
+        if (status) {
             return status;
         }
     }
 
     pthread_mutex_lock(&mutex);
     tasks_count = tasks_number;
-    tasks_data = (task_info*)calloc(tasks_count, sizeof(task_info));
+    tasks_data = tasks;
     for (size_t i = 0; i < tasks_count; ++i) {
-        tasks_data[i] = tasks[i];
+        tasks_data[i].processed = 0;
     }
 
     task_info* new_tasks = tasks_data;
@@ -150,7 +150,6 @@ int JoinTasks() {
     }
 
     tasks_count = 0;
-    free(tasks_data);
     tasks_data = NULL;
     pthread_mutex_unlock(&mutex);
     return status;
@@ -171,12 +170,11 @@ static void* _ThreadRoutine(void* thread_index) {
         pthread_mutex_unlock(&mutex);
 
 
-        int status = threads_data[index].task->routine(threads_data[index].task->arg);
+        threads_data[index].task->result =
+                threads_data[index].task->routine(threads_data[index].task->arg);
 
         pthread_mutex_lock(&mutex);
-        if (status == 0) {
-            threads_data[index].task->processed = 1;
-        }
+        threads_data[index].task->processed = 1;
         threads_data[index].is_running = 0;
         pthread_cond_broadcast(&cond_end);
         pthread_mutex_unlock(&mutex);
@@ -192,8 +190,14 @@ static int _StartTasks(task_info** tasks, size_t* tasks_number) {
         tasks_pointers[i] = *tasks + i;
     }
     task_info** temp = tasks_pointers;
+    size_t temp_size = *tasks_number;
     int status = _StartTasksByPointers(&tasks_pointers, tasks_number);
-    *tasks = *tasks_pointers;
+    if (!tasks_pointers || tasks_pointers >= temp + temp_size) {
+        *tasks = NULL;
+    }
+    else {
+        *tasks = *tasks_pointers;
+    }
     free(temp);
     return status;
 }
@@ -201,6 +205,9 @@ static int _StartTasks(task_info** tasks, size_t* tasks_number) {
 
 static int _StartTasksByPointers(task_info*** tasks_pointers,
                                  size_t* tasks_number) {
+    if (!*tasks_pointers) {
+        return 0;
+    }
     for (size_t i = 0; i < threads_count && *tasks_number > 0; ++i) {
         if (!threads_data[i].is_running) {
             threads_data[i].task = *((*tasks_pointers)++);

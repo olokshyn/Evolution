@@ -8,14 +8,13 @@
 #include "Threads.h"
 #include "ThreadTests.h"
 
-
-int test_routine1(void* arg) {
+void* test_routine1(void* arg) {
     int n = 5;
     while (n-- > 0) {
         printf("Test routine %d\n", (int)arg);
         sleep(1);
     }
-    return 0;
+    return NULL;
 }
 
 int threads_tests() {
@@ -23,7 +22,7 @@ int threads_tests() {
     status = InitThreads(2);
     printf("InitThreads returned %d\n", status);
 
-    const task_info tasks[] = {
+    task_info tasks[] = {
             {test_routine1, (void*)1},
             {test_routine1, (void*)2},
             {test_routine1, (void*)3},
@@ -32,7 +31,7 @@ int threads_tests() {
     };
 
     status = AddTasks(tasks, sizeof(tasks) / sizeof(task_info));
-    printf("InitThreads returned %d\n", status);
+    printf("AddTasks returned %d\n", status);
 
     status = JoinTasks();
     printf("JoinTasks returned %d\n", status);

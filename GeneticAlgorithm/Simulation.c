@@ -1,13 +1,13 @@
-#include "Simulation.h"
+#include <time.h>
 
-#define COLORED_OUTPUT 0
+#include "Simulation.h"
 
 #if COLORED_OUTPUT
     #define ANSI_COLOR_GREEN   "\x1b[32m"
     #define ANSI_COLOR_RED     "\x1b[31m"
     #define ANSI_COLOR_RESET   "\x1b[0m"
 #else
-    #define ANSI_COLOR_GREEN   "\t"
+    #define ANSI_COLOR_GREEN
     #define ANSI_COLOR_RED
     #define ANSI_COLOR_RESET
 #endif
@@ -15,12 +15,15 @@
 
 const char* success_template = ANSI_COLOR_GREEN "SUCCESS" ANSI_COLOR_RESET
                                ": optimum: %.3f \t best: %.3f "
-                               "\t iterations: %zu\n";
+                               "\t iterations: %zu "
+                               "\t avg time spent on a step: %.3f\n";
 const char* failure_template = ANSI_COLOR_RED "FAILURE" ANSI_COLOR_RESET
                                ": optimum: %.3f \t best: %.3f "
-                               "\t iterations: %zu\n";
+                               "\t iterations: %zu "
+                               "\t avg time spent on a step: %.3f\n";
 const char* complete_template = "optimum: %.3f \t best: %.3f "
-                                "\t iterations: %zu\n";
+                                "\t iterations: %zu "
+                                "\t avg time spent on a step: %.3f\n";
 
 int RunSimulation(size_t max_iterations_count,
                   size_t stable_value_iterations_count,
@@ -33,6 +36,9 @@ int RunSimulation(size_t max_iterations_count,
                   Objective objective,
                   size_t* iterations_made,
                   short silent) {
+    clock_t begin, end;
+    double time_spent = 0.0;
+
     int k = 0;
     double max_fitness = 0, cur_fitness = 0, prev_max_fitness = 0;
     World world;
@@ -52,7 +58,10 @@ int RunSimulation(size_t max_iterations_count,
 
     size_t value_is_stable_count = 0;
     for (size_t i = 0; i < max_iterations_count; ++i) {
+        begin = clock();
         cur_fitness = Step(&world);
+        end = clock();
+        time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
         if (GetLastError()) {
             printf("Error occurred, terminating...\n");
             goto error_RunSimulation;
@@ -68,19 +77,22 @@ int RunSimulation(size_t max_iterations_count,
             if (stable_value_iterations_count > 0
                     && value_is_stable_count >= stable_value_iterations_count) {
                 int success = 1;
+                time_spent /= i;
                 if (!silent) {
                     if (fabs(objective.optimum - max_fitness) < 0.001) {
                         printf(success_template,
                                objective.optimum,
                                max_fitness,
-                               i);
+                               i,
+                               time_spent);
                         success = 1;
                     }
                     else {
                         printf(failure_template,
                                objective.optimum,
                                max_fitness,
-                               i);
+                               i,
+                               time_spent);
                         success = 0;
                     }
                 }
@@ -96,18 +108,21 @@ int RunSimulation(size_t max_iterations_count,
         }
         prev_max_fitness = max_fitness;
     }
+    time_spent /= max_iterations_count;
     if (!silent) {
         if (stable_value_iterations_count > 0) {
             printf(failure_template,
                    objective.optimum,
                    max_fitness,
-                   max_iterations_count);
+                   max_iterations_count,
+                   time_spent);
         }
         else {
             printf(complete_template,
                    objective.optimum,
                    max_fitness,
-                   max_iterations_count);
+                   max_iterations_count,
+                   time_spent);
         }
     }
     ClearWorld(&world);

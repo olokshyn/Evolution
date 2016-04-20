@@ -10,12 +10,20 @@
 #include "Lib.h"
 
 
+#define ENABLE_THREADS 0
+#if defined(ENABLE_THREADS) && ENABLE_THREADS
+    #define THREADS_COUNT 4
+#endif
+
 #define ENABLE_CLUSTERING 1
+
+#define COLORED_OUTPUT 0
 
 #define DOUBLE_EPS 0.0001
 
-#define ERROR_ALLOCATING_MEMORY -1
-#define ERROR_INVALID_POINTER -2
+#define ERROR_GENERIC -1
+#define ERROR_ALLOCATING_MEMORY -2
+#define ERROR_INVALID_POINTER -3
 
 typedef struct entity {
     double* chr;

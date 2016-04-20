@@ -7,11 +7,12 @@
 
 #include <pthread.h>
 
-typedef int (*thread_routine)(void*);
+typedef void* (*thread_routine)(void*);
 
 typedef struct {
     thread_routine routine;
     void* arg;
+    void* result;
     int processed;
 } task_info;
 
@@ -25,7 +26,7 @@ int InitThreads(size_t threads_number);
 
 int DestroyThreads();
 
-int AddTasks(const task_info* tasks, size_t tasks_number);
+int AddTasks(task_info* tasks, size_t tasks_number);
 
 int JoinTasks();
 
