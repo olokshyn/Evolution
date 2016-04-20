@@ -22,19 +22,7 @@ static void CrossEntities(Entity* parent1,
                           Entity* child,
                           ObjectiveFunc Ofunc,
                           size_t chromosome_size);
-static int PerformCrossoverInSpecies(List** species_pointer, World* world);
 static void SetError(int error_code);
-
-#if defined(ENABLE_THREADS) && ENABLE_THREADS
-    static void* CrossoverThreadWrapper(void* arg);
-
-    typedef struct {
-        List*** species;
-        World* world;
-    } crossover_info;
-
-    crossover_info crossover_shared = {0};
-#endif
 
 void CreateWorld(World* world,
                  size_t world_size,
@@ -237,55 +225,95 @@ void PerformMutation(World* world) {
 }
 
 void PerformCrossover(World* world) {
-#if defined(ENABLE_THREADS) && ENABLE_THREADS
-    task_info* tasks =
-            (task_info*)malloc(world->species.length * sizeof(task_info));
-    crossover_shared.species =
-            (List***)malloc(world->species.length * sizeof(List**));
-    crossover_shared.world = world;
+    List* new_entities = NULL;
+    List* sorted_new_entities = NULL;
+    Entity* new_entity = NULL;
+    Entity** entities_p = NULL;
 
-    size_t index = 0;
-    for (ListIterator speciesIt = begin(&world->species);
-            !isIteratorAtEnd(speciesIt);
-            next(&speciesIt), ++index) {
-        tasks[index].routine = CrossoverThreadWrapper;
-        tasks[index].arg = (void*)index;
-        crossover_shared.species[index] = (List**)&speciesIt.current->value;
-    }
-
-    int status = AddTasks(tasks, index);
-    if (status) {
-        SetError(ERROR_GENERIC);
-    }
-
-    status = JoinTasks();
-    if (status) {
-        SetError(ERROR_GENERIC);
-    }
-
-    for (size_t i = 0; i < index; ++i) {
-        if (*(int*)tasks[i].result) {
-            SetError(*(int*)tasks[i].result);
-        }
-        free(tasks[i].result);
-    }
-    free(tasks);
-    free(crossover_shared.species);
-
-#else
     for (ListIterator speciesIt = begin(&world->species);
             !isIteratorAtEnd(speciesIt);
             next(&speciesIt)) {
-
-        int status =
-                PerformCrossoverInSpecies((List**)&speciesIt.current->value,
-                                          world);
-        if (status) {
-            SetError(status);
-            return;
+        List* speciesList = (List*)speciesIt.current->value;
+        if (speciesList->length == 1) {
+            continue;
         }
+        new_entities = CreateEntitiesList();
+        if (!new_entities) {
+            goto error_PerformCrossover;
+        }
+
+        for (size_t i = 0; i < speciesList->length; ++i) {
+            for (size_t j = 0; j < speciesList->length; ++j) {
+                if (i == j) {
+                    continue;
+                }
+                new_entity = (Entity*)malloc(sizeof(Entity));
+                if (!new_entity) {
+                    goto error_PerformCrossover;
+                }
+                new_entity->chr = (double*)malloc(sizeof(double)
+                                                  * world->chr_size);
+                if (!new_entity->chr) {
+                    goto error_PerformCrossover;
+                }
+                CrossEntities((Entity*)findByIndex(speciesList, i).current->value,
+                              (Entity*)findByIndex(speciesList, j).current->value,
+                              new_entity,
+                              world->obj.func,
+                              world->chr_size);
+                if (!pushBack(new_entities, new_entity)) {
+                    goto error_PerformCrossover;
+                }
+                new_entity = NULL;
+            }
+        }
+
+        entities_p = (Entity**)malloc(sizeof(Entity*) * new_entities->length);
+        if (!entities_p) {
+            goto error_PerformCrossover;
+        }
+        size_t index = 0;
+        for (ListIterator entityIt = begin(new_entities);
+                !isIteratorAtEnd(entityIt);
+                next(&entityIt), ++index) {
+            entities_p[index] = (Entity*)entityIt.current->value;
+        }
+        qsort(entities_p,
+              new_entities->length,
+              sizeof(Entity*),
+              EntityComparator);
+
+        sorted_new_entities = CreateEntitiesList();
+        if (!sorted_new_entities) {
+            goto error_PerformCrossover;
+        }
+        for (size_t i = 0; i < speciesList->length; ++i) {
+            new_entity = CopyEntity(entities_p[i], world->chr_size);
+            if (!new_entity) {
+                goto error_PerformCrossover;
+            }
+            if (!pushBack(sorted_new_entities, new_entity)) {
+                goto error_PerformCrossover;
+            }
+            new_entity = NULL;
+        }
+        clearListPointer(new_entities);
+        new_entities = NULL;
+        clearListPointer(speciesIt.current->value);
+        speciesIt.current->value = sorted_new_entities;
+        sorted_new_entities = NULL;
+        free(entities_p);
+        entities_p = NULL;
     }
-#endif
+
+    return;
+
+error_PerformCrossover:
+    clearListPointer(new_entities);
+    clearListPointer(sorted_new_entities);
+    EntityDestructor(new_entity);
+    free(entities_p);
+    SetError(ERROR_ALLOCATING_MEMORY);
 }
 
 double GetMaxFitness(World* world) {
@@ -394,104 +422,6 @@ static void CrossEntities(Entity* parent1,
     child->fitness = Ofunc(child->chr, (int)chromosome_size);
 }
 
-static int PerformCrossoverInSpecies(List** species_pointer, World* world) {
-    List* species = *species_pointer;
-    if (species->length == 1) {
-        return 0;
-    }
-
-    List* new_entities = NULL;
-    List* sorted_new_entities = NULL;
-    Entity* new_entity = NULL;
-    Entity** entities_p = NULL;
-
-    new_entities = CreateEntitiesList();
-    if (!new_entities) {
-        goto error_PerformCrossoverInSpecies;
-    }
-
-    for (size_t i = 0; i < species->length; ++i) {
-        for (size_t j = 0; j < species->length; ++j) {
-            if (i == j) {
-                continue;
-            }
-            new_entity = (Entity*)malloc(sizeof(Entity));
-            if (!new_entity) {
-                goto error_PerformCrossoverInSpecies;
-            }
-            new_entity->chr = (double*)malloc(sizeof(double)
-                                              * world->chr_size);
-            if (!new_entity->chr) {
-                goto error_PerformCrossoverInSpecies;
-            }
-            CrossEntities((Entity*)findByIndex(species, i).current->value,
-                          (Entity*)findByIndex(species, j).current->value,
-                          new_entity,
-                          world->obj.func,
-                          world->chr_size);
-            if (!pushBack(new_entities, new_entity)) {
-                goto error_PerformCrossoverInSpecies;
-            }
-            new_entity = NULL;
-        }
-    }
-
-    entities_p = (Entity**)malloc(sizeof(Entity*) * new_entities->length);
-    if (!entities_p) {
-        goto error_PerformCrossoverInSpecies;
-    }
-    size_t index = 0;
-    for (ListIterator entityIt = begin(new_entities);
-         !isIteratorAtEnd(entityIt);
-         next(&entityIt), ++index) {
-        entities_p[index] = (Entity*)entityIt.current->value;
-    }
-    qsort(entities_p,
-          new_entities->length,
-          sizeof(Entity*),
-          EntityComparator);
-
-    sorted_new_entities = CreateEntitiesList();
-    if (!sorted_new_entities) {
-        goto error_PerformCrossoverInSpecies;
-    }
-    for (size_t i = 0; i < species->length; ++i) {
-        new_entity = CopyEntity(entities_p[i], world->chr_size);
-        if (!new_entity) {
-            goto error_PerformCrossoverInSpecies;
-        }
-        if (!pushBack(sorted_new_entities, new_entity)) {
-            goto error_PerformCrossoverInSpecies;
-        }
-        new_entity = NULL;
-    }
-    clearListPointer(new_entities);
-    new_entities = NULL;
-    clearListPointer(*species_pointer);
-    *species_pointer = sorted_new_entities;
-    sorted_new_entities = NULL;
-    free(entities_p);
-    entities_p = NULL;
-
-    return 0;
-
-error_PerformCrossoverInSpecies:
-    clearListPointer(new_entities);
-    clearListPointer(sorted_new_entities);
-    EntityDestructor(new_entity);
-    free(entities_p);
-    return ERROR_ALLOCATING_MEMORY;
-}
-
 static void SetError(int error_code) {
     last_error = error_code;
 }
-
-#if defined(ENABLE_THREADS) && ENABLE_THREADS
-static void* CrossoverThreadWrapper(void* arg) {
-    int* status = (int*)malloc(sizeof(int));
-    *status = PerformCrossoverInSpecies(crossover_shared.species[(size_t)arg],
-                                        crossover_shared.world);
-    return status;
-}
-#endif

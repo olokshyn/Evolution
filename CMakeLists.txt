@@ -17,8 +17,7 @@ set(GENETIC_ALGORITHM_SOURCE_FILES
         GeneticAlgorithm/GeneticAlgorithm.h GeneticAlgorithm/GeneticAlgorithm.c
         GeneticAlgorithm/TestFunctions.h GeneticAlgorithm/TestFunctions.c)
 set(THREADS_SOURCE_FILES
-        Threads/Threads.c Threads/Threads.h
-        Threads/ThreadTests.c Threads/ThreadTests.h)
+        Threads/Threads.c Threads/Threads.h)
 set(SOURCE_FILES
         main.c
         ${LIST_SOURCE_FILES}
