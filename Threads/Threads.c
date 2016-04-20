@@ -3,6 +3,7 @@
 //
 
 #include <stdlib.h>
+#include <assert.h>
 
 #include "Threads.h"
 
@@ -127,7 +128,7 @@ int JoinTasks() {
     for (size_t i = 0; i < tasks_count; ++i) {
         unprocessed_data_count += !tasks_data[i].processed;
     }
-    if (unprocessed_data_count) {
+    while (unprocessed_data_count) {
         task_info** tasks_pointers = (task_info**)calloc(unprocessed_data_count,
                                                          sizeof(task_info*));
         size_t index = 0;
@@ -147,6 +148,15 @@ int JoinTasks() {
             pthread_cond_wait(&cond_end, &mutex);
         }
         free(temp);
+
+        if (status) {
+            break;
+        }
+
+        assert(unprocessed_data_count == 0);
+        for (size_t i = 0; i < tasks_count; ++i) {
+            unprocessed_data_count += !tasks_data[i].processed;
+        }
     }
 
     tasks_count = 0;
