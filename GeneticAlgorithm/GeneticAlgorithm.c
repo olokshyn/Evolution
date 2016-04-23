@@ -6,7 +6,7 @@
 
 #if defined(ENABLE_CLUSTERING) && ENABLE_CLUSTERING
     #include "../Wishart/Wishart.h"
-    #include "../AgglomerativeClustering/AgglomerativeClustering.h"
+    #include "../AgglomerativeClustering/AgglomerativeClustering.hpp"
 
     #define CLUSTERING_ALGORITHM AgglomerativeClustering
 #endif

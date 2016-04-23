@@ -9,10 +9,9 @@
 #include <algorithm>
 #include <exception>
 
-using namespace std;
 
 
-class IndexOutOfRangeException : public exception {
+class IndexOutOfRangeException : public std::exception {
 };
 
 
@@ -20,6 +19,8 @@ template <typename T>
 class Cluster {
 
 public:
+    typedef double (*measure_type)(const T&, const T&);
+
     Cluster()
             : vectors() {
     }
@@ -53,23 +54,28 @@ public:
         return find(vectors.begin(), vectors.end(), value) != vectors.end();
     }
 
-    size_t GetSize() {
+    size_t GetSize() const {
         return vectors.size();
     }
 
-    double GetDistance(const Cluster& other,
-                       double (*measure)(const T&, const T&)) {
+    double GetNormSum(const Cluster& other, measure_type measure) const {
         double sum = 0;
         for (size_t i = 0; i < vectors.size(); ++i) {
             for (size_t j = 0; j < other.vectors.size(); ++j) {
                 sum += measure(vectors[i], other.vectors[j]);
             }
         }
-        return sum / (double)vectors.size() / (double)other.vectors.size();
+        return sum;
+    }
+
+    double GetDistance(const Cluster& other, measure_type measure) {
+        return GetNormSum(other, measure)
+               / (double)vectors.size()
+               / (double)other.vectors.size();
     }
 
 private:
-    vector<T> vectors;
+    std::vector<T> vectors;
 };
 
 #endif //WISHART_CLUSTER_H

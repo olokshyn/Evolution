@@ -10,7 +10,7 @@ set(WISHART_SOURCE_FILES
         Wishart/WishartTest.c Wishart/WishartTest.h)
 set(AGGLOMERATIVE_SOURCE_FILES
         AgglomerativeClustering/AgglomerativeClustering.cpp
-        AgglomerativeClustering/AgglomerativeClustering.h)
+        AgglomerativeClustering/AgglomerativeClustering.hpp)
 set(GENETIC_ALGORITHM_SOURCE_FILES
         GeneticAlgorithm/Simulation.h GeneticAlgorithm/Simulation.c
         GeneticAlgorithm/Lib.h GeneticAlgorithm/Lib.c

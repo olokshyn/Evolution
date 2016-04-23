@@ -4,9 +4,11 @@
 
 #include <algorithm>
 #include <vector>
+#include <assert.h>
 
-#include "AgglomerativeClustering.h"
+#include "AgglomerativeClustering.hpp"
 #include "Cluster.hpp"
+#include "DistanceManager.hpp"
 
 using namespace std;
 
@@ -36,6 +38,8 @@ List* AgglomerativeClustering(const double* const* vectors,
         levels[0][i].Add(vec);
     }
 
+    DistanceManager<vector<double>> distManager(levels[0], EuclidMeasure);
+
     size_t level = 0;
     double max_distance = 0.0;
     while (levels[level].size() > 1
@@ -52,8 +56,7 @@ List* AgglomerativeClustering(const double* const* vectors,
             double min_distance = 0.0;
             int i_min_distance = -1;
             for (size_t j = i + 1; j < levels[level].size(); ++j) {
-                double distance = levels[level][i].GetDistance(levels[level][j],
-                                                               EuclidMeasure);
+                double distance = distManager.GetDistance(i, j);
                 if (distance < min_distance || i_min_distance == -1) {
                     min_distance = distance;
                     i_min_distance = (int)j;
@@ -65,12 +68,14 @@ List* AgglomerativeClustering(const double* const* vectors,
                 continue;
             }
             levels[level + 1].back().Add(levels[level][i_min_distance]);
+            distManager.MergeClusters(i, (size_t)i_min_distance);
             mergedClusters.push_back(i_min_distance);
             if (min_distance > max_distance) {
                 max_distance = min_distance;
             }
         }
         ++level;
+        distManager.CommitMerges();
     }
 
     size_t selected_level = (level > 2) ? level - 2
