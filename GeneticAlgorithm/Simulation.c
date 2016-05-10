@@ -12,6 +12,8 @@
     #define ANSI_COLOR_RESET
 #endif
 
+#define EPS 0.001
+
 
 const char* success_template = ANSI_COLOR_GREEN "SUCCESS" ANSI_COLOR_RESET
                                ": optimum: %.3f \t best: %.3f "
@@ -67,7 +69,7 @@ int RunSimulation(size_t max_iterations_count,
             goto error_RunSimulation;
         }
         ++k;
-        if (cur_fitness - max_fitness > 0.001) {
+        if (cur_fitness - max_fitness > EPS) {
             // printf("%d\t%d\t%.3f\n", k, i, cur_fitness);
             k = 0;
             max_fitness = cur_fitness;
@@ -79,7 +81,7 @@ int RunSimulation(size_t max_iterations_count,
                 int success = 1;
                 time_spent /= i;
                 if (!silent) {
-                    if (fabs(objective.optimum - max_fitness) < 0.001) {
+                    if (fabs(objective.optimum - max_fitness) < EPS) {
                         printf(success_template,
                                objective.optimum,
                                max_fitness,

@@ -9,7 +9,6 @@
 
 #include "Lib.h"
 
-
 #define ENABLE_THREADS 0
 #if defined(ENABLE_THREADS) && ENABLE_THREADS
     #define THREADS_COUNT 4

@@ -3,7 +3,6 @@
 #include "GeneticAlgorithm.h"
 #include "TestFunctions.h"
 
-#define EPS 0.001
 
 int RunSimulation(size_t max_iterations_count,
                   size_t stable_value_iterations_count,

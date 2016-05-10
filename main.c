@@ -124,10 +124,10 @@ int main(int argc, char* argv[]) {
     // fisher_iris_test();
 
     size_t max_iterations_count = 100000;
-    size_t stable_value_iterations_count = 1000;
-    double stable_value_eps = 1e-5;
+    size_t stable_value_iterations_count = 20000;
+    double stable_value_eps = 1e-10;
     size_t individuals_count = 100;
-    size_t chromosome_size = 200;
+    size_t chromosome_size = 20;
     double mutation_probability = 0.5;
     size_t k_neighbour = 5;
     double cluster_height = 0.0;
@@ -141,15 +141,17 @@ int main(int argc, char* argv[]) {
                        k_neighbour,
                        cluster_height);
 
-//    double avg = getAvgIterCount(5,
-//                                 iterations_count,
+//    double avg = getAvgIterCount(1,
+//                                 max_iterations_count,
+//                                 stable_value_iterations_count,
+//                                 stable_value_eps,
 //                                 individuals_count,
 //                                 chromosome_size,
 //                                 mutation_probability,
 //                                 k_neighbour,
 //                                 cluster_height,
-//                                 DeJongF3Objective);
-//    printf("Average iterations count: %.3f\n", avg);
+//                                 DeJongF2Objective);
+    printf("Average iterations count: %.3f\n", avg);
 
     return 0;
 }
