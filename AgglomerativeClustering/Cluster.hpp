@@ -5,77 +5,39 @@
 #ifndef WISHART_CLUSTER_H
 #define WISHART_CLUSTER_H
 
-#include <vector>
-#include <algorithm>
-#include <exception>
-
-
-
-class IndexOutOfRangeException : public std::exception {
+extern "C" {
+#include "../List/List.h"
+#include "../GeneticAlgorithm/Entity.h"
 };
 
+#include <new>
 
-template <typename T>
 class Cluster {
 
 public:
-    typedef double (*measure_type)(const T&, const T&);
+    static void SetVectorLength(size_t vector_length);
 
-    Cluster()
-            : vectors() {
-    }
+    Cluster();
+    Cluster(List* entities);
+    Cluster(Entity* entity);
+    Cluster(const Cluster& other);
 
-    Cluster(size_t size)
-            : vectors(size) {
-    }
+    ~Cluster();
 
-    Cluster(const Cluster& other)
-            : vectors(other.vectors) {
-    }
+    void Add(Cluster& other);
+    size_t GetSize() const;
+    List* Release();
 
-    T& operator[](int i) {
-        if (i < 0 || i > (int)vectors.size()) {
-            throw IndexOutOfRangeException();
-        }
-        return vectors[i];
-    }
-
-    void Add(const T& value) {
-        vectors.push_back(value);
-    }
-
-    void Add(const Cluster& other) {
-        vectors.insert(vectors.end(),
-                       other.vectors.begin(),
-                       other.vectors.end());
-    }
-
-    bool IsInCluster(const T& value) {
-        return find(vectors.begin(), vectors.end(), value) != vectors.end();
-    }
-
-    size_t GetSize() const {
-        return vectors.size();
-    }
-
-    double GetNormSum(const Cluster& other, measure_type measure) const {
-        double sum = 0;
-        for (size_t i = 0; i < vectors.size(); ++i) {
-            for (size_t j = 0; j < other.vectors.size(); ++j) {
-                sum += measure(vectors[i], other.vectors[j]);
-            }
-        }
-        return sum;
-    }
-
-    double GetDistance(const Cluster& other, measure_type measure) {
-        return GetNormSum(other, measure)
-               / (double)vectors.size()
-               / (double)other.vectors.size();
-    }
+    double GetNormSum(const Cluster& other) const;
+    double GetDistance(const Cluster& other) const;
 
 private:
-    std::vector<T> vectors;
+    List* entities;
+
+    static size_t vector_length;
+
+    static void* entityCopier(void* value);
+    static double measure(Entity* entity1, Entity* entity2);
 };
 
 #endif //WISHART_CLUSTER_H

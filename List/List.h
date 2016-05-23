@@ -15,6 +15,8 @@ typedef struct node {
 
 typedef int (*comparator)(const void* p1, const void* p2);
 
+typedef void* (*copier)(void* value);
+
 typedef void (*destructor)(void* value);
 
 typedef struct list {
@@ -40,6 +42,10 @@ short pushBack(List* list, void* value);
 
 short insert(ListIterator next, void* value);
 
+short copyList(List* destination, List* source, copier cp);
+
+short appendList(List* destination, List* source);
+
 ListIterator findByVal(List* list, void* value);
 
 ListIterator findByIndex(List* list, size_t index);
@@ -57,5 +63,7 @@ ListIterator end(List* list);
 void next(ListIterator* it);
 
 short isIteratorAtEnd(ListIterator it);
+
+short checkList(List* list);
 
 #endif //WISHART_LIST_H

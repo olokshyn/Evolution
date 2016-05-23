@@ -14,10 +14,11 @@ extern "C" {
 #include <assert.h>
 #include "../List/List.h"
 
-List* AgglomerativeClustering(const double* const* vectors,
-                              size_t vectors_count,
+#define MAX_CLUSTER_COUNT 8
+
+List* AgglomerativeClustering(List* clusters,
+                              List* entities,
                               size_t vector_length,
-                              size_t k,
                               double h);
 
 #ifdef __cplusplus

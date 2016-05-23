@@ -8,6 +8,7 @@
 #include "../List/List.h"
 
 #include "Lib.h"
+#include "Entity.h"
 
 #define ENABLE_THREADS 0
 #if defined(ENABLE_THREADS) && ENABLE_THREADS
@@ -20,19 +21,12 @@
 
 #define DOUBLE_EPS 0.0001
 
+#define SELECTION_MIN 0.2
+#define SELECTION_MAX 0.8
+
 #define ERROR_GENERIC -1
 #define ERROR_ALLOCATING_MEMORY -2
 #define ERROR_INVALID_POINTER -3
-
-typedef struct entity {
-    double* chr;
-    double fitness;
-} Entity;
-
-typedef struct limit {
-    double min;
-    double max;
-} Limit;
 
 typedef double(*ObjectiveFunc)(double*, int);
 
@@ -66,15 +60,9 @@ void CreateWorld(World* world,
 
 void ClearWorld(World* world);
 
-void PerformClustering(World* world);
-
-void PerformMutation(World* world);
-
-void PerformCrossover(World* world);
+double Step(World* world);
 
 double GetMaxFitness(World* world);
-
-double Step(World* world);
 
 int GetLastError();
 

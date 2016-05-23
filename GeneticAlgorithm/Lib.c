@@ -2,7 +2,9 @@
 #include <math.h>
 
 #include "Lib.h"
+#include <assert.H>
 
+#define DOUBLE_EPS 1e-7
 
 double getRand(double min, double max) {
     // return gauss_rnd() * (max - min) + min;
@@ -21,6 +23,35 @@ int doWithProbability(double prob) {
 
 int selectRandom(int rangeLow, int rangeHigh) {
     return (int)round(getRand(0, 1) * (rangeHigh - rangeLow)) + rangeLow;
+}
+
+void Normalize(List* numbers) {
+    if (!numbers->length) {
+        return;
+    }
+    double sum = 0.0;
+    ListIterator it = begin(numbers);
+    double min = *((double*)it.current->value);
+
+    for ( ; !isIteratorAtEnd(it); next(&it)) {
+        double value = *((double*)it.current->value);
+        sum += value;
+        if (value < min) {
+            min = value;
+        }
+    }
+    sum += fabs(min) * numbers->length;
+    if (fabs(sum) < DOUBLE_EPS) {
+        return;
+    }
+
+    double test = 0.0;
+    for (it = begin(numbers); !isIteratorAtEnd(it); next(&it)) {
+        *((double*)it.current->value) =
+                ( *((double*)it.current->value) + fabs(min) ) / sum;
+        test += *((double*)it.current->value);
+    }
+    assert(1.0 - test < DOUBLE_EPS);
 }
 
 //double rnd() {

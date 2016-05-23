@@ -94,6 +94,41 @@ short insert(ListIterator nextIt, void* value) {
     return 1;
 }
 
+short copyList(List* destination, List* source, copier cp) {
+    if (!destination || !source) {
+        return 0;
+    }
+    for (Node* it = source->head; it != NULL; it = it->next) {
+        pushBack(destination, cp(it->value));
+    }
+    return 1;
+}
+
+short appendList(List* destination, List* source) {
+    if (!destination
+            || !source
+            || destination->c != source->c
+            || destination->d != source->d) {
+        return 0;
+    }
+    if (destination->tail) {
+        destination->tail->next = source->head;
+        source->head->prev = destination->tail;
+    }
+    else {
+        destination->head =
+        destination->tail =
+            source->head;
+    }
+    destination->length += source->length;
+    source->head = NULL;
+    source->tail = NULL;
+    source->c = NULL;
+    source->d = NULL;
+    source->length = 0;
+    return 1;
+}
+
 ListIterator findByVal(List* list, void* value) {
     ListIterator it = {
             list,
@@ -191,4 +226,23 @@ void next(ListIterator* it) {
 
 short isIteratorAtEnd(ListIterator it) {
     return it.current == NULL;
+}
+
+short checkList(List* list) {
+    if (!list || !list->length) {
+        return 1;
+    }
+    if (!list->head || list->head->prev != NULL) {
+        return 0;
+    }
+    Node* temp = list->head;
+    size_t size = 1;
+    while (temp->next) {
+        if (temp->next->prev != temp) {
+            return 0;
+        }
+        temp = temp->next;
+        ++size;
+    }
+    return temp == list->tail && size == list->length;
 }
