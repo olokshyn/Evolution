@@ -34,6 +34,7 @@ void CreateWorld(World* world,
     }
     initList(&world->species, NULL, (void (*)(void*))clearListPointer);
     world->world_size = world_size;
+    world->initial_world_size = world_size;
     if (objective.max_args_count > 0) {
         world->chr_size = chromosome_size <= objective.max_args_count
                             ? chromosome_size
@@ -243,7 +244,7 @@ static void PerformSelectionInSpecies(World* world,
     double selection_part = MAX(norm_fitness, SELECTION_MIN);
     selection_part = MIN(selection_part, SELECTION_MAX);
 
-    size_t species_size = (size_t)round(world->world_size
+    size_t species_size = (size_t)round(world->initial_world_size
                                         * selection_part);
     species_size = MIN(species_size, entities->length);
 

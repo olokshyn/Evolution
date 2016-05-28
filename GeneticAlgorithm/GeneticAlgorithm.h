@@ -21,8 +21,8 @@
 
 #define DOUBLE_EPS 0.0001
 
-#define SELECTION_MIN 0.2
-#define SELECTION_MAX 0.8
+#define SELECTION_MIN 0.1
+#define SELECTION_MAX 1.0
 
 #define ERROR_GENERIC -1
 #define ERROR_ALLOCATING_MEMORY -2
@@ -43,6 +43,7 @@ typedef struct objective {
 typedef struct world {
     List species;
     size_t world_size;
+    size_t initial_world_size;
     size_t chr_size;
     double mutation_prob;
     size_t k;
