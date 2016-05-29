@@ -34,4 +34,9 @@ set(SOURCE_FILES
         ${THREADS_SOURCE_FILES}
         ${LOGGING_SOURCE_FILES})
 add_executable(Evolution ${SOURCE_FILES})
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(Evolution Threads::Threads)
+
 target_compile_features(Evolution PRIVATE cxx_range_for)

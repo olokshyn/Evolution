@@ -20,12 +20,14 @@ using namespace std;
 template <typename T>
 static bool IsInVector(const vector<T>& vec, const T& value);
 
-static List* ConvertToList(vector<Cluster> level);
+static List* ConvertToList(vector<Cluster>& level);
 
 List* AgglomerativeClustering(List* clusters,
                               List* entities,
                               size_t vector_length,
                               double h) {
+    LOG_FUNC_START("AgglomerativeClustering");
+
     try {
         LOG_ASSERT(h >= 0.0);
         Cluster::SetVectorLength(vector_length);
@@ -90,9 +92,11 @@ List* AgglomerativeClustering(List* clusters,
             layer_size = current_layer.size();
         }
 
+        LOG_FUNC_END("AgglomerativeClustering");
         return ConvertToList(current_layer);
     }
     catch (const std::bad_alloc&) {
+        Log(ERROR, "AgglomerativeClustering allocation error");
         return NULL;
     }
 }
@@ -102,7 +106,7 @@ static bool IsInVector(const vector<T>& vec, const T& value) {
     return find(vec.begin(), vec.end(), value) != vec.end();
 }
 
-static List* ConvertToList(vector<Cluster> level) {
+static List* ConvertToList(vector<Cluster>& level) {
     List* clusters = (List*)malloc(sizeof(List));
     initList(clusters, NULL, (void (*)(void*))clearListPointer);
     for (size_t i = 0; i < level.size(); ++i) {

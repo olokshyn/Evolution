@@ -179,6 +179,7 @@ static List* PerformCrossover(World* world) {
         goto error_PerformCrossover;
     }
 
+    Log(INFO, "Before crossover");
     for (ListIterator speciesIt = begin(&world->species);
             !isIteratorAtEnd(speciesIt);
             next(&speciesIt)) {
@@ -213,6 +214,7 @@ static List* PerformCrossover(World* world) {
             }
         }
     }
+    Log(INFO, "After crossover");
 
     List* clustered_species = AgglomerativeClustering(&world->species,
                                                       new_entities,
@@ -380,8 +382,6 @@ static void CrossEntities(Entity* parent1,
                           Entity* child,
                           ObjectiveFunc Ofunc,
                           size_t chromosome_size) {
-    LOG_FUNC_START("CrossEntities");
-
     size_t crossover_point = (chromosome_size % 2 == 0) ?
                                 (chromosome_size / 2) :
                                 (chromosome_size / 2 + 1);
@@ -392,8 +392,6 @@ static void CrossEntities(Entity* parent1,
         child->chr[i] = parent2->chr[i];
     }
     child->fitness = Ofunc(child->chr, (int)chromosome_size);
-
-    LOG_FUNC_END("CrossEntities");
 }
 
 static void SetError(int error_code) {

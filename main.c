@@ -143,26 +143,26 @@ int main(int argc, char* argv[]) {
     size_t k_neighbour = 5;
     double cluster_height = 0.0;
 
-    runForAllFucntions(max_iterations_count,
-                       stable_value_iterations_count,
-                       stable_value_eps,
-                       individuals_count,
-                       chromosome_size,
-                       mutation_probability,
-                       k_neighbour,
-                       cluster_height);
+//    runForAllFucntions(max_iterations_count,
+//                       stable_value_iterations_count,
+//                       stable_value_eps,
+//                       individuals_count,
+//                       chromosome_size,
+//                       mutation_probability,
+//                       k_neighbour,
+//                       cluster_height);
 
-//    double avg = getAvgIterCount(1,
-//                                 max_iterations_count,
-//                                 stable_value_iterations_count,
-//                                 stable_value_eps,
-//                                 individuals_count,
-//                                 chromosome_size,
-//                                 mutation_probability,
-//                                 k_neighbour,
-//                                 cluster_height,
-//                                 DeJongF2Objective);
-//    printf("Average iterations count: %.3f\n", avg);
+    double avg = getAvgIterCount(1,
+                                 max_iterations_count,
+                                 stable_value_iterations_count,
+                                 stable_value_eps,
+                                 individuals_count,
+                                 chromosome_size,
+                                 mutation_probability,
+                                 k_neighbour,
+                                 cluster_height,
+                                 DeJongF2Objective);
+    printf("Average iterations count: %.3f\n", avg);
 
     ReleaseLogging();
 

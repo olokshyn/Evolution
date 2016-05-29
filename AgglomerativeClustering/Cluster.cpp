@@ -52,7 +52,9 @@ Cluster::~Cluster() {
 }
 
 void Cluster::Add(Cluster& other) {
-    appendList(entities, other.Release());
+    List* other_entities = other.Release();
+    appendList(entities, other_entities);
+    clearListPointer(other_entities);
 }
 
 size_t Cluster::GetSize() const {
