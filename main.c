@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     // fisher_iris_test();
 
     size_t max_iterations_count = 100000;
-    size_t stable_value_iterations_count = 20000;
+    size_t stable_value_iterations_count = 100;
     double stable_value_eps = 1e-10;
     size_t individuals_count = 100;
     size_t chromosome_size = 20;

@@ -249,8 +249,6 @@ static double GetMidFitness(List* species) {
 static void PerformSelectionInSpecies(World* world,
                                       List** species,
                                       double norm_fitness) {
-    LOG_FUNC_START("PerformSelectionInSpecies");
-
     List* entities = *species;
     Entity** entities_p = NULL;
     List* sorted_new_entities = NULL;
@@ -298,8 +296,6 @@ static void PerformSelectionInSpecies(World* world,
     free(entities_p);
     entities_p = NULL;
 
-    LOG_FUNC_END("PerformSelectionInSpecies");
-
     return;
 
 error_PerformSelectionInSpecies:
@@ -333,6 +329,8 @@ static void PerformSelection(World* world, List* clustered_species) {
 
     LOG_ASSERT(clustered_species->length == fitness_list.length);
     size_t new_world_size = 0;
+
+    Log(INFO, "Before selection in species");
     for (ListIterator it_cl = begin(clustered_species),
                  it_ft = begin(&fitness_list);
             !isIteratorAtEnd(it_cl) && !isIteratorAtEnd(it_ft);
@@ -342,6 +340,7 @@ static void PerformSelection(World* world, List* clustered_species) {
                                   *((double*)it_ft.current->value));
         new_world_size += ((List*)it_cl.current->value)->length;
     }
+    Log(INFO, "After selection in species");
 
     Log(DEBUG, "New world size: %d", (int)new_world_size);
 

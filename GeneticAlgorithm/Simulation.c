@@ -102,6 +102,7 @@ int RunSimulation(size_t max_iterations_count,
                 if (iterations_made) {
                     *iterations_made = i;
                 }
+                fflush(stdout);
                 return success;
             }
         }
@@ -131,6 +132,7 @@ int RunSimulation(size_t max_iterations_count,
     if (iterations_made) {
         *iterations_made = max_iterations_count;
     }
+    fflush(stdout);
     return 0;
 
 error_RunSimulation:
@@ -142,5 +144,6 @@ error_RunSimulation:
     if (iterations_made) {
         *iterations_made = max_iterations_count;
     }
+    fflush(stdout);
     return 0;
 }
