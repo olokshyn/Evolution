@@ -3,6 +3,7 @@
 //
 
 #include "Wishart.h"
+#include "../Logging/Logging.h"
 
 typedef struct graph {
     size_t n;
@@ -254,7 +255,7 @@ size_t* Wishart(const double* const* vectors,
                 size_t vector_length,
                 size_t k,
                 double h) {
-    assert(h >= 0.0);
+    LOG_ASSERT(h >= 0.0);
     size_t i, j;
 
     Vectors* wVectors = createVectors(vectors,
@@ -386,7 +387,7 @@ size_t* Wishart(const double* const* vectors,
                          !isIteratorAtEnd(it);
                          next(&it)) {
                         it2 = findByVal(&Clusters, it.current->value);
-                        assert(it2.current);
+                        LOG_ASSERT(it2.current);
                         ((Cluster*)it2.current->value)->formed = 1;
                     }
                     for (i = 0; i < wVectors->count; ++i) {

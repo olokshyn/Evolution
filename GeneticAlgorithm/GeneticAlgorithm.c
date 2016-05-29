@@ -1,5 +1,6 @@
 #include "GeneticAlgorithm.h"
 #include "../AgglomerativeClustering/AgglomerativeClustering.h"
+#include "../Logging/Logging.h"
 
 static int last_error = 0;
 
@@ -25,6 +26,8 @@ void CreateWorld(World* world,
                  size_t k,
                  double h,
                  Objective objective) {
+    LOG_FUNC_START("CreateWorld");
+
     List* new_entities = NULL;
     Entity* new_entity = NULL;
 
@@ -76,6 +79,8 @@ void CreateWorld(World* world,
     }
     new_entities = NULL;
 
+    LOG_FUNC_END("CreateWorld");
+
     return;
 
 error_CreateWorld:
@@ -109,7 +114,9 @@ double Step(World* world) {
         return 0.0;
     }
 
-    return GetMaxFitness(world);
+    double max_fitness = GetMaxFitness(world);
+    Log(INFO, "Step: max fitness: %.3f", max_fitness);
+    return max_fitness;
 }
 
 double GetMaxFitness(World* world) {
@@ -162,6 +169,8 @@ static void PerformMutation(World* world) {
 }
 
 static List* PerformCrossover(World* world) {
+    LOG_FUNC_START("PerformCrossover");
+
     List* new_entities = NULL;
     Entity* new_entity = NULL;
 
@@ -214,6 +223,8 @@ static List* PerformCrossover(World* world) {
     }
     clearListPointer(new_entities);
 
+    LOG_FUNC_END("PerformCrossover");
+
     return clustered_species;
 
 error_PerformCrossover:
@@ -236,6 +247,8 @@ static double GetMidFitness(List* species) {
 static void PerformSelectionInSpecies(World* world,
                                       List** species,
                                       double norm_fitness) {
+    LOG_FUNC_START("PerformSelectionInSpecies");
+
     List* entities = *species;
     Entity** entities_p = NULL;
     List* sorted_new_entities = NULL;
@@ -283,6 +296,8 @@ static void PerformSelectionInSpecies(World* world,
     free(entities_p);
     entities_p = NULL;
 
+    LOG_FUNC_END("PerformSelectionInSpecies");
+
     return;
 
 error_PerformSelectionInSpecies:
@@ -293,6 +308,8 @@ error_PerformSelectionInSpecies:
 }
 
 static void PerformSelection(World* world, List* clustered_species) {
+    LOG_FUNC_START("PerformSelection");
+
     List fitness_list;
     double* temp = NULL;
     initList(&fitness_list, NULL, free);
@@ -312,7 +329,7 @@ static void PerformSelection(World* world, List* clustered_species) {
 
     Normalize(&fitness_list);
 
-    assert(clustered_species->length == fitness_list.length);
+    LOG_ASSERT(clustered_species->length == fitness_list.length);
     size_t new_world_size = 0;
     for (ListIterator it_cl = begin(clustered_species),
                  it_ft = begin(&fitness_list);
@@ -323,6 +340,8 @@ static void PerformSelection(World* world, List* clustered_species) {
                                   *((double*)it_ft.current->value));
         new_world_size += ((List*)it_cl.current->value)->length;
     }
+
+    Log(DEBUG, "New world size: %d", (int)new_world_size);
 
     for (ListIterator it = begin(clustered_species);
                 !isIteratorAtEnd(it);
@@ -343,7 +362,9 @@ static void PerformSelection(World* world, List* clustered_species) {
     free(clustered_species);
     world->world_size = new_world_size;
 
-    assert(world->world_size != 0);
+    LOG_ASSERT(world->world_size != 0);
+
+    LOG_FUNC_END("PerformSelection");
 
     return;
 
@@ -359,6 +380,8 @@ static void CrossEntities(Entity* parent1,
                           Entity* child,
                           ObjectiveFunc Ofunc,
                           size_t chromosome_size) {
+    LOG_FUNC_START("CrossEntities");
+
     size_t crossover_point = (chromosome_size % 2 == 0) ?
                                 (chromosome_size / 2) :
                                 (chromosome_size / 2 + 1);
@@ -369,8 +392,11 @@ static void CrossEntities(Entity* parent1,
         child->chr[i] = parent2->chr[i];
     }
     child->fitness = Ofunc(child->chr, (int)chromosome_size);
+
+    LOG_FUNC_END("CrossEntities");
 }
 
 static void SetError(int error_code) {
     last_error = error_code;
+    Log(ERROR, "Error set: %d", last_error);
 }

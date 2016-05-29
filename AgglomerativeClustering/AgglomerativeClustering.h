@@ -11,7 +11,6 @@ extern "C" {
 
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 #include "../List/List.h"
 
 #define MAX_CLUSTER_COUNT 8

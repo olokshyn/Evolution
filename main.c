@@ -3,13 +3,13 @@
 //
 
 #include <stdio.h>
-#include <assert.h>
 #include <time.h>
 
 #include "List/ListTests.h"
 
 #include "Wishart/WishartTest.h"
 #include "GeneticAlgorithm/Simulation.h"
+#include "Logging/Logging.h"
 
 
 void runForAllFucntions(size_t max_iterations_count,
@@ -50,8 +50,8 @@ void runForAllFucntions(size_t max_iterations_count,
             PathologicalFuncObjective
     };
 
-    assert(sizeof(functionNames) / sizeof(char*)
-           == sizeof(objectiveFunctions) / sizeof(Objective));
+    LOG_ASSERT(sizeof(functionNames) / sizeof(char*)
+               == sizeof(objectiveFunctions) / sizeof(Objective));
 
     size_t functionsCount = sizeof(functionNames) / sizeof(char*);
 
@@ -116,6 +116,17 @@ double getAvgIterCount(size_t tests_count,
 int main(int argc, char* argv[]) {
     srand((unsigned int)time(NULL));
 
+    if (!InitLogging("Evolution.log", INFO)) {
+        printf("Failed to init logging\n");
+        return 1;
+    }
+
+#ifndef NDEBUG
+    Log(INFO, "Debug configuration");
+#else
+    Log(INFO, "Release configuration");
+#endif
+
 
     // runAllListTests();
     // four_points_test();
@@ -151,7 +162,9 @@ int main(int argc, char* argv[]) {
 //                                 k_neighbour,
 //                                 cluster_height,
 //                                 DeJongF2Objective);
-    printf("Average iterations count: %.3f\n", avg);
+//    printf("Average iterations count: %.3f\n", avg);
+
+    ReleaseLogging();
 
     return 0;
 }

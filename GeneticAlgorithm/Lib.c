@@ -2,7 +2,7 @@
 #include <math.h>
 
 #include "Lib.h"
-#include <assert.H>
+#include "../Logging/Logging.h"
 
 #define DOUBLE_EPS 1e-7
 
@@ -51,7 +51,7 @@ void Normalize(List* numbers) {
                 ( *((double*)it.current->value) + fabs(min) ) / sum;
         test += *((double*)it.current->value);
     }
-    assert(1.0 - test < DOUBLE_EPS);
+    LOG_ASSERT(1.0 - test < DOUBLE_EPS);
 }
 
 //double rnd() {

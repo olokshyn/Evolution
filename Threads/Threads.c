@@ -3,9 +3,9 @@
 //
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "Threads.h"
+#include "../Logging/Logging.h"
 
 static size_t threads_count = 0;
 static pthread_t* threads = NULL;
@@ -153,7 +153,7 @@ int JoinTasks() {
             break;
         }
 
-        assert(unprocessed_data_count == 0);
+        LOG_ASSERT(unprocessed_data_count == 0);
         for (size_t i = 0; i < tasks_count; ++i) {
             unprocessed_data_count += !tasks_data[i].processed;
         }

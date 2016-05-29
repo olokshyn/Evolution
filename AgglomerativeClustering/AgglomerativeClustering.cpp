@@ -4,11 +4,14 @@
 
 #include <algorithm>
 #include <vector>
-#include <assert.h>
 
 #include "AgglomerativeClustering.h"
 #include "Cluster.hpp"
 #include "DistanceManager.hpp"
+
+extern "C" {
+    #include "../Logging/Logging.h"
+}
 
 using namespace std;
 
@@ -24,7 +27,7 @@ List* AgglomerativeClustering(List* clusters,
                               size_t vector_length,
                               double h) {
     try {
-        assert(h >= 0.0);
+        LOG_ASSERT(h >= 0.0);
         Cluster::SetVectorLength(vector_length);
         size_t layer_size = clusters->length;
         if (entities) {
@@ -50,7 +53,7 @@ List* AgglomerativeClustering(List* clusters,
         double max_distance = 0.0;
         while (layer_size > MAX_CLUSTER_COUNT
                && ((h > DOUBLE_EPS && max_distance <= h) || h < DOUBLE_EPS)) {
-            assert(layer_size == current_layer.size());
+            LOG_ASSERT(layer_size == current_layer.size());
             vector<int> mergedClusters;
             vector<Cluster> next_layer;
             next_layer.reserve(layer_size / 2);

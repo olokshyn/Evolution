@@ -6,7 +6,6 @@
 #define WISHART_WISHART_H
 
 #include <stdlib.h>
-#include <assert.h>
 #include <math.h>
 
 #include "../List/List.h"
