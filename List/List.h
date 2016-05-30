@@ -44,7 +44,7 @@ short insert(ListIterator next, void* value);
 
 short copyList(List* destination, List* source, copier cp);
 
-short appendList(List* destination, List* source);
+short moveList(List* destination, List* source);
 
 ListIterator findByVal(List* list, void* value);
 

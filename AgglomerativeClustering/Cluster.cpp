@@ -53,7 +53,7 @@ Cluster::~Cluster() {
 
 void Cluster::Add(Cluster& other) {
     List* other_entities = other.Release();
-    appendList(entities, other_entities);
+    moveList(entities, other_entities);
     clearListPointer(other_entities);
 }
 

@@ -104,7 +104,7 @@ short copyList(List* destination, List* source, copier cp) {
     return 1;
 }
 
-short appendList(List* destination, List* source) {
+short moveList(List* destination, List* source) {
     if (!destination
             || !source
             || destination->c != source->c
@@ -123,8 +123,6 @@ short appendList(List* destination, List* source) {
     destination->length += source->length;
     source->head = NULL;
     source->tail = NULL;
-    source->c = NULL;
-    source->d = NULL;
     source->length = 0;
     return 1;
 }
