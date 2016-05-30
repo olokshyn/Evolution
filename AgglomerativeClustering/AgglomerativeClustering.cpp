@@ -50,7 +50,9 @@ List* AgglomerativeClustering(List* clusters,
             }
         }
 
+        Log(INFO, "Before distance manager");
         DistanceManager distManager(current_layer);
+        Log(INFO, "After distance manager");
 
         double max_distance = 0.0;
         while (layer_size > MAX_CLUSTER_COUNT
@@ -59,6 +61,8 @@ List* AgglomerativeClustering(List* clusters,
             vector<int> mergedClusters;
             vector<Cluster> next_layer;
             next_layer.reserve(layer_size / 2);
+
+            Log(INFO, "Before layer loop");
             for (size_t i = 0; i < layer_size; ++i) {
                 if (IsInVector<int>(mergedClusters, (int)i)) {
                     continue;
@@ -87,7 +91,9 @@ List* AgglomerativeClustering(List* clusters,
                     max_distance = min_distance;
                 }
             }
+            Log(INFO, "After layer loop");
             distManager.CommitMerges();
+            Log(INFO, "After merging");
             current_layer = std::move(next_layer);
             layer_size = current_layer.size();
         }
