@@ -26,6 +26,8 @@ set(THREADS_SOURCE_FILES
         Threads/Threads.c Threads/Threads.h)
 set(LOGGING_SOURCE_FILES
         Logging/Logging.c Logging/Logging.h)
+set(DEATH_MANAGER_SOURCE_FILES
+        DeathManager/DeathManager.c DeathManager/DeathManager.h)
 set(SOURCE_FILES
         main.c
         ${LIST_SOURCE_FILES}
@@ -33,7 +35,8 @@ set(SOURCE_FILES
         ${AGGLOMERATIVE_SOURCE_FILES}
         ${GENETIC_ALGORITHM_SOURCE_FILES}
         ${THREADS_SOURCE_FILES}
-        ${LOGGING_SOURCE_FILES})
+        ${LOGGING_SOURCE_FILES}
+        ${DEATH_MANAGER_SOURCE_FILES})
 add_executable(Evolution ${SOURCE_FILES})
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)

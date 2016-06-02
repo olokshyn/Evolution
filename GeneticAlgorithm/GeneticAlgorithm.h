@@ -1,6 +1,8 @@
 #ifndef GENETICALGORITHMHEADER
 #define GENETICALGORITHMHEADER
 
+#include <stdlib.h>
+
 #include "../List/List.h"
 
 #define ENABLE_THREADS 0
@@ -17,9 +19,12 @@
 #define SELECTION_MIN 0.1
 #define SELECTION_MAX 1.0
 
+#define EXTINCTION_BIAS 0.9
+
 #define ERROR_GENERIC -1
 #define ERROR_ALLOCATING_MEMORY -2
 #define ERROR_INVALID_POINTER -3
+#define ERROR_INIT -4
 
 typedef double(*ObjectiveFunc)(double*, int);
 

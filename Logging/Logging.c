@@ -2,13 +2,13 @@
 // Created by Oleg on 5/28/16.
 //
 
-#include <stdio.h>
+#include "Logging.h"
+
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
-
-#include "Logging.h"
 
 static LogLevel current_log_level = INFO;
 static FILE* log_file = NULL;

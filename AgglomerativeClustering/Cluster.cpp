@@ -6,6 +6,10 @@
 
 #include "Cluster.hpp"
 
+extern "C" {
+#include "../DeathManager/DeathManager.h"
+}
+
 size_t Cluster::vector_length = 0;
 
 void Cluster::SetVectorLength(size_t vector_length) {
@@ -55,11 +59,12 @@ Cluster::~Cluster() {
 
 void Cluster::Add(Cluster& other) {
     Species* other_species = other.Release();
+    if (other_species->initial_size != 0) {
+        RegisterDeath();
+    }
     MarkAllAsNew(other_species->entitiesList);
     moveList(species->entitiesList, other_species->entitiesList);
     ClearSpecies(other_species);
-
-    // TODO: Log death
 }
 
 size_t Cluster::GetSize() const {

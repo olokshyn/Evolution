@@ -7,6 +7,7 @@
 #include "Species.h"
 #include "../AgglomerativeClustering/AgglomerativeClustering.h"
 #include "../Logging/Logging.h"
+#include "../DeathManager/DeathManager.h"
 
 static int last_error = 0;
 
@@ -24,6 +25,7 @@ static void PerformLimitedSelectionInSpecies(World* world,
                                              double norm_fitness);
 static size_t PerformSelection(World* world,
                                List* clustered_species);
+static void CountDiedSpecies(World* world);
 static void CrossEntities(Entity* parent1,
                           Entity* parent2,
                           Entity* child,
@@ -38,6 +40,12 @@ void CreateWorld(World* world,
                  double h,
                  Objective objective) {
     LOG_FUNC_START("CreateWorld");
+
+    if (!InitDeathManager("death.log")) {
+        Log(ERROR, "Failed to init death manager");
+        SetError(ERROR_INIT);
+        return;
+    }
 
     Species* new_species = NULL;
     Entity* new_entity = NULL;
@@ -96,6 +104,7 @@ void CreateWorld(World* world,
     return;
 
 error_CreateWorld:
+    ReleaseDeathManager();
     ClearWorld(world);
     ClearSpecies(new_species);
     EntityDestructor(new_entity);
@@ -104,10 +113,13 @@ error_CreateWorld:
 
 void ClearWorld(World* world) {
     clearList(&world->species);
+    ReleaseDeathManager();
 }
 
 double Step(World* world) {
     ResetLastError();
+
+    IterationStart();
 
     Species* new_species = NULL;
     List* clustered_species = NULL;
@@ -145,6 +157,10 @@ double Step(World* world) {
     clearListPointer(clustered_species);
     clustered_species = NULL;
     world->world_size = new_world_size;
+
+    CountDiedSpecies(world);
+
+    IterationEnd();
 
     double max_fitness = GetMaxFitness(world);
     Log(INFO, "Step: max fitness: %.3f", max_fitness);
@@ -418,6 +434,21 @@ error_PerformSelection:
     free(temp);
     SetError(ERROR_ALLOCATING_MEMORY);
     return 0;
+}
+
+static void CountDiedSpecies(World* world) {
+    for (ListIterator clusterIt = begin(&world->species);
+            !isIteratorAtEnd(clusterIt);
+            next(&clusterIt)) {
+        Species* species = (Species*)clusterIt.current->value;
+        LOG_ASSERT(species->initial_size != 0);
+        if (species->died / (double)species->initial_size > EXTINCTION_BIAS) {
+            species->died = 0;
+            species->initial_size = SPECIES_LENGTH(species);
+            MarkAllAsOld(species->entitiesList);
+            RegisterDeath();
+        }
+    }
 }
 
 static void CrossEntities(Entity* parent1,
