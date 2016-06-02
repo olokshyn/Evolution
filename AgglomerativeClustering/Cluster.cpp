@@ -13,70 +13,70 @@ void Cluster::SetVectorLength(size_t vector_length) {
 }
 
 Cluster::Cluster()
-        : entities(CreateEntitiesList()) {
-    if (!entities) {
+        : species(CreateSpecies(0)) {
+    if (!species) {
         throw std::bad_alloc();
     }
 }
 
-Cluster::Cluster(List* entities)
-        : entities(CreateEntitiesList()) {
-    if (!entities) {
+Cluster::Cluster(Species* species)
+        : species(CreateSpecies(species->initial_size)) {
+    if (!this->species) {
         throw std::bad_alloc();
     }
-    copyList(this->entities, entities, entityCopier);
+    this->species->died = species->died;
+    copyList(this->species->entitiesList, species->entitiesList, entityCopier);
 }
 
 Cluster::Cluster(Entity* entity)
-        : entities(CreateEntitiesList()) {
-    if (!entities) {
+        : species(CreateSpecies(0)) {
+    if (!species) {
         throw std::bad_alloc();
     }
-    Entity* new_entity = CopyEntity(entity, vector_length);
+    Entity* new_entity = (Entity*)entityCopier(entity);
     if (!new_entity) {
         throw std::bad_alloc();
     }
-    pushBack(entities, new_entity);
+    pushBack(species->entitiesList, new_entity);
 }
 
 Cluster::Cluster(const Cluster& other)
-        : entities(CreateEntitiesList()) {
-    if (!entities) {
+        : species(CreateSpecies(other.species->initial_size)) {
+    if (!species) {
         throw std::bad_alloc();
     }
-    copyList(entities, other.entities, entityCopier);
+    species->died = other.species->died;
+    copyList(species->entitiesList, other.species->entitiesList, entityCopier);
 }
 
 Cluster::~Cluster() {
-    clearListPointer(entities);
+    ClearSpecies(species);
 }
 
 void Cluster::Add(Cluster& other) {
-    List* other_entities = other.Release();
-    moveList(entities, other_entities);
-    clearListPointer(other_entities);
+    Species* other_species = other.Release();
+    MarkAllAsNew(other_species->entitiesList);
+    moveList(species->entitiesList, other_species->entitiesList);
+    ClearSpecies(other_species);
+
+    // TODO: Log death
 }
 
 size_t Cluster::GetSize() const {
-    return entities->length;
+    return SPECIES_LENGTH(species);
 }
 
-List* Cluster::Release() {
-    List* temp = entities;
-    entities = NULL;
+Species* Cluster::Release() {
+    Species* temp = species;
+    species = NULL;
     return temp;
 }
 
 double Cluster::GetNormSum(const Cluster& other) const {
     double sum = 0.0;
-    for (ListIterator it1 = begin(entities);
-            !isIteratorAtEnd(it1);
-            next(&it1)) {
-        for (ListIterator it2 = begin(other.entities);
-                !isIteratorAtEnd(it2);
-                next(&it2)) {
-            sum += measure((Entity*)it1.current->value,
-                           (Entity*)it2.current->value);
+    FOR_EACH_IN_SPECIES_N(species, it1) {
+        FOR_EACH_IN_SPECIES_N(other.species, it2) {
+            sum += measure(ENTITY_SP_IT_N(it1), ENTITY_SP_IT_N(it2));
         }
     }
     return sum;
@@ -84,8 +84,8 @@ double Cluster::GetNormSum(const Cluster& other) const {
 
 double Cluster::GetDistance(const Cluster& other) const {
     return GetNormSum(other)
-            / (double)entities->length
-            / (double)other.entities->length;
+            / (double)SPECIES_LENGTH(species)
+            / (double)SPECIES_LENGTH(other.species);
 }
 
 void* Cluster::entityCopier(void* value) {

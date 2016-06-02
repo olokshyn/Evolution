@@ -35,6 +35,7 @@ Entity* CopyEntity(Entity* entity, size_t chr_size) {
         new_entity->chr[i] = entity->chr[i];
     }
     new_entity->fitness = entity->fitness;
+    new_entity->old = entity->old;
     return new_entity;
 }
 
@@ -45,4 +46,26 @@ List* CreateEntitiesList() {
     }
     initList(entities, EntityComparator, (void (*)(void*))EntityDestructor);
     return entities;
+}
+
+void MarkAllAsNew(List* entitiesList) {
+    if (!entitiesList || entitiesList->length) {
+        return;
+    }
+    for (ListIterator it = begin(entitiesList);
+            !isIteratorAtEnd(it);
+            next(&it)) {
+        ((Entity*)it.current->value)->old = 0;
+    }
+}
+
+void MarkAllAsOld(List* entitiesList) {
+    if (!entitiesList || entitiesList->length) {
+        return;
+    }
+    for (ListIterator it = begin(entitiesList);
+         !isIteratorAtEnd(it);
+         next(&it)) {
+        ((Entity*)it.current->value)->old = 1;
+    }
 }

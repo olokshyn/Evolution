@@ -10,11 +10,14 @@
 typedef struct entity {
     double* chr;
     double fitness;
+    char old;
 } Entity;
 
 int EntityComparator(const void* a, const void* b);
 void EntityDestructor(Entity* entity);
 Entity* CopyEntity(Entity* entity, size_t chr_size);
 List* CreateEntitiesList();
+void MarkAllAsNew(List* entitiesList);
+void MarkAllAsOld(List* entitiesList);
 
 #endif //WISHART_ENTITY_H

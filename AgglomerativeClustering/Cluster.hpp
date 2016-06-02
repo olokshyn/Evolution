@@ -8,6 +8,7 @@
 extern "C" {
 #include "../List/List.h"
 #include "../GeneticAlgorithm/Entity.h"
+#include "../GeneticAlgorithm/Species.h"
 };
 
 #include <new>
@@ -18,7 +19,7 @@ public:
     static void SetVectorLength(size_t vector_length);
 
     Cluster();
-    Cluster(List* entities);
+    Cluster(Species* species);
     Cluster(Entity* entity);
     Cluster(const Cluster& other);
 
@@ -26,13 +27,13 @@ public:
 
     void Add(Cluster& other);
     size_t GetSize() const;
-    List* Release();
+    Species* Release();
 
     double GetNormSum(const Cluster& other) const;
     double GetDistance(const Cluster& other) const;
 
 private:
-    List* entities;
+    Species* species;
 
     static size_t vector_length;
 

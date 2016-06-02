@@ -1,14 +1,7 @@
 #ifndef GENETICALGORITHMHEADER
 #define GENETICALGORITHMHEADER
 
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
-
 #include "../List/List.h"
-
-#include "Lib.h"
-#include "Entity.h"
 
 #define ENABLE_THREADS 0
 #if defined(ENABLE_THREADS) && ENABLE_THREADS

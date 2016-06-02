@@ -10,7 +10,8 @@
 #include "DistanceManager.hpp"
 
 extern "C" {
-    #include "../Logging/Logging.h"
+#include "../GeneticAlgorithm/Species.h"
+#include "../Logging/Logging.h"
 }
 
 using namespace std;
@@ -40,7 +41,7 @@ List* AgglomerativeClustering(List* clusters,
         for (ListIterator it = begin(clusters);
              !isIteratorAtEnd(it);
              next(&it)) {
-            current_layer.push_back(Cluster((List*)it.current->value));
+            current_layer.push_back(Cluster((Species*)it.current->value));
         }
         if (entities) {
             for (ListIterator it = begin(entities);
@@ -114,9 +115,15 @@ static bool IsInVector(const vector<T>& vec, const T& value) {
 
 static List* ConvertToList(vector<Cluster>& level) {
     List* clusters = (List*)malloc(sizeof(List));
-    initList(clusters, NULL, (void (*)(void*))clearListPointer);
+    initList(clusters, NULL, (void (*)(void*))ClearSpecies);
     for (size_t i = 0; i < level.size(); ++i) {
-        pushBack(clusters, level[i].Release());
+        Species* species = level[i].Release();
+        if (species->initial_size == 0) {
+            species->initial_size = SPECIES_LENGTH(species);
+            species->died = 0;
+            MarkAllAsOld(species->entitiesList);
+        }
+        pushBack(clusters, species);
     }
     return clusters;
 }

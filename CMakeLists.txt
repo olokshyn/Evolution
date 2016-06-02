@@ -20,7 +20,8 @@ set(GENETIC_ALGORITHM_SOURCE_FILES
         GeneticAlgorithm/Lib.h GeneticAlgorithm/Lib.c
         GeneticAlgorithm/GeneticAlgorithm.h GeneticAlgorithm/GeneticAlgorithm.c
         GeneticAlgorithm/TestFunctions.h GeneticAlgorithm/TestFunctions.c
-        GeneticAlgorithm/Entity.h GeneticAlgorithm/Entity.c)
+        GeneticAlgorithm/Entity.h GeneticAlgorithm/Entity.c
+        GeneticAlgorithm/Species.c GeneticAlgorithm/Species.h)
 set(THREADS_SOURCE_FILES
         Threads/Threads.c Threads/Threads.h)
 set(LOGGING_SOURCE_FILES
