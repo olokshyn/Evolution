@@ -123,6 +123,13 @@ static List* ConvertToList(vector<Cluster>& level) {
             species->died = 0;
             MarkAllAsOld(species->entitiesList);
         }
+#ifndef NDEBUG
+        size_t old_count = 0;
+        FOR_EACH_IN_SPECIES(species) {
+            old_count += ENTITY_SP_IT->old;
+        }
+        LOG_ASSERT(species->initial_size == 0 || old_count != 0);
+#endif
         pushBack(clusters, species);
     }
     return clusters;

@@ -88,7 +88,7 @@ void CreateWorld(World* world,
         }
         new_entity->fitness = world->obj.func(new_entity->chr,
                                               (int)world->chr_size);
-        new_entity->old = 0;
+        new_entity->old = 1;
         if (!pushBack(new_species->entitiesList, new_entity)) {
             goto error_CreateWorld;
         }

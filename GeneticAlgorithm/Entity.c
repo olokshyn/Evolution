@@ -60,7 +60,7 @@ void MarkAllAsNew(List* entitiesList) {
 }
 
 void MarkAllAsOld(List* entitiesList) {
-    if (!entitiesList || entitiesList->length) {
+    if (!entitiesList || !entitiesList->length) {
         return;
     }
     for (ListIterator it = begin(entitiesList);
