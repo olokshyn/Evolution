@@ -33,7 +33,7 @@ void IterationStart() {
 }
 
 void IterationEnd() {
-    fprintf(death_file, "%zu ", died_on_iteration);
+    fprintf(death_file, "%zu\n", died_on_iteration);
     died_on_iteration = 0;
     fflush(death_file);
 }
