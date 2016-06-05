@@ -52,8 +52,8 @@ int RunSimulation(size_t max_iterations_count,
                 cluster_height,
                 objective);
     if (GetLastError()) {
-        printf("Error creating world\n");
-        goto error_RunSimulation;
+        printf("Error creating world: %d\n", GetLastError());
+        return 0;
     }
     max_fitness = GetMaxFitness(&world);
     // printf("Initial fitness: %.3f\n\n", max_fitness);
