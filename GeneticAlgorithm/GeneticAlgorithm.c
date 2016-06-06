@@ -18,6 +18,7 @@ static List* PerformClustering(World* world, Species* new_species);
 static void PerformSelectionInSpecies(World* world,
                                       Species* species,
                                       size_t alive_count);
+static void PerformChildrenSelection(World* world, Species* new_species);
 static void PerformLimitedSelectionInSpecies(World* world,
                                              Species* species,
                                              double norm_fitness);
@@ -130,6 +131,11 @@ double Step(World* world) {
     }
 
     new_species = PerformCrossover(world);
+    if (GetLastError()) {
+        goto error_Step;
+    }
+
+    PerformChildrenSelection(world, new_species);
     if (GetLastError()) {
         goto error_Step;
     }
@@ -363,6 +369,10 @@ error_PerformSelectionInSpecies:
     clearListPointer(sorted_new_entities);
     EntityDestructor(new_entity);
     SetError(ERROR_ALLOCATING_MEMORY);
+}
+
+static void PerformChildrenSelection(World* world, Species* new_species) {
+    PerformSelectionInSpecies(world, new_species, world->world_size);
 }
 
 static void PerformLimitedSelectionInSpecies(World* world,
