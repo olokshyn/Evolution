@@ -12,8 +12,11 @@ double getRand(double min, double max) {
 }
 
 int doWithProbability(double prob) {
-    if (prob < 0 || prob > 1) {
+    if (prob <= 0.0) {
         return 0;
+    }
+    if (prob >= 1.0) {
+        return 1;
     }
     if (getRand(0, 1) <= prob) {
         return 1;
