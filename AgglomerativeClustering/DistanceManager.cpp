@@ -6,10 +6,6 @@
 
 #include "DistanceManager.hpp"
 
-extern "C" {
-    #include "../Logging/Logging.h"
-}
-
 
 DistanceManager::DistanceManager(const std::vector<Cluster>& clusters)
             : size(clusters.size()),
@@ -73,10 +69,8 @@ void DistanceManager::DeleteIndexes() {
             ++move;
             continue;
         }
-        LOG_RELEASE_ASSERT(move <= i);
         new_sizes[i - move] = new_sizes[i];
     }
-    LOG_RELEASE_ASSERT(move == indexes_to_delete.size());
     while (move-- > 0) {
         new_sizes.pop_back();
     }
@@ -88,10 +82,8 @@ void DistanceManager::DeleteIndexes() {
                 ++move;
                 continue;
             }
-            LOG_RELEASE_ASSERT(move <= j);
             new_distances[i][j - move] = new_distances[i][j];
         }
-        LOG_RELEASE_ASSERT(move == indexes_to_delete.size());
         while (move-- > 0) {
             new_distances[i].pop_back();
         }
@@ -104,7 +96,6 @@ void DistanceManager::DeleteIndexes() {
                 ++move;
                 continue;
             }
-            LOG_RELEASE_ASSERT(move <= i);
             new_distances[i - move][j] = new_distances[i][j];
         }
     }

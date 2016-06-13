@@ -26,6 +26,7 @@ static size_t PerformSelection(World* world,
                                List* clustered_species);
 static double GetMidFitness(Species* species);
 static List* CountFitnesses(List* species);
+static void CountSpeciesLinks(World* world, List* fitness_list);
 static void CountDiedSpecies(World* world);
 static void CrossEntities(Entity* parent1,
                           Entity* parent2,
@@ -245,7 +246,8 @@ static Species* PerformCrossover(World* world) {
         if (world->species.length == 1) {
             crossover_prob = CROSSOVER_FIRST_TIME_PROB;
         }
-        else if (SPECIES_LENGTH(speciesIt.current->value) <= CROSSOVER_EXTINCTION_BIAS) {
+        else if (SPECIES_LENGTH(speciesIt.current->value)
+                 <= CROSSOVER_EXTINCTION_BIAS) {
             crossover_prob = 1.0;
         }
         else {
@@ -395,6 +397,8 @@ static size_t PerformSelection(World* world, List* clustered_species) {
         goto error_PerformSelection;
     }
 
+    CountSpeciesLinks(world, fitness_list);
+
     size_t new_world_size = 0;
 
     Log(INFO, "Before selection in clustered_species");
@@ -478,6 +482,27 @@ error_CountFitnesses:
     clearListPointer(fitness_list);
     free(temp);
     return NULL;
+}
+
+static void CountSpeciesLinks(World* world, List* fitness_list) {
+    for (ListIterator it1 = begin(fitness_list);
+            !isIteratorAtEnd(it1);
+            next(&it1)) {
+        for (ListIterator it2 = begin(fitness_list);
+                !isIteratorAtEnd(it2);
+                next(&it2)) {
+            if (it1.current == it2.current) {
+                continue;
+            }
+            if (doWithProbability(SPECIES_LINK_PROBABILITY)) {
+                *((double*)it1.current->value) +=
+                        getRand(SPECIES_LINK_MIN, SPECIES_LINK_MAX)
+                        *  *((double*)it2.current->value);
+            }
+        }
+        *((double*)it1.current->value) = MAX(*((double*)it1.current->value),
+                                             1.0);
+    }
 }
 
 static void CountDiedSpecies(World* world) {

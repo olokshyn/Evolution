@@ -31,7 +31,7 @@ Release/*
 # OS generated files #
 ######################
 .idea/*
-Plotter/.idea/*
+StatAnalyzer/.idea/*
 .DS_Store
 .DS_Store?
 ._*

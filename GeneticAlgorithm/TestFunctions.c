@@ -57,8 +57,8 @@ Objective GriewangkFuncObjective = {
 
 Objective StretchedVSineWaveFuncObjective = {
     .func = StretchedVSineWaveFunc,
-    .min = -10,
-    .max = 10,
+    .min = -100,
+    .max = 100,
     .optimum = 0,
 };
 
