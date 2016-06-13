@@ -11,6 +11,11 @@ def main(argv):
         print "Usage: python Analyzer.py [data-file]"
         sys.exit(-1)
 
+    if argv[1] == "RUN_TESTS":
+        distr_analyzer = Normal.NormalDistrAnalyzer()
+        distr_analyzer.TestMe()
+        return 0
+
     file_name = argv[1]
 
     try:
