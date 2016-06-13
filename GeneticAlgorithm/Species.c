@@ -7,6 +7,9 @@
 
 Species* CreateSpecies(size_t initial_size) {
     Species* species = (Species*)malloc(sizeof(Species));
+    if (!species) {
+        return NULL;
+    }
     species->entitiesList = CreateEntitiesList();
     species->died = 0;
     species->initial_size = initial_size;

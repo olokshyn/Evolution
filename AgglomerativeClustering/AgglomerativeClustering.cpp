@@ -115,6 +115,9 @@ static bool IsInVector(const vector<T>& vec, const T& value) {
 
 static List* ConvertToList(vector<Cluster>& level) {
     List* clusters = (List*)malloc(sizeof(List));
+    if (!clusters) {
+        return NULL;
+    }
     initList(clusters, NULL, (void (*)(void*))ClearSpecies);
     for (size_t i = 0; i < level.size(); ++i) {
         Species* species = level[i].Release();
