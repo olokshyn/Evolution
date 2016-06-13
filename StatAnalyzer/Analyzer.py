@@ -27,7 +27,7 @@ def main(argv):
         if distr_analyzer.TestDistr(distr, data):
             print "Distribution obeys Normal law"
         else:
-            print "Distribution does NOT obeys Normal law"
+            print "Distribution does NOT obey Normal law"
 
         BuildPlot(occurrences)
 
