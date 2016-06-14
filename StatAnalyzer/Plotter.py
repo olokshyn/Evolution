@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 def BuildPlot(occurrences):
     items = occurrences.items()
     items.sort(key=lambda x: x[0])
+    if items and items[0][0] == 0:
+        items.pop(0)
     plt.bar([x[0] for x in items], [x[1] for x in items], align="center")
     plt.show()
 
