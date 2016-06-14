@@ -12,6 +12,7 @@
 
 static LogLevel current_log_level = INFO;
 static FILE* log_file = NULL;
+static FILE* fitness_file = NULL;
 
 
 static const char* GetLogLevelName(LogLevel log_level);
@@ -24,6 +25,11 @@ int InitLogging(const char* log_filename, LogLevel log_level) {
     if (!log_file) {
         return 0;
     }
+    fitness_file = fopen("fitness.log", "w");
+    if (!fitness_file) {
+        fclose(log_file);
+        return 0;
+    }
     if (log_level != NOT_SET) {
         current_log_level = log_level;
     }
@@ -33,7 +39,9 @@ int InitLogging(const char* log_filename, LogLevel log_level) {
 void ReleaseLogging() {
     if (log_file) {
         fclose(log_file);
+        fclose(fitness_file);
         log_file = NULL;
+        fitness_file = NULL;
     }
 }
 
@@ -84,6 +92,10 @@ void Log(LogLevel log_level, const char* format, ...) {
     va_end(ap);
 }
 
+void LogMaxFitness(double fitness) {
+    fprintf(fitness_file, "%.3f\n", fitness);
+    fflush(fitness_file);
+}
 
 // static functions -------
 

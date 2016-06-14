@@ -166,6 +166,7 @@ double Step(World* world) {
 
     double max_fitness = GetMaxFitness(world);
     Log(INFO, "Step: max fitness: %.3f", max_fitness);
+    LogMaxFitness(max_fitness);
     return max_fitness;
 
 error_Step:
@@ -386,6 +387,7 @@ static void PerformLimitedSelectionInSpecies(World* world,
     size_t species_size = (size_t)round(world->initial_world_size
                                         * selection_part);
     species_size = MIN(species_size, SPECIES_LENGTH(species));
+    species_size = MAX(species_size, CROSSOVER_EXTINCTION_BIAS);
     PerformSelectionInSpecies(world, species, species_size);
 }
 
@@ -503,6 +505,8 @@ static void CountSpeciesLinks(World* world, List* fitness_list) {
         *((double*)it1.current->value) = MAX(*((double*)it1.current->value),
                                              1.0);
     }
+
+    Normalize(fitness_list);
 }
 
 static void CountDiedSpecies(World* world) {

@@ -29,3 +29,9 @@ def CountDeathsFreq(file_name):
         occurrences[k] /= total_number_count
     AddEmptyKeys(occurrences)
     return occurrences
+
+
+def DataFileReader(file_name):
+    with open(file_name, 'r') as in_file:
+        for line in in_file:
+            yield float(line.strip())

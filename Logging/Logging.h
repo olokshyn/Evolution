@@ -28,4 +28,6 @@ LogLevel SetLogLevel(LogLevel log_level);
 
 void Log(LogLevel log_level, const char* format, ...);
 
+void LogMaxFitness(double fitness);
+
 #endif //WISHART_LOGGING_H
