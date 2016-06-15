@@ -487,6 +487,10 @@ error_CountFitnesses:
 }
 
 static void CountSpeciesLinks(World* world, List* fitness_list) {
+    if (SPECIES_LINK_PROBABILITY == 0.0) {
+        return;
+    }
+
     for (ListIterator it1 = begin(fitness_list);
             !isIteratorAtEnd(it1);
             next(&it1)) {
