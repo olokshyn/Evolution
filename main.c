@@ -5,11 +5,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "List/ListTests.h"
-
-#include "Wishart/WishartTest.h"
-#include "GeneticAlgorithm/Simulation.h"
-#include "Logging/Logging.h"
+#include "EvolutionLib/EvolutionLib.h"
 
 
 void runForAllFucntions(size_t max_iterations_count,
@@ -57,17 +53,17 @@ void runForAllFucntions(size_t max_iterations_count,
 
     for (size_t i = 0; i < functionsCount; ++i) {
         printf("%s\n", functionNames[i]);
-        RunSimulation(max_iterations_count,
-                      stable_value_iterations_count,
-                      stable_value_eps,
-                      individuals_count,
-                      chromosome_size,
-                      mutation_probability,
-                      k_neighbour,
-                      cluster_height,
-                      objectiveFunctions[i],  // Objective function
-                      NULL,
-                      0);
+        StartEvolution(max_iterations_count,
+                       stable_value_iterations_count,
+                       stable_value_eps,
+                       individuals_count,
+                       chromosome_size,
+                       mutation_probability,
+                       k_neighbour,
+                       cluster_height,
+                       objectiveFunctions[i],  // Objective function
+                       NULL,
+                       0);
         printf("\n");
     }
 }
@@ -88,17 +84,17 @@ double getAvgIterCount(size_t tests_count,
     int status;
     for (size_t i = 0; i < tests_count; ++i) {
         iterations_made = 0;
-        status = RunSimulation(max_iterations_count,
-                               stable_value_iterations_count,
-                               stable_value_eps,
-                               individuals_count,
-                               chromosome_size,
-                               mutation_probability,
-                               k_neighbour,
-                               cluster_height,
-                               objective,
-                               &iterations_made,
-                              0);
+        status = StartEvolution(max_iterations_count,
+                                stable_value_iterations_count,
+                                stable_value_eps,
+                                individuals_count,
+                                chromosome_size,
+                                mutation_probability,
+                                k_neighbour,
+                                cluster_height,
+                                objective,
+                                &iterations_made,
+                                0);
         if (GetLastError()) {
             return -1.0;
         }
@@ -135,9 +131,9 @@ int main(int argc, char* argv[]) {
     // fisher_iris_test();
 
     size_t max_iterations_count = 100000;
-    size_t stable_value_iterations_count = 1000;
+    size_t stable_value_iterations_count = 10;
     double stable_value_eps = 1e-10;
-    size_t individuals_count = 1000;
+    size_t individuals_count = 10;
     size_t chromosome_size = 20;
     double mutation_probability = 0.5;
     size_t k_neighbour = 5;
