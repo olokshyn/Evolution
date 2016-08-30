@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     size_t max_iterations_count = 100000;
     size_t stable_value_iterations_count = 10;
     double stable_value_eps = 1e-10;
-    size_t individuals_count = 10;
+    size_t individuals_count = 100;
     size_t chromosome_size = 20;
     double mutation_probability = 0.5;
     size_t k_neighbour = 5;

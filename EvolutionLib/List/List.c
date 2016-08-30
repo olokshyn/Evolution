@@ -87,6 +87,9 @@ short insert(ListIterator nextIt, void* value) {
     }
     else {
         new->prev = nextIt.list->tail;
+        if (new->prev) {
+            new->prev->next = new;
+        }
         nextIt.list->tail = new;
     }
     if (!new->prev) {
@@ -116,11 +119,11 @@ short moveList(List* destination, List* source) {
     if (destination->tail) {
         destination->tail->next = source->head;
         source->head->prev = destination->tail;
+        destination->tail = source->tail;
     }
     else {
-        destination->head =
-        destination->tail =
-            source->head;
+        destination->head = source->head;
+        destination->tail = source->tail;
     }
     destination->length += source->length;
     source->head = NULL;
@@ -224,25 +227,12 @@ void next(ListIterator* it) {
     }
 }
 
-short isIteratorAtEnd(ListIterator it) {
-    return it.current == NULL;
+void prev(ListIterator* it) {
+    if (it && it->current) {
+        it->current = it->current->prev;
+    }
 }
 
-short checkList(List* list) {
-    if (!list || !list->length) {
-        return 1;
-    }
-    if (!list->head || list->head->prev != NULL) {
-        return 0;
-    }
-    Node* temp = list->head;
-    size_t size = 1;
-    while (temp->next) {
-        if (temp->next->prev != temp) {
-            return 0;
-        }
-        temp = temp->next;
-        ++size;
-    }
-    return temp == list->tail && size == list->length;
+short isIteratorExhausted(ListIterator it) {
+    return it.current == NULL;
 }

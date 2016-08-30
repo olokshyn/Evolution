@@ -2,9 +2,12 @@ include_directories(${gtest_SOURCE_DIR}/include)
 
 set(AGGLOMERATIVE_CLUSTERING_TEST_SOURCE_FILES
         AgglomerativeClustering/ClusterTests.cpp)
+set(LIST_TEST_SOURCE_FILES
+        List/ListTests.cpp)
 
 set(EVOLUTION_TESTS_SOURCE_FILES
-        ${AGGLOMERATIVE_CLUSTERING_TEST_SOURCE_FILES})
+        ${AGGLOMERATIVE_CLUSTERING_TEST_SOURCE_FILES}
+        ${LIST_TEST_SOURCE_FILES})
 add_executable(EvolutionTests ${EVOLUTION_TESTS_SOURCE_FILES})
 target_link_libraries(EvolutionTests gtest_main)
 target_link_libraries(EvolutionTests EvolutionLib)

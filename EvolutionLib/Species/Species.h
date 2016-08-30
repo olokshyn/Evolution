@@ -18,7 +18,7 @@ typedef struct species {
 
 #define FOR_EACH_IN_SPECIES_N(SPECIES, IN_ENTITY_SP_IT) \
 for (ListIterator IN_ENTITY_SP_IT = begin(((Species*)(SPECIES))->entitiesList); \
-        !isIteratorAtEnd(IN_ENTITY_SP_IT); \
+        !isIteratorExhausted(IN_ENTITY_SP_IT); \
         next(&IN_ENTITY_SP_IT))
 
 #define ENTITY_SP_IT_N(IN_ENTITY_SP_IT) ((Entity*)IN_ENTITY_SP_IT.current->value)
@@ -27,7 +27,8 @@ for (ListIterator IN_ENTITY_SP_IT = begin(((Species*)(SPECIES))->entitiesList); 
 
 #define ENTITY_SP_IT ENTITY_SP_IT_N(sp_in_it)
 
-#define SPECIES_LENGTH(SPECIES) (SPECIES ? ((Species*)SPECIES)->entitiesList->length : 0)
+#define SPECIES_LENGTH(SPECIES) \
+(SPECIES ? ((Species*)SPECIES)->entitiesList->length : 0)
 
 Species* CreateSpecies(size_t initial_size);
 

@@ -41,7 +41,7 @@ void Normalize(List* numbers) {
     ListIterator it = begin(numbers);
     double min = *((double*)it.current->value);
 
-    for ( ; !isIteratorAtEnd(it); next(&it)) {
+    for ( ; !isIteratorExhausted(it); next(&it)) {
         double value = *((double*)it.current->value);
         sum += value;
         if (value < min) {
@@ -54,7 +54,7 @@ void Normalize(List* numbers) {
     }
 
     double test = 0.0;
-    for (it = begin(numbers); !isIteratorAtEnd(it); next(&it)) {
+    for (it = begin(numbers); !isIteratorExhausted(it); next(&it)) {
         *((double*)it.current->value) =
                 ( *((double*)it.current->value) + fabs(min) ) / sum;
         test += *((double*)it.current->value);

@@ -62,8 +62,32 @@ ListIterator end(List* list);
 
 void next(ListIterator* it);
 
-short isIteratorAtEnd(ListIterator it);
+void prev(ListIterator* it);
 
-short checkList(List* list);
+short isIteratorExhausted(ListIterator it);
+
+#define FOR_EACH_IN_LIST_N(LIST_P, LIST_IN_IT) \
+for (ListIterator LIST_IN_IT = begin(LIST_P); \
+     !isIteratorExhausted(LIST_IN_IT); \
+     next(&LIST_IN_IT))
+
+#define FOR_EACH_IN_LIST(LIST_P) FOR_EACH_IN_LIST_N(LIST_P, list_in_it)
+
+#define FOR_EACH_IN_LIST_BACK_N(LIST_P, LIST_IN_IT) \
+for (ListIterator LIST_IN_IT = {LIST_P, LIST_P->tail}; \
+     !isIteratorExhausted(LIST_IN_IT); \
+     prev(&LIST_IN_IT))
+
+#define FOR_EACH_IN_LIST_BACK(LIST_P) FOR_EACH_IN_LIST_BACK_N(LIST_P, list_in_it)
+
+#define LIST_IT_VALUE_P_N(LIST_IN_IT, TYPE) \
+((TYPE*)LIST_IN_IT.current->value)
+
+#define LIST_IT_VALUE_P(TYPE) LIST_IT_VALUE_P_N(list_in_it, TYPE)
+
+#define LIST_IT_VALUE_N(LIST_IN_IT, TYPE) \
+(*LIST_IT_VALUE_P_N(LIST_IN_IT, TYPE))
+
+#define LIST_IT_VALUE(TYPE) LIST_IT_VALUE_N(list_in_it, TYPE)
 
 #endif //EVOLUTION_LIST_H

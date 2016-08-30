@@ -106,7 +106,7 @@ void ClearWorld(World* world) {
 
 void PerformMutation(World* world) {
     for (ListIterator speciesIt = begin(&world->species);
-         !isIteratorAtEnd(speciesIt);
+         !isIteratorExhausted(speciesIt);
          next(&speciesIt)) {
         FOR_EACH_IN_SPECIES(speciesIt.current->value) {
             if (doWithProbability(world->mutation_prob)) {
@@ -139,7 +139,7 @@ Species* PerformCrossover(World* world) {
 
     for (ListIterator speciesIt = begin(&world->species),
                  fitnessIt = begin(fitness_list);
-         !isIteratorAtEnd(speciesIt);
+         !isIteratorExhausted(speciesIt);
          next(&speciesIt), next(&fitnessIt)) {
         if (SPECIES_LENGTH(speciesIt.current->value) == 1) {
             continue;
@@ -237,7 +237,7 @@ size_t PerformSelection(World* world, List* clustered_species) {
     Log(INFO, "Before selection in clustered_species");
     for (ListIterator it_cl = begin(clustered_species),
                  it_ft = begin(fitness_list);
-         !isIteratorAtEnd(it_cl);
+         !isIteratorExhausted(it_cl);
          next(&it_cl), next(&it_ft)) {
         PerformLimitedSelectionInSpecies(world,
                                          (Species*)(it_cl.current->value),
@@ -249,7 +249,7 @@ size_t PerformSelection(World* world, List* clustered_species) {
     Log(DEBUG, "New world size: %d", (int)new_world_size);
 
     for (ListIterator it = begin(clustered_species);
-         !isIteratorAtEnd(it);
+         !isIteratorExhausted(it);
             ) {
         if (SPECIES_LENGTH(it.current->value) == 0) {
             ListIterator temp_it = it;
@@ -335,7 +335,7 @@ error_Step:
 double GetMaxFitness(World* world) {
     Entity* max_fitness_entity = NULL;
     for (ListIterator speciesIt = begin(&world->species);
-            !isIteratorAtEnd(speciesIt);
+            !isIteratorExhausted(speciesIt);
             next(&speciesIt)) {
         FOR_EACH_IN_SPECIES(speciesIt.current->value) {
             if (!max_fitness_entity
@@ -439,7 +439,7 @@ static List* CountFitnesses(List* species) {
     }
     initList(fitness_list, NULL, free);
     for (ListIterator it = begin(species);
-         !isIteratorAtEnd(it);
+         !isIteratorExhausted(it);
          next(&it)) {
         temp = (double*)malloc(sizeof(double));
         if (!temp) {
@@ -470,10 +470,10 @@ static void CountSpeciesLinks(World* world, List* fitness_list) {
     }
 
     for (ListIterator it1 = begin(fitness_list);
-            !isIteratorAtEnd(it1);
+            !isIteratorExhausted(it1);
             next(&it1)) {
         for (ListIterator it2 = begin(fitness_list);
-                !isIteratorAtEnd(it2);
+                !isIteratorExhausted(it2);
                 next(&it2)) {
             if (it1.current == it2.current) {
                 continue;
@@ -493,7 +493,7 @@ static void CountSpeciesLinks(World* world, List* fitness_list) {
 
 static void CountDiedSpecies(World* world) {
     for (ListIterator clusterIt = begin(&world->species);
-            !isIteratorAtEnd(clusterIt);
+            !isIteratorExhausted(clusterIt);
             next(&clusterIt)) {
         Species* species = (Species*)clusterIt.current->value;
         LOG_ASSERT(species->initial_size != 0);

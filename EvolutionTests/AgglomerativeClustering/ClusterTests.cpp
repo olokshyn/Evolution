@@ -120,14 +120,6 @@ TEST(ClusterTest, Integrity2) {
 }
 
 TEST(ClusterTest, Vector) {
-    // Test the STL vector behavior on the built-in type first
-    vector<double> vecd;
-    vecd.push_back(0.1);
-    vecd.push_back(0.3);
-    vector<double> vecd2;
-    vecd2 = move(vecd);
-    ASSERT_EQ(0, vecd.size());
-
     size_t chr_size = 10;
     Cluster::SetVectorLength(chr_size);
 

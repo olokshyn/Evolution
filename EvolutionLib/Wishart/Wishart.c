@@ -341,7 +341,7 @@ size_t* Wishart(const double* const* vectors,
             connected_clusters_numbers =
                     (size_t*)malloc(clusters_numbers.length * sizeof(size_t));
             for (it = begin(&clusters_numbers), i = 0;
-                 !isIteratorAtEnd(it);
+                 !isIteratorExhausted(it);
                  next(&it), ++i) {
                 connected_clusters_numbers[i] = *(size_t*)it.current->value;
             }
@@ -385,7 +385,7 @@ size_t* Wishart(const double* const* vectors,
                     || connected_clusters_numbers[0] == 0) {
                     wVectors->v[iter].w = 0;
                     for (it = begin(&significant_clusters_numbers);
-                         !isIteratorAtEnd(it);
+                         !isIteratorExhausted(it);
                          next(&it)) {
                         it2 = findByVal(&Clusters, it.current->value);
                         LOG_ASSERT(it2.current);

@@ -70,7 +70,7 @@ void MarkAllAsNew(List* entitiesList) {
         return;
     }
     for (ListIterator it = begin(entitiesList);
-            !isIteratorAtEnd(it);
+            !isIteratorExhausted(it);
             next(&it)) {
         ((Entity*)it.current->value)->old = 0;
     }
@@ -81,7 +81,7 @@ void MarkAllAsOld(List* entitiesList) {
         return;
     }
     for (ListIterator it = begin(entitiesList);
-         !isIteratorAtEnd(it);
+         !isIteratorExhausted(it);
          next(&it)) {
         ((Entity*)it.current->value)->old = 1;
     }

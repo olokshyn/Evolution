@@ -40,13 +40,13 @@ List* AgglomerativeClustering(List* clusters,
         vector<Cluster> current_layer;
         current_layer.reserve(layer_size);
         for (ListIterator it = begin(clusters);
-             !isIteratorAtEnd(it);
+             !isIteratorExhausted(it);
              next(&it)) {
             current_layer.push_back(Cluster((Species*)it.current->value));
         }
         if (entities) {
             for (ListIterator it = begin(entities);
-                 !isIteratorAtEnd(it);
+                 !isIteratorExhausted(it);
                  next(&it)) {
                 current_layer.push_back(Cluster((Entity*)it.current->value));
             }
