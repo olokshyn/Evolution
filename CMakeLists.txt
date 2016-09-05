@@ -69,8 +69,6 @@ set(EVOLUTION_LIB_SOURCE_FILES
 add_library(EvolutionLib
         ${EVOLUTION_LIB_SOURCE_FILES})
 
-add_subdirectory(googletest)
-
 add_subdirectory(EvolutionTests)
 
 set(SOURCE_FILES

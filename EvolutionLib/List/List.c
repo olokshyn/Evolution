@@ -3,6 +3,7 @@
 //
 
 #include "List.h"
+#include "Logging/Logging.h"
 
 short initList(List* list, comparator c, destructor d) {
     if (!list) {
@@ -103,19 +104,29 @@ short copyList(List* destination, List* source, copier cp) {
     if (!destination || !source) {
         return 0;
     }
+    LOG_ASSERT(destination->c == source->c && destination->d == source->d);
+
     for (Node* it = source->head; it != NULL; it = it->next) {
-        pushBack(destination, cp(it->value));
+        void* copy = cp(it->value);
+        if (!copy) {
+            return 0;
+        }
+        if (!pushBack(destination, copy)) {
+            if (source->d) {
+                source->d(copy);
+            }
+            return 0;
+        }
     }
     return 1;
 }
 
 short moveList(List* destination, List* source) {
-    if (!destination
-            || !source
-            || destination->c != source->c
-            || destination->d != source->d) {
+    if (!destination || !source) {
         return 0;
     }
+    LOG_ASSERT(destination->c == source->c && destination->d == source->d);
+
     if (destination->tail) {
         destination->tail->next = source->head;
         source->head->prev = destination->tail;

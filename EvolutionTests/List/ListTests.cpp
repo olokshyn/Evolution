@@ -10,17 +10,21 @@ extern "C" {
 
 using namespace std;
 
-const size_t elems_count = 10;
+namespace {
+    const size_t elems_count = 10;
 
-int double_comparator(const void* p1, const void* p2) {
-    double res = *(double*)p1 - *(double*)p2;
-    return (res > 0) - (res < 0);
-}
+    int double_comparator(const void* p1, const void* p2) {
+        double res = *(double*)p1 - *(double*)p2;
+        return (res > 0) - (res < 0);
+    }
 
-void* double_copier(void* value) {
-    double* new_v = (double*)malloc(sizeof(double));
-    *new_v = *(double*)value;
-    return new_v;
+    static void* double_copier(void* value) {
+        double* new_v = (double*)malloc(sizeof(double));
+        if (new_v) {
+            *new_v = *(double*)value;
+        }
+        return new_v;
+    }
 }
 
 TEST(ListTest, Creation) {
@@ -29,17 +33,20 @@ TEST(ListTest, Creation) {
     ASSERT_EQ(1, clearList(&list));
 
     List* list_p = (List*)malloc(sizeof(List));
+    ASSERT_NE((void*)0, list_p);
     ASSERT_EQ(1, initList(list_p, NULL, free));
     ASSERT_EQ(1, clearListPointer(list_p));
 }
 
 TEST(ListTest, PushBack) {
     List* list_p = (List*)malloc(sizeof(List));
+    ASSERT_NE((void*)0, list_p);
     initList(list_p, NULL, free);
 
     double* el = NULL;
     for (size_t i = 0; i < elems_count; ++i) {
         el = (double*)malloc(sizeof(double));
+        ASSERT_NE((void*)0, el);
         *el = i + 0.1;
         ASSERT_EQ(1, pushBack(list_p, el));
     }
@@ -65,20 +72,21 @@ TEST(ListTest, PushBack) {
 
 TEST(ListTest, Insert) {
     List* list_p = (List*)malloc(sizeof(List));
+    ASSERT_NE((void*)0, list_p);
     initList(list_p, NULL, free);
 
     double* el = NULL;
     for (size_t i = 0; i < elems_count; ++i) {
         el = (double*)malloc(sizeof(double));
+        ASSERT_NE((void*)0, el);
         *el = i + 0.1;
         ASSERT_EQ(1, insert(begin(list_p), el));
     }
 
     el = (double*)malloc(sizeof(double));
+    ASSERT_NE((void*)0, el);
     *el = 2.2;
     ASSERT_EQ(1, insert(end(list_p), el));
-
-    cout << endl;
 
     ListIterator it = {
             list_p,
@@ -86,6 +94,7 @@ TEST(ListTest, Insert) {
     };
 
     el = (double*)malloc(sizeof(double));
+    ASSERT_NE((void*)0, el);
     *el = 3.3;
     ASSERT_EQ(1, insert(it, el));
 
@@ -130,16 +139,19 @@ TEST(ListTest, Insert) {
 
 TEST(ListTest, CopyList) {
     List* list_p = (List*)malloc(sizeof(List));
+    ASSERT_NE((void*)0, list_p);
     initList(list_p, NULL, free);
 
     double* el = NULL;
     for (size_t i = 0; i < elems_count; ++i) {
         el = (double*)malloc(sizeof(double));
+        ASSERT_NE((void*)0, el);
         *el = i + 0.1;
-        pushBack(list_p, el);
+        ASSERT_EQ(1, pushBack(list_p, el));
     }
 
     List* list_p_2 = (List*)malloc(sizeof(List));
+    ASSERT_NE((void*)0, list_p_2);
     initList(list_p_2, NULL, free);
 
     ASSERT_EQ(1, copyList(list_p_2, list_p, double_copier));
@@ -217,16 +229,19 @@ TEST(ListTest, CopyList) {
 
 TEST(ListTest, MoveList) {
     List* list_p = (List*)malloc(sizeof(List));
+    ASSERT_NE((void*)0, list_p);
     initList(list_p, NULL, free);
 
     double* el = NULL;
     for (size_t i = 0; i < elems_count; ++i) {
         el = (double*)malloc(sizeof(double));
+        ASSERT_NE((void*)0, el);
         *el = i + 0.1;
-        pushBack(list_p, el);
+        ASSERT_EQ(1, pushBack(list_p, el));
     }
 
     List* list_p_2 = (List*)malloc(sizeof(List));
+    ASSERT_NE((void*)0, list_p_2);
     initList(list_p_2, NULL, free);
 
     ASSERT_EQ(1, moveList(list_p_2, list_p));
@@ -253,8 +268,9 @@ TEST(ListTest, MoveList) {
 
     for (i = 0; i < elems_count; ++i) {
         el = (double*)malloc(sizeof(double));
+        ASSERT_NE((void*)0, el);
         *el = i + 0.1;
-        pushBack(list_p, el);
+        ASSERT_EQ(1, pushBack(list_p, el));
     }
 
     ASSERT_EQ(1, moveList(list_p, list_p_2));
@@ -298,16 +314,19 @@ TEST(ListTest, MoveList) {
 
 TEST(ListTest, FindByVal) {
     List* list_p = (List*)malloc(sizeof(List));
+    ASSERT_NE((void*)0, list_p);
     initList(list_p, double_comparator, free);
 
     double* el = NULL;
     for (size_t i = 0; i < elems_count; ++i) {
         el = (double*)malloc(sizeof(double));
+        ASSERT_NE((void*)0, el);
         *el = i + 0.1;
-        pushBack(list_p, el);
+        ASSERT_EQ(1, pushBack(list_p, el));
     }
 
     el = (double*)malloc(sizeof(double));
+    ASSERT_NE((void*)0, el);
     *el = 0.1;
     ListIterator it = findByVal(list_p, el);
     free(el);
@@ -315,6 +334,7 @@ TEST(ListTest, FindByVal) {
     ASSERT_EQ(0.1, *(double*)it.current->value);
 
     el = (double*)malloc(sizeof(double));
+    ASSERT_NE((void*)0, el);
     *el = 2.1;
     it = findByVal(list_p, el);
     free(el);
@@ -322,6 +342,7 @@ TEST(ListTest, FindByVal) {
     ASSERT_EQ(2.1, *(double*)it.current->value);
 
     el = (double*)malloc(sizeof(double));
+    ASSERT_NE((void*)0, el);
     *el = elems_count - 1 + 0.1;
     it = findByVal(list_p, el);
     free(el);
@@ -329,6 +350,7 @@ TEST(ListTest, FindByVal) {
     ASSERT_EQ(elems_count - 1 + 0.1, *(double*)it.current->value);
 
     el = (double*)malloc(sizeof(double));
+    ASSERT_NE((void*)0, el);
     *el = 5.5;
     it = findByVal(list_p, el);
     free(el);
@@ -339,13 +361,15 @@ TEST(ListTest, FindByVal) {
 
 TEST(ListTest, FindByIndex) {
     List* list_p = (List*)malloc(sizeof(List));
+    ASSERT_NE((void*)0, list_p);
     initList(list_p, NULL, free);
 
     double* el = NULL;
     for (size_t i = 0; i < elems_count; ++i) {
         el = (double*)malloc(sizeof(double));
+        ASSERT_NE((void*)0, el);
         *el = i + 0.1;
-        pushBack(list_p, el);
+        ASSERT_EQ(1, pushBack(list_p, el));
     }
 
     ListIterator it = findByIndex(list_p, 0);
@@ -365,13 +389,15 @@ TEST(ListTest, FindByIndex) {
 
 TEST(ListTest, RemoveFromList) {
     List* list_p = (List*)malloc(sizeof(List));
+    ASSERT_NE((void*)0, list_p);
     initList(list_p, NULL, free);
 
     double* el = NULL;
     for (size_t i = 0; i < elems_count; ++i) {
         el = (double*)malloc(sizeof(double));
+        ASSERT_NE((void*)0, el);
         *el = i + 0.1;
-        pushBack(list_p, el);
+        ASSERT_EQ(1, pushBack(list_p, el));
     }
 
     ASSERT_EQ(1, removeByIndex(list_p, 0));

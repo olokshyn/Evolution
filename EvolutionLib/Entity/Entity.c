@@ -66,7 +66,7 @@ List* CreateEntitiesList() {
 }
 
 void MarkAllAsNew(List* entitiesList) {
-    if (!entitiesList || entitiesList->length) {
+    if (!entitiesList || !entitiesList->length) {
         return;
     }
     for (ListIterator it = begin(entitiesList);
