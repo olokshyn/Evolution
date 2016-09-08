@@ -23,29 +23,48 @@ namespace {
         return sum;
     }
 
-    int ConfirmParents(Entity* par1,
-                       Entity* par2,
-                       Entity* chld,
+    int ConfirmParents(Entity* parent1,
+                       Entity* parent2,
+                       Entity* child1,
+                       Entity* child2,
                        size_t chr_size) {
         size_t crossover_point = (chr_size % 2 == 0) ?
                                  (chr_size / 2) :
                                  (chr_size / 2 + 1);
         for (size_t i = 0; i < crossover_point; ++i) {
-            if (par1->chr[i] != chld->chr[i]) {
+            if (parent1->chr[i] != child1->chr[i]) {
                 return -1;
             }
         }
         for (size_t i = crossover_point; i < chr_size; ++i) {
-            if (par2->chr[i] != chld->chr[i]) {
+            if (parent2->chr[i] != child1->chr[i]) {
                 return -2;
             }
         }
-        if (chld->fitness != TestObjective(chld->chr,
+        if (child1->fitness != TestObjective(child1->chr,
                                            static_cast<int>(chr_size))) {
             return -3;
         }
-        if (chld->old != 0) {
+        if (child1->old != 0) {
             return -4;
+        }
+
+        for (size_t i = 0; i < crossover_point; ++i) {
+            if (parent2->chr[i] != child2->chr[i]) {
+                return -5;
+            }
+        }
+        for (size_t i = crossover_point; i < chr_size; ++i) {
+            if (parent1->chr[i] != child2->chr[i]) {
+                return -6;
+            }
+        }
+        if (child2->fitness != TestObjective(child2->chr,
+                                             static_cast<int>(chr_size))) {
+            return -7;
+        }
+        if (child2->old != 0) {
+            return -8;
         }
         return 0;
     }
@@ -114,20 +133,25 @@ TEST(EntityTest, CrossEntities) {
                 == LIST_IT_VALUE_P_N(it2, Entity)) {
                 continue;
             }
-            Entity* child = CreateEntity(chr_size);
-            ASSERT_NE((void*)0, child);
+            Entity* child1 = CreateEntity(chr_size);
+            ASSERT_NE((void*)0, child1);
+            Entity* child2 = CreateEntity(chr_size);
+            ASSERT_NE((void*)0, child2);
 
             CrossEntities(LIST_IT_VALUE_P_N(it1, Entity),
                           LIST_IT_VALUE_P_N(it2, Entity),
-                          child,
+                          child1,
+                          child2,
                           TestObjective,
                           chr_size);
             ASSERT_EQ(0, ConfirmParents(LIST_IT_VALUE_P_N(it1, Entity),
                                         LIST_IT_VALUE_P_N(it2, Entity),
-                                        child,
+                                        child1,
+                                        child2,
                                         chr_size));
 
-            EntityDestructor(child);
+            EntityDestructor(child1);
+            EntityDestructor(child2);
         }
     }
 

@@ -42,6 +42,8 @@ short pushBack(List* list, void* value);
 
 short insert(ListIterator next, void* value);
 
+short emptyList(List* list);
+
 short copyList(List* destination, List* source, copier cp);
 
 short moveList(List* destination, List* source);

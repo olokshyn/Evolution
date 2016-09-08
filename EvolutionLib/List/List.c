@@ -19,23 +19,11 @@ short initList(List* list, comparator c, destructor d) {
 
 short clearList(List* list) {
     if (!list) {
-        return 0;
-    }
-    if (!list->length || !list->head) {
         return 1;
     }
-    Node* temp;
-    while (list->head != NULL) {
-        temp = list->head->next;
-        if (list->d) {
-            list->d(list->head->value);
-        }
-        free(list->head);
-        list->head = temp;
+    if (!emptyList(list)) {
+        return 0;
     }
-    list->head = NULL;
-    list->tail = NULL;
-    list->length = 0;
     list->c = NULL;
     list->d = NULL;
     return 1;
@@ -97,6 +85,26 @@ short insert(ListIterator nextIt, void* value) {
         nextIt.list->head = new;
     }
     ++nextIt.list->length;
+    return 1;
+}
+
+short emptyList(List* list) {
+    if (!list || !list->length || !list->head) {
+        LOG_RELEASE_ASSERT(!(list && list->tail));
+        return 1;
+    }
+    Node* temp;
+    while (list->head != NULL) {
+        temp = list->head->next;
+        if (list->d) {
+            list->d(list->head->value);
+        }
+        free(list->head);
+        list->head = temp;
+    }
+    list->head = NULL;
+    list->tail = NULL;
+    list->length = 0;
     return 1;
 }
 

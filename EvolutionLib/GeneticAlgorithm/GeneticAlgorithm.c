@@ -125,7 +125,9 @@ Species* PerformCrossover(World* world) {
 
     Species* new_species = NULL;
     List* fitness_list = NULL;
-    Entity* new_entity = NULL;
+    Entity* new_entity1 = NULL;
+    Entity* new_entity2 = NULL;
+    short* crossed_parents = NULL;
 
     new_species = CreateSpecies(0);
     if (!new_species) {
@@ -159,32 +161,57 @@ Species* PerformCrossover(World* world) {
                                  CROSSOVER_MIN_PROB);
         }
 
+        crossed_parents = (short*)calloc(
+                SPECIES_LENGTH(speciesIt.current->value),
+                sizeof(short));
+        if (!crossed_parents) {
+            goto error_PerformCrossover;
+        }
+        size_t i = 0, j;
         FOR_EACH_IN_SPECIES_N(speciesIt.current->value, it1) {
+            if (crossed_parents[i]) {
+                ++i;
+                continue;
+            }
+            j = 0;
             FOR_EACH_IN_SPECIES_N(speciesIt.current->value, it2) {
                 if (it1.current == it2.current
+                    || crossed_parents[j]
                     || !doWithProbability(crossover_prob)) {
+                    ++j;
                     continue;
                 }
-                new_entity = (Entity*)malloc(sizeof(Entity));
-                if (!new_entity) {
+                new_entity1 = CreateEntity(world->chr_size);
+                if (!new_entity1) {
                     goto error_PerformCrossover;
                 }
-                new_entity->chr = (double*)malloc(sizeof(double)
-                                                  * world->chr_size);
-                if (!new_entity->chr) {
+                new_entity2 = CreateEntity(world->chr_size);
+                if (!new_entity2) {
                     goto error_PerformCrossover;
                 }
                 CrossEntities(ENTITY_SP_IT_N(it1),
                               ENTITY_SP_IT_N(it2),
-                              new_entity,
+                              new_entity1,
+                              new_entity2,
                               world->obj.func,
                               world->chr_size);
-                if (!pushBack(new_species->entitiesList, new_entity)) {
+                if (!pushBack(new_species->entitiesList, new_entity1)) {
                     goto error_PerformCrossover;
                 }
-                new_entity = NULL;
+                new_entity1 = NULL;
+                if (!pushBack(new_species->entitiesList, new_entity2)) {
+                    goto error_PerformCrossover;
+                }
+                new_entity2 = NULL;
+                LOG_ASSERT(!crossed_parents[i] && !crossed_parents[j]);
+                crossed_parents[i] = 1;
+                crossed_parents[j] = 1;
+                break;
             }
+            ++i;
         }
+        free(crossed_parents);
+        crossed_parents = NULL;
     }
 
     clearListPointer(fitness_list);
@@ -198,7 +225,9 @@ Species* PerformCrossover(World* world) {
 error_PerformCrossover:
     ClearSpecies(new_species);
     clearListPointer(fitness_list);
-    EntityDestructor(new_entity);
+    EntityDestructor(new_entity1);
+    EntityDestructor(new_entity2);
+    free(crossed_parents);
     SetError(ERROR_ALLOCATING_MEMORY);
     return NULL;
 }
@@ -311,7 +340,7 @@ double Iteration(World* world) {
         return 0.0;
     }
 
-    clearList(&world->species);
+    emptyList(&world->species);
     moveList(&world->species, clustered_species);
     clearListPointer(clustered_species);
     clustered_species = NULL;

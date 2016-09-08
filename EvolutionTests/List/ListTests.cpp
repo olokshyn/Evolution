@@ -30,11 +30,23 @@ namespace {
 TEST(ListTest, Creation) {
     List list;
     ASSERT_EQ(1, initList(&list, NULL, free));
+    ASSERT_EQ(0, list.length);
+    size_t i = 0;
+    FOR_EACH_IN_LIST(&list) {
+        ++i;
+    }
+    ASSERT_EQ(0, i);
     ASSERT_EQ(1, clearList(&list));
 
     List* list_p = (List*)malloc(sizeof(List));
     ASSERT_NE((void*)0, list_p);
     ASSERT_EQ(1, initList(list_p, NULL, free));
+    ASSERT_EQ(0, list_p->length);
+    i = 0;
+    FOR_EACH_IN_LIST(list_p) {
+        ++i;
+    }
+    ASSERT_EQ(0, i);
     ASSERT_EQ(1, clearListPointer(list_p));
 }
 
@@ -50,6 +62,7 @@ TEST(ListTest, PushBack) {
         *el = i + 0.1;
         ASSERT_EQ(1, pushBack(list_p, el));
     }
+    ASSERT_EQ(elems_count, list_p->length);
 
     size_t i = 0;
     FOR_EACH_IN_LIST(list_p) {
@@ -82,11 +95,13 @@ TEST(ListTest, Insert) {
         *el = i + 0.1;
         ASSERT_EQ(1, insert(begin(list_p), el));
     }
+    ASSERT_EQ(elems_count, list_p->length);
 
     el = (double*)malloc(sizeof(double));
     ASSERT_NE((void*)0, el);
     *el = 2.2;
     ASSERT_EQ(1, insert(end(list_p), el));
+    ASSERT_EQ(elems_count + 1, list_p->length);
 
     ListIterator it = {
             list_p,
@@ -97,6 +112,7 @@ TEST(ListTest, Insert) {
     ASSERT_NE((void*)0, el);
     *el = 3.3;
     ASSERT_EQ(1, insert(it, el));
+    ASSERT_EQ(elems_count + 2, list_p->length);
 
     size_t i = elems_count - 1;
     size_t index = 0;
@@ -137,6 +153,45 @@ TEST(ListTest, Insert) {
     clearListPointer(list_p);
 }
 
+TEST(ListTest, EmptyList) {
+    List* list_p = (List*)malloc(sizeof(List));
+    ASSERT_NE((void*)0, list_p);
+    initList(list_p, NULL, free);
+
+    double* el = NULL;
+    for (size_t i = 0; i < elems_count; ++i) {
+        el = (double*)malloc(sizeof(double));
+        ASSERT_NE((void*)0, el);
+        *el = i + 0.1;
+        ASSERT_EQ(1, pushBack(list_p, el));
+    }
+
+    ASSERT_EQ(1, emptyList(list_p));
+    ASSERT_EQ(0, list_p->length);
+
+    size_t i = 0;
+    FOR_EACH_IN_LIST(list_p) {
+        ++i;
+    }
+    ASSERT_EQ(0, i);
+
+    for (i = 0; i < elems_count; ++i) {
+        el = (double*)malloc(sizeof(double));
+        ASSERT_NE((void*)0, el);
+        *el = i + 0.1;
+        ASSERT_EQ(1, pushBack(list_p, el));
+    }
+    ASSERT_EQ(elems_count, list_p->length);
+
+    i = 0;
+    FOR_EACH_IN_LIST(list_p) {
+        ++i;
+    }
+    ASSERT_EQ(elems_count, i);
+
+    clearListPointer(list_p);
+}
+
 TEST(ListTest, CopyList) {
     List* list_p = (List*)malloc(sizeof(List));
     ASSERT_NE((void*)0, list_p);
@@ -155,6 +210,10 @@ TEST(ListTest, CopyList) {
     initList(list_p_2, NULL, free);
 
     ASSERT_EQ(1, copyList(list_p_2, list_p, double_copier));
+    ASSERT_EQ(elems_count, list_p_2->length);
+
+    ASSERT_NE(list_p->head, list_p_2->head);
+    ASSERT_NE(list_p->tail, list_p_2->tail);
 
     size_t i = 0;
     FOR_EACH_IN_LIST(list_p_2) {
@@ -202,9 +261,6 @@ TEST(ListTest, CopyList) {
         ++pass_count;
     }
     ASSERT_EQ(2 * elems_count, pass_count);
-
-    *(double*)list_p->head->value = 10.5;
-    ASSERT_EQ(0.1, *(double*)list_p_2->head->value);
 
     clearListPointer(list_p);
 

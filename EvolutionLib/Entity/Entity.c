@@ -89,18 +89,28 @@ void MarkAllAsOld(List* entitiesList) {
 
 void CrossEntities(Entity* parent1,
                    Entity* parent2,
-                   Entity* child,
+                   Entity* child1,
+                   Entity* child2,
                    ObjectiveFunc Ofunc,
                    size_t chromosome_size) {
     size_t crossover_point = (chromosome_size % 2 == 0) ?
                              (chromosome_size / 2) :
                              (chromosome_size / 2 + 1);
     for (size_t i = 0; i < crossover_point; ++i) {
-        child->chr[i] = parent1->chr[i];
+        child1->chr[i] = parent1->chr[i];
     }
     for (size_t i = crossover_point; i < chromosome_size; ++i) {
-        child->chr[i] = parent2->chr[i];
+        child1->chr[i] = parent2->chr[i];
     }
-    child->fitness = Ofunc(child->chr, (int)chromosome_size);
-    child->old = 0;
+    child1->fitness = Ofunc(child1->chr, (int)chromosome_size);
+    child1->old = 0;
+
+    for (size_t i = 0; i < crossover_point; ++i) {
+        child2->chr[i] = parent2->chr[i];
+    }
+    for (size_t i = crossover_point; i < chromosome_size; ++i) {
+        child2->chr[i] = parent1->chr[i];
+    }
+    child2->fitness = Ofunc(child2->chr, (int)chromosome_size);
+    child2->old = 0;
 }
