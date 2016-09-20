@@ -28,11 +28,4 @@ void MarkAllAsNew(List* entitiesList);
 
 void MarkAllAsOld(List* entitiesList);
 
-void CrossEntities(Entity* parent1,
-                   Entity* parent2,
-                   Entity* child1,
-                   Entity* child2,
-                   ObjectiveFunc Ofunc,
-                   size_t chromosome_size);
-
 #endif //EVOLUTION_ENTITY_H

@@ -7,6 +7,13 @@
 
 #include "Entity.h"
 
+void OnePointCrossover(Entity* parent1,
+                       Entity* parent2,
+                       Entity* child1,
+                       Entity* child2,
+                       Objective* obj,
+                       size_t chromosome_size);
+
 void DHXCrossover(Entity* parent1,
                   Entity* parent2,
                   Entity* child1,

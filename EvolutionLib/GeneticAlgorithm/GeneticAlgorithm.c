@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include "Entity/Entity.h"
+#include "Entity/Crossovers.h"
 #include "AgglomerativeClustering/AgglomerativeClustering.h"
 #include "Logging/Logging.h"
 #include "DeathManager/DeathManager.h"
@@ -191,12 +192,12 @@ Species* PerformCrossover(World* world) {
                 if (!new_entity2) {
                     goto error_PerformCrossover;
                 }
-                CrossEntities(ENTITY_SP_IT_N(it1),
-                              ENTITY_SP_IT_N(it2),
-                              new_entity1,
-                              new_entity2,
-                              world->obj.func,
-                              world->chr_size);
+                OnePointCrossover(ENTITY_SP_IT_N(it1),
+                                  ENTITY_SP_IT_N(it2),
+                                  new_entity1,
+                                  new_entity2,
+                                  &world->obj,
+                                  world->chr_size);
                 if (!pushBack(new_species->entitiesList, new_entity1)) {
                     goto error_PerformCrossover;
                 }

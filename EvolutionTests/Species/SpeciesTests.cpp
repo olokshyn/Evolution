@@ -14,7 +14,7 @@ using namespace std;
 
 namespace {
     const size_t initial_size = 1000;
-    const size_t elems_count = 1000;
+    const size_t entities_count = 1000;
     const size_t chr_size = 1000;
 }
 
@@ -35,9 +35,9 @@ TEST(SpeciesTest, Creation) {
 }
 
 TEST(SpeciesTest, GetMidFitness) {
-    Species* sp = MockCreateSpecies(elems_count, chr_size);
+    Species* sp = MockCreateSpecies(entities_count, chr_size);
     ASSERT_NE((void*)0, sp);
-    ASSERT_EQ(elems_count, SPECIES_LENGTH(sp));
+    ASSERT_EQ(entities_count, SPECIES_LENGTH(sp));
 
     size_t i = 0;
     double fitness = 0.0;
@@ -46,7 +46,7 @@ TEST(SpeciesTest, GetMidFitness) {
         ++i;
     }
     fitness /= SPECIES_LENGTH(sp);
-    ASSERT_EQ(elems_count, i);
+    ASSERT_EQ(entities_count, i);
 
     ASSERT_EQ(GetMidFitness(sp), fitness);
 
