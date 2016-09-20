@@ -5,7 +5,6 @@
 #include "gtest/gtest.h"
 
 extern "C" {
-#include "Common.h"
 #include "Entity/Entity.h"
 }
 
@@ -118,7 +117,7 @@ TEST(EntityTest, CrossEntities) {
     List* en_list = CreateEntitiesList();
     ASSERT_NE((void*)0, en_list);
 
-    for (size_t i = 0; i < elems_count / 2; ++i) {
+    for (size_t i = 0; i < elems_count / 4; ++i) {
         Entity* temp = CreateEntity(chr_size);
         ASSERT_NE((void*)0, temp);
         for (size_t c = 0; c < chr_size; ++c) {

@@ -3,92 +3,35 @@
 //
 
 #include <vector>
-#include <utility>
-#include <stdexcept>
 
 #include "gtest/gtest.h"
 
 extern "C" {
-#include <math.h>
-
-#include "List/List.h"
+#include "Common.h"
 #include "Entity/Entity.h"
 #include "Species/Species.h"
 }
 
 #include "AgglomerativeClustering/Cluster.hpp"
 
+#include "TestsCommon.h"
+
 using namespace std;
 
 namespace {
     const size_t chr_size = 10;
-
-    Entity* MockCreateEntity(size_t chr_size) {
-        Entity* new_entity = CreateEntity(chr_size);
-        if (!new_entity) {
-            goto error_MockCreateEntity;
-        }
-        for (int j = 0; j < chr_size; ++j) {
-            new_entity->chr[j] = getRand(0, 1);
-        }
-        new_entity->fitness = 0.0;
-        new_entity->old = 1;
-
-        return new_entity;
-
-    error_MockCreateEntity:
-        throw runtime_error("MockCreateEntity");
-    }
-
-    Species* MockCreateSpecies(size_t size, size_t chr_size) {
-        Species* new_species = NULL;
-        Entity* new_entity = NULL;
-
-        new_species = CreateSpecies(size);
-        if (!new_species) {
-            goto error_MockCreateSpecies;
-        }
-        for (size_t i = 0; i < size; ++i) {
-            new_entity = CreateEntity(chr_size);
-            if (!new_entity) {
-                goto error_MockCreateSpecies;
-            }
-            for (int j = 0; j < chr_size; ++j) {
-                new_entity->chr[j] = getRand(0, 1);
-            }
-            new_entity->fitness = 0.0;
-            new_entity->old = 1;
-            if (!pushBack(new_species->entitiesList, new_entity)) {
-                goto error_MockCreateSpecies;
-            }
-            new_entity = NULL;
-        }
-
-        return new_species;
-
-    error_MockCreateSpecies:
-        EntityDestructor(new_entity);
-        ClearSpecies(new_species);
-        throw runtime_error("MockCreateSpecies");
-    }
-
-    double EuclidMeasure(double* x, double* y, size_t size) {
-        double sum = 0.0;
-        for (size_t i = 0; i < size; ++i) {
-            sum += pow(x[i] - y[i], 2);
-        }
-        return sqrt(sum);
-    }
 }
 
 TEST(ClusterTest, Creation) {
     Cluster::SetVectorLength(chr_size);
 
     Species* species = MockCreateSpecies(10, chr_size);
+    ASSERT_NE((void*)0, species);
     ASSERT_NO_THROW(Cluster cluster(species));
     ClearSpecies(species);
 
     Entity* entity = MockCreateEntity(chr_size);
+    ASSERT_NE((void*)0, entity);
     ASSERT_NO_THROW(Cluster(entity));
     EntityDestructor(entity);
 
@@ -99,6 +42,7 @@ TEST(ClusterTest, CopyConstructor) {
     Cluster::SetVectorLength(chr_size);
 
     Entity* entity = MockCreateEntity(chr_size);
+    ASSERT_NE((void*)0, entity);
     Cluster cluster(entity);
     EntityDestructor(entity);
 
@@ -121,6 +65,7 @@ TEST(ClusterTest, Add) {
 
     {
         Entity* entity = MockCreateEntity(chr_size);
+        ASSERT_NE((void*)0, entity);
         Cluster cluster2(entity);
         EntityDestructor(entity);
         cluster.Add(cluster2);
@@ -143,10 +88,14 @@ TEST(ClusterTest, Vector) {
     {
         vector<Cluster> vec2;
 
-        vec2.push_back(Cluster(entity = MockCreateEntity(chr_size)));
+        entity = MockCreateEntity(chr_size);
+        ASSERT_NE((void*)0, entity);
+        vec2.push_back(Cluster(entity));
         EntityDestructor(entity);
 
-        vec2.push_back(Cluster(species = MockCreateSpecies(10, chr_size)));
+        species = MockCreateSpecies(10, chr_size);
+        ASSERT_NE((void*)0, species);
+        vec2.push_back(Cluster(species));
         ClearSpecies(species);
 
         vec = move(vec2);
@@ -159,7 +108,9 @@ TEST(ClusterTest, Vector) {
 
 TEST(ClusterTest, GetNormSum) {
     Species* sp1 = MockCreateSpecies(15, chr_size);
+    ASSERT_NE((void*)0, sp1);
     Species* sp2 = MockCreateSpecies(20, chr_size);
+    ASSERT_NE((void*)0, sp2);
 
     Cluster cl1(sp1);
     Cluster cl2(sp2);

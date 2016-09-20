@@ -7,8 +7,10 @@
 
 #include "List/List.h"
 
-#define MIN(A, B) (A < B ? A : B)
-#define MAX(A, B) (A > B ? A : B)
+#define MIN(A, B) ((A) < (B) ? (A) : (B))
+#define MAX(A, B) ((A) > (B) ? (A) : (B))
+
+#define SIGN(A) (((A) >= 0) - ((A) < 0))
 
 typedef double(*ObjectiveFunc)(double*, int);
 
@@ -26,5 +28,6 @@ double getRand(double min, double max);
 int doWithProbability(double prob);
 int selectRandom(int rangeLow, int rangeHigh);
 void Normalize(List* numbers);
+double EuclidMeasure(double* x, double* y, size_t size);
 
 #endif //EVOLUTION_COMMON_H

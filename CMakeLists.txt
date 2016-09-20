@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.3)
 project(Evolution)
 
+# TODO: split EvolutionLib and main CMakeLists.txt
+
 include_directories(EvolutionLib)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
@@ -20,7 +22,10 @@ set(DEATH_MANAGER_SOURCE_FILES
 
 set(ENTITY_SOURCE_FILES
         EvolutionLib/Entity/Entity.c
-        EvolutionLib/Entity/Entity.h)
+        EvolutionLib/Entity/Entity.h
+        EvolutionLib/Entity/CrossoverLib.h
+        EvolutionLib/Entity/Crossovers.c
+        EvolutionLib/Entity/Crossovers.h)
 
 set(FUNCTIONS_SOURCE_FILES
         EvolutionLib/Functions/TestFunctions.c

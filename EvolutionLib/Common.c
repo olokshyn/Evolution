@@ -4,7 +4,6 @@
 
 #include "Common.h"
 
-#include <stdlib.h>
 #include <math.h>
 
 #include "Logging/Logging.h"
@@ -60,6 +59,14 @@ void Normalize(List* numbers) {
         test += *((double*)it.current->value);
     }
     LOG_ASSERT(1.0 - test < DOUBLE_EPS);
+}
+
+double EuclidMeasure(double* x, double* y, size_t size) {
+    double sum = 0.0;
+    for (size_t i = 0; i < size; ++i) {
+        sum += pow(x[i] - y[i], 2);
+    }
+    return sqrt(sum);
 }
 
 //double rnd() {

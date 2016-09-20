@@ -141,8 +141,8 @@ Species* PerformCrossover(World* world) {
 
     for (ListIterator speciesIt = begin(&world->species),
                  fitnessIt = begin(fitness_list);
-         !isIteratorExhausted(speciesIt);
-         next(&speciesIt), next(&fitnessIt)) {
+            !isIteratorExhausted(speciesIt);
+            next(&speciesIt), next(&fitnessIt)) {
         if (SPECIES_LENGTH(speciesIt.current->value) == 1) {
             continue;
         }
@@ -167,18 +167,20 @@ Species* PerformCrossover(World* world) {
         if (!crossed_parents) {
             goto error_PerformCrossover;
         }
-        size_t i = 0, j;
-        FOR_EACH_IN_SPECIES_N(speciesIt.current->value, it1) {
+        size_t i = 0;
+        for (ListIterator it1 = begin(speciesIt.current->value);
+                !isIteratorExhausted(it1);
+                next(&it1), ++i) {
             if (crossed_parents[i]) {
-                ++i;
                 continue;
             }
-            j = 0;
-            FOR_EACH_IN_SPECIES_N(speciesIt.current->value, it2) {
+            size_t j = 0;
+            for (ListIterator it2 = begin(speciesIt.current->value);
+                    !isIteratorExhausted(it2) && !crossed_parents[i];
+                    next(&it2), ++j) {
                 if (it1.current == it2.current
-                    || crossed_parents[j]
-                    || !doWithProbability(crossover_prob)) {
-                    ++j;
+                        || crossed_parents[j]
+                        || !doWithProbability(crossover_prob)) {
                     continue;
                 }
                 new_entity1 = CreateEntity(world->chr_size);
@@ -206,9 +208,7 @@ Species* PerformCrossover(World* world) {
                 LOG_ASSERT(!crossed_parents[i] && !crossed_parents[j]);
                 crossed_parents[i] = 1;
                 crossed_parents[j] = 1;
-                break;
             }
-            ++i;
         }
         free(crossed_parents);
         crossed_parents = NULL;
