@@ -48,7 +48,7 @@ Species* MockCreateSpecies(size_t size, size_t chr_size, Objective* obj) {
     return new_species;
 
 error_MockCreateSpecies:
-    EntityDestructor(new_entity);
-    ClearSpecies(new_species);
+    DestroyEntity(new_entity);
+    DestroySpecies(new_species);
     return NULL;
 }

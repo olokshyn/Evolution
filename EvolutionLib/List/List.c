@@ -17,11 +17,11 @@ short initList(List* list, comparator c, destructor d) {
     return 1;
 }
 
-short clearList(List* list) {
+short destroyList(List* list) {
     if (!list) {
         return 1;
     }
-    if (!emptyList(list)) {
+    if (!clearList(list)) {
         return 0;
     }
     list->c = NULL;
@@ -29,8 +29,8 @@ short clearList(List* list) {
     return 1;
 }
 
-short clearListPointer(List* list) {
-    short result = clearList(list);
+short destroyListPointer(List* list) {
+    short result = destroyList(list);
     free(list);
     return result;
 }
@@ -88,7 +88,7 @@ short insert(ListIterator nextIt, void* value) {
     return 1;
 }
 
-short emptyList(List* list) {
+short clearList(List* list) {
     if (!list || !list->length || !list->head) {
         LOG_RELEASE_ASSERT(!(list && list->tail));
         return 1;

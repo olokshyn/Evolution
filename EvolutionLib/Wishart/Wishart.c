@@ -422,7 +422,7 @@ size_t* Wishart(const double* const* vectors,
                 }
                 // end of step 3.3.2.2
 
-                clearList(&significant_clusters_numbers);
+                destroyList(&significant_clusters_numbers);
             }
             // end of step 3.3.2
 
@@ -430,7 +430,7 @@ size_t* Wishart(const double* const* vectors,
         }
         // end of step 3.3
 
-        clearList(&clusters_numbers);
+        destroyList(&clusters_numbers);
         // end of step 3
 
     }
@@ -439,7 +439,7 @@ size_t* Wishart(const double* const* vectors,
 
     releaseGraph(graph_n);
     releaseVectors(wVectors);
-    clearList(&Clusters);
+    destroyList(&Clusters);
 
     return w;
 }
@@ -451,7 +451,7 @@ List* WishartWrapped(const double* const* vectors,
                      double h) {
     size_t* w = Wishart(vectors, vectors_count, vector_length, k, h);
     List* clusters = (List*)malloc(sizeof(List));
-    initList(clusters, NULL, (void (*)(void*))clearListPointer);
+    initList(clusters, NULL, (void (*)(void*))destroyListPointer);
 
     List done_numbers;
     initList(&done_numbers, _intCmp, _intDst);
@@ -477,7 +477,7 @@ List* WishartWrapped(const double* const* vectors,
         }
         pushBack(clusters, new_cluster);
     }
-    clearList(&done_numbers);
+    destroyList(&done_numbers);
     free(w);
     return clusters;
 }

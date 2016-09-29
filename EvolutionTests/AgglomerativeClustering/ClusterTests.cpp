@@ -28,12 +28,12 @@ TEST(ClusterTest, Creation) {
     Species* species = MockCreateSpecies(10, chr_size);
     ASSERT_NE((void*)0, species);
     ASSERT_NO_THROW(Cluster cluster(species));
-    ClearSpecies(species);
+    DestroySpecies(species);
 
     Entity* entity = MockCreateEntity(chr_size);
     ASSERT_NE((void*)0, entity);
     ASSERT_NO_THROW(Cluster(entity));
-    EntityDestructor(entity);
+    DestroyEntity(entity);
 
     ASSERT_NO_THROW(Cluster(cluster));
 }
@@ -44,7 +44,7 @@ TEST(ClusterTest, CopyConstructor) {
     Entity* entity = MockCreateEntity(chr_size);
     ASSERT_NE((void*)0, entity);
     Cluster cluster(entity);
-    EntityDestructor(entity);
+    DestroyEntity(entity);
 
     Cluster cluster2(cluster);
 
@@ -54,8 +54,8 @@ TEST(ClusterTest, CopyConstructor) {
     ASSERT_NE(sp1, sp2);
     ASSERT_NE(sp1->entitiesList->head->value, sp2->entitiesList->head->value);
 
-    ClearSpecies(sp1);
-    ClearSpecies(sp2);
+    DestroySpecies(sp1);
+    DestroySpecies(sp2);
 }
 
 TEST(ClusterTest, Add) {
@@ -67,7 +67,7 @@ TEST(ClusterTest, Add) {
         Entity* entity = MockCreateEntity(chr_size);
         ASSERT_NE((void*)0, entity);
         Cluster cluster2(entity);
-        EntityDestructor(entity);
+        DestroyEntity(entity);
         cluster.Add(cluster2);
         ASSERT_EQ(0, cluster2.GetSize());
     }
@@ -91,12 +91,12 @@ TEST(ClusterTest, Vector) {
         entity = MockCreateEntity(chr_size);
         ASSERT_NE((void*)0, entity);
         vec2.push_back(Cluster(entity));
-        EntityDestructor(entity);
+        DestroyEntity(entity);
 
         species = MockCreateSpecies(10, chr_size);
         ASSERT_NE((void*)0, species);
         vec2.push_back(Cluster(species));
-        ClearSpecies(species);
+        DestroySpecies(species);
 
         vec = move(vec2);
         ASSERT_EQ(0, vec2.size());
@@ -118,14 +118,14 @@ TEST(ClusterTest, GetNormSum) {
     double norm = 0.0;
     FOR_EACH_IN_SPECIES_N(sp1, it1) {
         FOR_EACH_IN_SPECIES_N(sp2, it2) {
-            norm += EuclidMeasure(ENTITY_SP_IT_N(it1)->chr,
-                                  ENTITY_SP_IT_N(it2)->chr,
+            norm += EuclidMeasure(ENTITIES_IT_P_N(it1)->chr,
+                                  ENTITIES_IT_P_N(it2)->chr,
                                   chr_size);
         }
     }
 
-    ClearSpecies(sp1);
-    ClearSpecies(sp2);
+    DestroySpecies(sp1);
+    DestroySpecies(sp2);
 
     ASSERT_EQ(norm, cl1.GetNormSum(cl2));
 }

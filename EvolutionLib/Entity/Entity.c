@@ -6,6 +6,8 @@
 
 #include <math.h>
 
+#include "Common.h"
+
 #define DOUBLE_EPS 0.0001
 
 int EntityComparator(const void* a, const void* b) {
@@ -31,7 +33,7 @@ error_CreateEntity:
     return NULL;
 }
 
-void EntityDestructor(Entity* entity) {
+void DestroyEntity(Entity* entity) {
     if (entity) {
         free(entity->chr);
         free(entity);
@@ -56,33 +58,61 @@ Entity* CopyEntity(Entity* entity, size_t chr_size) {
     return new_entity;
 }
 
-List* CreateEntitiesList() {
-    List* entities = (List*)malloc(sizeof(List));
+EntitiesList* CreateEntitiesList() {
+    EntitiesList* entities = (EntitiesList*)malloc(sizeof(List));
     if (!entities) {
         return NULL;
     }
-    initList(entities, EntityComparator, (void (*)(void*))EntityDestructor);
+    initList(entities, EntityComparator, (void (*)(void*))DestroyEntity);
     return entities;
 }
 
-void MarkAllAsNew(List* entitiesList) {
-    if (!entitiesList || !entitiesList->length) {
+void MarkAllAsNew(EntitiesList* entities) {
+    if (!entities || !entities->length) {
         return;
     }
-    for (ListIterator it = begin(entitiesList);
-            !isIteratorExhausted(it);
-            next(&it)) {
-        ((Entity*)it.current->value)->old = 0;
+    FOR_EACH_IN_ENTITIES(entities) {
+        ENTITIES_IT_P->old = 0;
     }
 }
 
-void MarkAllAsOld(List* entitiesList) {
-    if (!entitiesList || !entitiesList->length) {
+void MarkAllAsOld(EntitiesList* entities) {
+    if (!entities || !entities->length) {
         return;
     }
-    for (ListIterator it = begin(entitiesList);
-         !isIteratorExhausted(it);
-         next(&it)) {
-        ((Entity*)it.current->value)->old = 1;
+    FOR_EACH_IN_ENTITIES(entities) {
+        ENTITIES_IT_P->old = 1;
     }
+}
+
+List* NormalizeEntitiesFitnesses(EntitiesList* entities) {
+    List* fitness_list = NULL;
+    double* fitness = NULL;
+
+    fitness_list = (List*)malloc(sizeof(List));
+    if (!fitness_list) {
+        goto error_NormalizeEntitiesFitnesses;
+    }
+    initList(fitness_list, NULL, free);
+
+    FOR_EACH_IN_ENTITIES(entities) {
+        fitness = (double*)malloc(sizeof(double));
+        if (!fitness) {
+            goto error_NormalizeEntitiesFitnesses;
+        }
+        *fitness = ENTITIES_IT_P->fitness;
+        if (!pushBack(fitness_list, fitness)) {
+            goto error_NormalizeEntitiesFitnesses;
+        }
+        fitness = NULL;
+    }
+
+    Normalize(fitness_list);
+
+    return fitness_list;
+
+error_NormalizeEntitiesFitnesses:
+    destroyListPointer(fitness_list);
+    free(fitness);
+    return NULL;
 }

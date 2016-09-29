@@ -34,15 +34,15 @@ typedef struct list_iterator {
 
 short initList(List* list, comparator c, destructor d);
 
-short clearList(List* list);
+short destroyList(List* list);
 
-short clearListPointer(List* list);
+short destroyListPointer(List* list);
 
 short pushBack(List* list, void* value);
 
 short insert(ListIterator next, void* value);
 
-short emptyList(List* list);
+short clearList(List* list);
 
 short copyList(List* destination, List* source, copier cp);
 
@@ -68,28 +68,32 @@ void prev(ListIterator* it);
 
 short isIteratorExhausted(ListIterator it);
 
-#define FOR_EACH_IN_LIST_N(LIST_P, LIST_IN_IT) \
-for (ListIterator LIST_IN_IT = begin(LIST_P); \
-     !isIteratorExhausted(LIST_IN_IT); \
-     next(&LIST_IN_IT))
+#define FOR_EACH_IN_LIST_N(LIST_P, LIST_IT) \
+for (ListIterator LIST_IT = begin(LIST_P); \
+     !isIteratorExhausted(LIST_IT); \
+     next(&LIST_IT))
 
-#define FOR_EACH_IN_LIST(LIST_P) FOR_EACH_IN_LIST_N(LIST_P, list_in_it)
+#define FOR_EACH_IN_LIST(LIST_P) \
+     FOR_EACH_IN_LIST_N(LIST_P, list_it)
 
-#define FOR_EACH_IN_LIST_BACK_N(LIST_P, LIST_IN_IT) \
-for (ListIterator LIST_IN_IT = {LIST_P, LIST_P->tail}; \
-     !isIteratorExhausted(LIST_IN_IT); \
-     prev(&LIST_IN_IT))
+#define FOR_EACH_IN_LIST_BACK_N(LIST_P, LIST_IT) \
+for (ListIterator LIST_IT = {LIST_P, LIST_P->tail}; \
+     !isIteratorExhausted(LIST_IT); \
+     prev(&LIST_IT))
 
-#define FOR_EACH_IN_LIST_BACK(LIST_P) FOR_EACH_IN_LIST_BACK_N(LIST_P, list_in_it)
+#define FOR_EACH_IN_LIST_BACK(LIST_P) \
+     FOR_EACH_IN_LIST_BACK_N(LIST_P, list_it)
 
-#define LIST_IT_VALUE_P_N(LIST_IN_IT, TYPE) \
-((TYPE*)LIST_IN_IT.current->value)
+#define LIST_IT_VALUE_P_N(LIST_IT, TYPE) \
+     ((TYPE*)LIST_IT.current->value)
 
-#define LIST_IT_VALUE_P(TYPE) LIST_IT_VALUE_P_N(list_in_it, TYPE)
+#define LIST_IT_VALUE_P(TYPE) \
+     LIST_IT_VALUE_P_N(list_it, TYPE)
 
-#define LIST_IT_VALUE_N(LIST_IN_IT, TYPE) \
-(*LIST_IT_VALUE_P_N(LIST_IN_IT, TYPE))
+#define LIST_IT_VALUE_N(LIST_IT, TYPE) \
+     (*LIST_IT_VALUE_P_N(LIST_IT, TYPE))
 
-#define LIST_IT_VALUE(TYPE) LIST_IT_VALUE_N(list_in_it, TYPE)
+#define LIST_IT_VALUE(TYPE) \
+     LIST_IT_VALUE_N(list_it, TYPE)
 
 #endif //EVOLUTION_LIST_H

@@ -5,6 +5,7 @@
 #ifndef EVOLUTION_CROSSOVERS_H
 #define EVOLUTION_CROSSOVERS_H
 
+#include "Common.h"
 #include "Entity.h"
 
 void OnePointCrossover(Entity* parent1,

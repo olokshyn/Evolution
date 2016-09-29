@@ -12,14 +12,14 @@ extern "C" {
 #include <stdlib.h>
 #include <math.h>
 
-#include "List/List.h"
+#include "Species/Species.h"
 
 #define MAX_CLUSTER_COUNT 8
 
-List* AgglomerativeClustering(List* clusters,
-                              List* entities,
-                              size_t vector_length,
-                              double h);
+SpeciesList* AgglomerativeClustering(SpeciesList* clusters,
+                                     EntitiesList* entities,
+                                     size_t vector_length,
+                                     double h);
 
 #ifdef __cplusplus
 }

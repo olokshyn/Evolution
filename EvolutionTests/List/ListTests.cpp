@@ -36,7 +36,7 @@ TEST(ListTest, Creation) {
         ++i;
     }
     ASSERT_EQ(0, i);
-    ASSERT_EQ(1, clearList(&list));
+    ASSERT_EQ(1, destroyList(&list));
 
     List* list_p = (List*)malloc(sizeof(List));
     ASSERT_NE((void*)0, list_p);
@@ -47,7 +47,7 @@ TEST(ListTest, Creation) {
         ++i;
     }
     ASSERT_EQ(0, i);
-    ASSERT_EQ(1, clearListPointer(list_p));
+    ASSERT_EQ(1, destroyListPointer(list_p));
 }
 
 TEST(ListTest, PushBack) {
@@ -80,7 +80,7 @@ TEST(ListTest, PushBack) {
     }
     ASSERT_EQ(elems_count, pass_count);
 
-    clearListPointer(list_p);
+    destroyListPointer(list_p);
 }
 
 TEST(ListTest, Insert) {
@@ -150,7 +150,7 @@ TEST(ListTest, Insert) {
     }
     ASSERT_EQ(elems_count + 2, pass_count);
 
-    clearListPointer(list_p);
+    destroyListPointer(list_p);
 }
 
 TEST(ListTest, EmptyList) {
@@ -166,7 +166,7 @@ TEST(ListTest, EmptyList) {
         ASSERT_EQ(1, pushBack(list_p, el));
     }
 
-    ASSERT_EQ(1, emptyList(list_p));
+    ASSERT_EQ(1, clearList(list_p));
     ASSERT_EQ(0, list_p->length);
 
     size_t i = 0;
@@ -189,7 +189,7 @@ TEST(ListTest, EmptyList) {
     }
     ASSERT_EQ(elems_count, i);
 
-    clearListPointer(list_p);
+    destroyListPointer(list_p);
 }
 
 TEST(ListTest, CopyList) {
@@ -262,7 +262,7 @@ TEST(ListTest, CopyList) {
     }
     ASSERT_EQ(2 * elems_count, pass_count);
 
-    clearListPointer(list_p);
+    destroyListPointer(list_p);
 
     i = 0;
     FOR_EACH_IN_LIST(list_p_2) {
@@ -280,7 +280,7 @@ TEST(ListTest, CopyList) {
     }
     ASSERT_EQ(elems_count, pass_count);
 
-    clearListPointer(list_p_2);
+    destroyListPointer(list_p_2);
 }
 
 TEST(ListTest, MoveList) {
@@ -364,8 +364,8 @@ TEST(ListTest, MoveList) {
     }
     ASSERT_EQ(2 * elems_count, pass_count);
 
-    clearListPointer(list_p);
-    clearListPointer(list_p_2);
+    destroyListPointer(list_p);
+    destroyListPointer(list_p_2);
 }
 
 TEST(ListTest, FindByVal) {
@@ -412,7 +412,7 @@ TEST(ListTest, FindByVal) {
     free(el);
     ASSERT_EQ(NULL, it.current);
 
-    clearListPointer(list_p);
+    destroyListPointer(list_p);
 }
 
 TEST(ListTest, FindByIndex) {
@@ -440,7 +440,7 @@ TEST(ListTest, FindByIndex) {
     it = findByIndex(list_p, elems_count);
     ASSERT_EQ(NULL, it.current);
 
-    clearListPointer(list_p);
+    destroyListPointer(list_p);
 }
 
 TEST(ListTest, RemoveFromList) {
@@ -521,5 +521,5 @@ TEST(ListTest, RemoveFromList) {
     }
     ASSERT_EQ(elems_count - 3, pass_count);
 
-    clearListPointer(list_p);
+    destroyListPointer(list_p);
 }

@@ -7,6 +7,7 @@
 #include "AgglomerativeClustering/AgglomerativeClustering.h"
 #include "Logging/Logging.h"
 #include "DeathManager/DeathManager.h"
+#include "GALib.h"
 
 static int last_error = 0;
 
@@ -16,8 +17,6 @@ static void PerformSelectionInSpecies(World* world,
 static void PerformLimitedSelectionInSpecies(World* world,
                                              Species* species,
                                              double norm_fitness);
-static List* CountFitnesses(List* species);
-static void CountSpeciesLinks(World* world, List* fitness_list);
 static void CountDiedSpecies(World* world);
 static void SetError(int error_code);
 
@@ -43,7 +42,7 @@ void CreateWorld(World* world,
         SetError(ERROR_INVALID_POINTER);
         return;
     }
-    initList(&world->species, NULL, (void (*)(void*))ClearSpecies);
+    InitSpeciesList(&world->species);
     world->world_size = world_size;
     world->initial_world_size = world_size;
     if (objective.max_args_count > 0) {
@@ -60,15 +59,13 @@ void CreateWorld(World* world,
     world->obj = objective;
 
     new_species = CreateSpecies(world_size);
+    if (!new_species) {
+        goto error_CreateWorld;
+    }
 
     for (size_t i = 0; i < world_size; ++i) {
-        new_entity = (Entity*)malloc(sizeof(Entity));
+        new_entity = CreateEntity(world->chr_size);
         if (!new_entity) {
-            goto error_CreateWorld;
-        }
-        new_entity->chr = (double*)malloc(sizeof(double)
-                                          * world->chr_size);
-        if (!new_entity->chr) {
             goto error_CreateWorld;
         }
         for (int j = 0; j < world->chr_size; ++j) {
@@ -95,26 +92,24 @@ void CreateWorld(World* world,
 error_CreateWorld:
     ReleaseDeathManager();
     ClearWorld(world);
-    ClearSpecies(new_species);
-    EntityDestructor(new_entity);
+    DestroySpecies(new_species);
+    DestroyEntity(new_entity);
     SetError(ERROR_ALLOCATING_MEMORY);
 }
 
 void ClearWorld(World* world) {
-    clearList(&world->species);
+    destroyList(&world->species);
     ReleaseDeathManager();
 }
 
 void PerformMutation(World* world) {
-    for (ListIterator speciesIt = begin(&world->species);
-         !isIteratorExhausted(speciesIt);
-         next(&speciesIt)) {
-        FOR_EACH_IN_SPECIES(speciesIt.current->value) {
+    FOR_EACH_IN_SPECIES_LIST(&world->species) {
+        FOR_EACH_IN_SPECIES(SPECIES_LIST_IT_P) {
             if (doWithProbability(world->mutation_prob)) {
                 size_t i = (size_t)selectRandom(0, (int)world->chr_size - 1);
-                ENTITY_SP_IT->chr[i] = getRand(world->obj.min, world->obj.max);
-                ENTITY_SP_IT->fitness =
-                        world->obj.func(ENTITY_SP_IT->chr,
+                ENTITIES_IT_P->chr[i] = getRand(world->obj.min, world->obj.max);
+                ENTITIES_IT_P->fitness =
+                        world->obj.func(ENTITIES_IT_P->chr,
                                         (int)world->chr_size);
             }
         }
@@ -135,7 +130,7 @@ Species* PerformCrossover(World* world) {
         goto error_PerformCrossover;
     }
 
-    fitness_list = CountFitnesses(&world->species);
+    fitness_list = NormalizeSpeciesFitnesses(&world->species);
     if (!fitness_list) {
         goto error_PerformCrossover;
     }
@@ -192,8 +187,8 @@ Species* PerformCrossover(World* world) {
                 if (!new_entity2) {
                     goto error_PerformCrossover;
                 }
-                OnePointCrossover(ENTITY_SP_IT_N(it1),
-                                  ENTITY_SP_IT_N(it2),
+                OnePointCrossover(ENTITIES_IT_P_N(it1),
+                                  ENTITIES_IT_P_N(it2),
                                   new_entity1,
                                   new_entity2,
                                   &world->obj,
@@ -215,7 +210,7 @@ Species* PerformCrossover(World* world) {
         crossed_parents = NULL;
     }
 
-    clearListPointer(fitness_list);
+    destroyListPointer(fitness_list);
 
     Log(DEBUG, "New entities count: %d", (int)SPECIES_LENGTH(new_species));
 
@@ -224,20 +219,20 @@ Species* PerformCrossover(World* world) {
     return new_species;
 
 error_PerformCrossover:
-    ClearSpecies(new_species);
-    clearListPointer(fitness_list);
-    EntityDestructor(new_entity1);
-    EntityDestructor(new_entity2);
+    DestroySpecies(new_species);
+    destroyListPointer(fitness_list);
+    DestroyEntity(new_entity1);
+    DestroyEntity(new_entity2);
     free(crossed_parents);
     SetError(ERROR_ALLOCATING_MEMORY);
     return NULL;
 }
 
-List* PerformClustering(World* world, Species* new_species) {
-    List* clustered_species = AgglomerativeClustering(&world->species,
-                                                      new_species->entitiesList,
-                                                      world->chr_size,
-                                                      world->h);
+SpeciesList* PerformClustering(World* world, Species* new_species) {
+    SpeciesList* clustered_species = AgglomerativeClustering(&world->species,
+                                                             new_species->entitiesList,
+                                                             world->chr_size,
+                                                             world->h);
     if (!clustered_species) {
         goto error_PerformClustering;
     }
@@ -252,23 +247,25 @@ void PerformChildrenSelection(World* world, Species* new_species) {
     PerformSelectionInSpecies(world, new_species, world->world_size);
 }
 
-size_t PerformSelection(World* world, List* clustered_species) {
+size_t PerformSelection(World* world, SpeciesList* clustered_species) {
     LOG_FUNC_START("PerformSelection");
 
-    List* fitness_list = CountFitnesses(clustered_species);
+    List* fitness_list = NormalizeSpeciesFitnesses(clustered_species);
     if (!fitness_list) {
         goto error_PerformSelection;
     }
 
-    CountSpeciesLinks(world, fitness_list);
+    if (!CountSpeciesLinks(fitness_list)) {
+        goto error_PerformSelection;
+    }
 
     size_t new_world_size = 0;
 
     Log(INFO, "Before selection in clustered_species");
     for (ListIterator it_cl = begin(clustered_species),
                  it_ft = begin(fitness_list);
-         !isIteratorExhausted(it_cl);
-         next(&it_cl), next(&it_ft)) {
+            !isIteratorExhausted(it_cl);
+            next(&it_cl), next(&it_ft)) {
         PerformLimitedSelectionInSpecies(world,
                                          (Species*)(it_cl.current->value),
                                          *((double*)it_ft.current->value));
@@ -279,7 +276,7 @@ size_t PerformSelection(World* world, List* clustered_species) {
     Log(DEBUG, "New world size: %d", (int)new_world_size);
 
     for (ListIterator it = begin(clustered_species);
-         !isIteratorExhausted(it);
+            !isIteratorExhausted(it);
             ) {
         if (SPECIES_LENGTH(it.current->value) == 0) {
             ListIterator temp_it = it;
@@ -291,7 +288,7 @@ size_t PerformSelection(World* world, List* clustered_species) {
         }
     }
 
-    clearListPointer(fitness_list);
+    destroyListPointer(fitness_list);
 
     LOG_ASSERT(world->world_size != 0);
 
@@ -300,7 +297,7 @@ size_t PerformSelection(World* world, List* clustered_species) {
     return new_world_size;
 
 error_PerformSelection:
-    clearListPointer(fitness_list);
+    destroyListPointer(fitness_list);
     SetError(ERROR_ALLOCATING_MEMORY);
     return 0;
 }
@@ -311,7 +308,7 @@ double Iteration(World* world) {
     IterationStart();
 
     Species* new_species = NULL;
-    List* clustered_species = NULL;
+    SpeciesList* clustered_species = NULL;
 
     PerformMutation(world);
     if (GetLastError()) {
@@ -332,18 +329,18 @@ double Iteration(World* world) {
     if (GetLastError()) {
         goto error_Step;
     }
-    ClearSpecies(new_species);
+    DestroySpecies(new_species);
     new_species = NULL;
 
     size_t new_world_size = PerformSelection(world, clustered_species);
     if (GetLastError()) {
-        clearListPointer(clustered_species);
+        destroyListPointer(clustered_species);
         return 0.0;
     }
 
-    emptyList(&world->species);
+    clearList(&world->species);
     moveList(&world->species, clustered_species);
-    clearListPointer(clustered_species);
+    destroyListPointer(clustered_species);
     clustered_species = NULL;
     world->world_size = new_world_size;
 
@@ -357,8 +354,8 @@ double Iteration(World* world) {
     return max_fitness;
 
 error_Step:
-    ClearSpecies(new_species);
-    clearListPointer(clustered_species);
+    DestroySpecies(new_species);
+    destroyListPointer(clustered_species);
     return 0.0;
 }
 
@@ -369,8 +366,8 @@ double GetMaxFitness(World* world) {
             next(&speciesIt)) {
         FOR_EACH_IN_SPECIES(speciesIt.current->value) {
             if (!max_fitness_entity
-                    || ENTITY_SP_IT->fitness > max_fitness_entity->fitness) {
-                max_fitness_entity = ENTITY_SP_IT;
+                    || ENTITIES_IT_P->fitness > max_fitness_entity->fitness) {
+                max_fitness_entity = ENTITIES_IT_P;
             }
         }
     }
@@ -396,7 +393,7 @@ static void PerformSelectionInSpecies(World* world,
         return;
     }
     Entity** entities_p = NULL;
-    List* sorted_new_entities = NULL;
+    EntitiesList* sorted_new_entities = NULL;
     Entity* new_entity = NULL;
 
     entities_p = (Entity**)malloc(sizeof(Entity*) * SPECIES_LENGTH(species));
@@ -405,7 +402,7 @@ static void PerformSelectionInSpecies(World* world,
     }
     size_t index = 0;
     FOR_EACH_IN_SPECIES(species) {
-        entities_p[index++] = ENTITY_SP_IT;
+        entities_p[index++] = ENTITIES_IT_P;
     }
     qsort(entities_p,
           SPECIES_LENGTH(species),
@@ -432,7 +429,7 @@ static void PerformSelectionInSpecies(World* world,
         species->died += entities_p[i]->old;
     }
 
-    clearListPointer(species->entitiesList);
+    destroyListPointer(species->entitiesList);
     species->entitiesList = sorted_new_entities;
     sorted_new_entities = NULL;
     free(entities_p);
@@ -442,8 +439,8 @@ static void PerformSelectionInSpecies(World* world,
 
 error_PerformSelectionInSpecies:
     free(entities_p);
-    clearListPointer(sorted_new_entities);
-    EntityDestructor(new_entity);
+    destroyListPointer(sorted_new_entities);
+    DestroyEntity(new_entity);
     SetError(ERROR_ALLOCATING_MEMORY);
 }
 
@@ -460,66 +457,7 @@ static void PerformLimitedSelectionInSpecies(World* world,
     PerformSelectionInSpecies(world, species, species_size);
 }
 
-static List* CountFitnesses(List* species) {
-    List* fitness_list = NULL;
-    double* temp = NULL;
-    fitness_list = (List*)malloc(sizeof(List));
-    if (!fitness_list) {
-        goto error_CountFitnesses;
-    }
-    initList(fitness_list, NULL, free);
-    for (ListIterator it = begin(species);
-         !isIteratorExhausted(it);
-         next(&it)) {
-        temp = (double*)malloc(sizeof(double));
-        if (!temp) {
-            goto error_CountFitnesses;
-        }
-        *temp = GetMidFitness((Species*)it.current->value);
-        if (!pushBack(fitness_list, temp)) {
-            goto error_CountFitnesses;
-        }
-        temp = NULL;
-    }
 
-    Normalize(fitness_list);
-
-    LOG_ASSERT(species->length == fitness_list->length);
-
-    return fitness_list;
-
-error_CountFitnesses:
-    clearListPointer(fitness_list);
-    free(temp);
-    return NULL;
-}
-
-static void CountSpeciesLinks(World* world, List* fitness_list) {
-    if (SPECIES_LINK_PROBABILITY == 0.0) {
-        return;
-    }
-
-    for (ListIterator it1 = begin(fitness_list);
-            !isIteratorExhausted(it1);
-            next(&it1)) {
-        for (ListIterator it2 = begin(fitness_list);
-                !isIteratorExhausted(it2);
-                next(&it2)) {
-            if (it1.current == it2.current) {
-                continue;
-            }
-            if (doWithProbability(SPECIES_LINK_PROBABILITY)) {
-                *((double*)it1.current->value) +=
-                        getRand(SPECIES_LINK_MIN, SPECIES_LINK_MAX)
-                        *  *((double*)it2.current->value);
-            }
-        }
-        *((double*)it1.current->value) = MAX(*((double*)it1.current->value),
-                                             1.0);
-    }
-
-    Normalize(fitness_list);
-}
 
 static void CountDiedSpecies(World* world) {
     for (ListIterator clusterIt = begin(&world->species);

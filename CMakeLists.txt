@@ -33,7 +33,10 @@ set(FUNCTIONS_SOURCE_FILES
 
 set(GENETIC_ALGORITHM_SOURCE_FILES
         EvolutionLib/GeneticAlgorithm/GeneticAlgorithm.c
-        EvolutionLib/GeneticAlgorithm/GeneticAlgorithm.h)
+        EvolutionLib/GeneticAlgorithm/GeneticAlgorithm.h
+        EvolutionLib/GeneticAlgorithm/GALib.c
+        EvolutionLib/GeneticAlgorithm/GALib.h
+        EvolutionLib/GeneticAlgorithm/GAParameters.h)
 
 set(LIST_SOURCE_FILES
         EvolutionLib/List/List.c

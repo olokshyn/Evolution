@@ -54,7 +54,7 @@ Cluster::Cluster(const Cluster& other)
 }
 
 Cluster::~Cluster() {
-    ClearSpecies(species);
+    DestroySpecies(species);
     species = NULL;
 }
 
@@ -65,7 +65,7 @@ void Cluster::Add(Cluster& other) {
     }
     MarkAllAsNew(other_species->entitiesList);
     moveList(species->entitiesList, other_species->entitiesList);
-    ClearSpecies(other_species);
+    DestroySpecies(other_species);
 }
 
 size_t Cluster::GetSize() const {
@@ -82,7 +82,7 @@ double Cluster::GetNormSum(const Cluster& other) const {
     double sum = 0.0;
     FOR_EACH_IN_SPECIES_N(species, it1) {
         FOR_EACH_IN_SPECIES_N(other.species, it2) {
-            sum += measure(ENTITY_SP_IT_N(it1), ENTITY_SP_IT_N(it2));
+            sum += measure(ENTITIES_IT_P_N(it1), ENTITIES_IT_P_N(it2));
         }
     }
     return sum;

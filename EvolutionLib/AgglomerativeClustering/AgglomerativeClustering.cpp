@@ -11,7 +11,6 @@
 #include "DistanceManager.hpp"
 
 extern "C" {
-#include "Species/Species.h"
 #include "Logging/Logging.h"
 }
 
@@ -22,12 +21,12 @@ using namespace std;
 template <typename T>
 static bool IsInVector(const vector<T>& vec, const T& value);
 
-static List* ConvertToList(vector<Cluster>& level);
+static SpeciesList* ConvertToList(vector<Cluster>& level);
 
-List* AgglomerativeClustering(List* clusters,
-                              List* entities,
-                              size_t vector_length,
-                              double h) {
+SpeciesList* AgglomerativeClustering(SpeciesList* clusters,
+                                     EntitiesList* entities,
+                                     size_t vector_length,
+                                     double h) {
     LOG_FUNC_START("AgglomerativeClustering");
 
     try {
@@ -114,14 +113,17 @@ static bool IsInVector(const vector<T>& vec, const T& value) {
     return find(vec.begin(), vec.end(), value) != vec.end();
 }
 
-static List* ConvertToList(vector<Cluster>& level) {
-    List* clusters = (List*)malloc(sizeof(List));
+static SpeciesList* ConvertToList(vector<Cluster>& level) {
+    SpeciesList* clusters = NULL;
+    Species* species = NULL;
+
+    clusters = CreateSpeciesList();
     if (!clusters) {
-        return NULL;
+        goto error_ConvertToList;
     }
-    initList(clusters, NULL, (void (*)(void*))ClearSpecies);
+
     for (size_t i = 0; i < level.size(); ++i) {
-        Species* species = level[i].Release();
+        species = level[i].Release();
         if (species->initial_size == 0) {
             species->initial_size = SPECIES_LENGTH(species);
             species->died = 0;
@@ -130,11 +132,19 @@ static List* ConvertToList(vector<Cluster>& level) {
 #ifndef NDEBUG
         size_t old_count = 0;
         FOR_EACH_IN_SPECIES(species) {
-            old_count += ENTITY_SP_IT->old;
+            old_count += ENTITIES_IT_P->old;
         }
         LOG_ASSERT(species->initial_size == 0 || old_count != 0);
 #endif
-        pushBack(clusters, species);
+        if (!pushBack(clusters, species)) {
+            goto error_ConvertToList;
+        }
+        species = NULL;
     }
     return clusters;
+
+error_ConvertToList:
+    DestroySpeciesList(clusters);
+    DestroySpecies(species);
+    return NULL;
 }

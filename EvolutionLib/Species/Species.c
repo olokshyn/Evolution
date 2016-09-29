@@ -4,6 +4,8 @@
 
 #include "Species.h"
 
+#include "Common.h"
+
 Species* CreateSpecies(size_t initial_size) {
     Species* species = (Species*)malloc(sizeof(Species));
     if (!species) {
@@ -15,17 +17,58 @@ Species* CreateSpecies(size_t initial_size) {
     return species;
 }
 
+void DestroySpecies(Species* species) {
+    if (species) {
+        DestroyEntitiesList(species->entitiesList);
+        free(species);
+    }
+}
+
+SpeciesList* CreateSpeciesList() {
+    SpeciesList* species = (SpeciesList*)malloc(sizeof(SpeciesList));
+    if (!species) {
+        return NULL;
+    }
+    InitSpeciesList(species);
+    return species;
+}
+
 double GetMidFitness(Species* species) {
     double fitness = 0.0;
     FOR_EACH_IN_SPECIES(species) {
-        fitness += ENTITY_SP_IT->fitness;
+        fitness += ENTITIES_IT_P->fitness;
     }
     return fitness / SPECIES_LENGTH(species);
 }
 
-void ClearSpecies(Species* species) {
-    if (species) {
-        clearListPointer(species->entitiesList);
-        free(species);
+List* NormalizeSpeciesFitnesses(SpeciesList* species) {
+    List* fitness_list = NULL;
+    double* fitness = NULL;
+
+    fitness_list = (List*)malloc(sizeof(List));
+    if (!fitness_list) {
+        goto error_NormalizeSpeciesFitnesses;
     }
+    initList(fitness_list, NULL, free);
+
+    FOR_EACH_IN_SPECIES_LIST(species) {
+        fitness = (double*)malloc(sizeof(double));
+        if (!fitness) {
+            goto error_NormalizeSpeciesFitnesses;
+        }
+        *fitness = GetMidFitness(SPECIES_LIST_IT_P);
+        if (!pushBack(fitness_list, fitness)) {
+            goto error_NormalizeSpeciesFitnesses;
+        }
+        fitness = NULL;
+    }
+
+    Normalize(fitness_list);
+
+    return fitness_list;
+
+error_NormalizeSpeciesFitnesses:
+    destroyListPointer(fitness_list);
+    free(fitness);
+    return NULL;
 }

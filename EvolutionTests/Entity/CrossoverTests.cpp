@@ -145,8 +145,8 @@ TEST(CrossoverLibTest, dbcM) {
             ASSERT_GE(MAX(en1->chr[i], en2->chr[i]), Mt1);
             ASSERT_LE(MIN(en1->chr[i], en2->chr[i]), Mt1);
         }
-        EntityDestructor(en1);
-        EntityDestructor(en2);
+        DestroyEntity(en1);
+        DestroyEntity(en2);
     }
 }
 
@@ -206,9 +206,9 @@ TEST(CrossoverTest, OnePointCrossover) {
         }
     }
 
-    EntityDestructor(child1);
-    EntityDestructor(child2);
-    clearListPointer(en_list);
+    DestroyEntity(child1);
+    DestroyEntity(child2);
+    destroyListPointer(en_list);
 }
 
 TEST(CrossoverTest, DHXCrossover) {
@@ -228,17 +228,8 @@ TEST(CrossoverTest, DHXCrossover) {
     int* crossed = (int*)calloc(SPECIES_LENGTH(sp), sizeof(int));
     ASSERT_NE((void*)0, crossed);
 
-    List* fitness_list = (List*)malloc(sizeof(List));
+    List* fitness_list = NormalizeEntitiesFitnesses(sp->entitiesList);
     ASSERT_NE((void*)0, fitness_list);
-    initList(fitness_list, NULL, free);
-
-    FOR_EACH_IN_SPECIES(sp) {
-        double* temp = (double*)malloc(sizeof(double));
-        ASSERT_NE((void*)0, temp);
-        *temp = ENTITY_SP_IT->fitness;
-        ASSERT_NE(0, pushBack(fitness_list, temp));
-    }
-    Normalize(fitness_list);
 
     size_t i = 0;
     for (ListIterator it1 = begin(sp->entitiesList),
@@ -350,11 +341,11 @@ TEST(CrossoverTest, DHXCrossover) {
         }
     }
 
-    ClearSpecies(sp);
-    EntityDestructor(child1t);
-    EntityDestructor(child2t);
-    EntityDestructor(child1t1);
-    EntityDestructor(child2t1);
+    DestroySpecies(sp);
+    DestroyEntity(child1t);
+    DestroyEntity(child2t);
+    DestroyEntity(child1t1);
+    DestroyEntity(child2t1);
     free(crossed);
-    clearListPointer(fitness_list);
+    destroyListPointer(fitness_list);
 }
