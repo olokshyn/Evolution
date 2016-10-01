@@ -9,7 +9,7 @@ Entity* MockCreateEntity(size_t chr_size, Objective* obj) {
     if (!new_entity) {
         goto error_MockCreateEntity;
     }
-    for (int j = 0; j < chr_size; ++j) {
+    for (size_t j = 0; j < chr_size; ++j) {
         if (obj) {
             new_entity->chr[j] = getRand(obj->min, obj->max);
         }

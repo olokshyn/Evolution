@@ -22,15 +22,15 @@ namespace {
 TEST(SpeciesTest, Creation) {
     Species* sp = CreateSpecies(initial_size);
     ASSERT_NE((void*)0, sp);
-    ASSERT_EQ(0, SPECIES_LENGTH(sp));
+    ASSERT_EQ((size_t)0, SPECIES_LENGTH(sp));
     ASSERT_EQ(initial_size, sp->initial_size);
-    ASSERT_EQ(0, sp->died);
+    ASSERT_EQ((size_t)0, sp->died);
 
     size_t i = 0;
     FOR_EACH_IN_SPECIES(sp) {
         ++i;
     }
-    ASSERT_EQ(0, i);
+    ASSERT_EQ((size_t)0, i);
 
     DestroySpecies(sp);
 }

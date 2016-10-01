@@ -69,10 +69,10 @@ TEST(ClusterTest, Add) {
         Cluster cluster2(entity);
         DestroyEntity(entity);
         cluster.Add(cluster2);
-        ASSERT_EQ(0, cluster2.GetSize());
+        ASSERT_EQ((size_t)0, cluster2.GetSize());
     }
 
-    ASSERT_EQ(1, cluster.GetSize());
+    ASSERT_EQ((size_t)1, cluster.GetSize());
 
     ASSERT_NO_THROW(Cluster(cluster));
 }
@@ -99,11 +99,11 @@ TEST(ClusterTest, Vector) {
         DestroySpecies(species);
 
         vec = move(vec2);
-        ASSERT_EQ(0, vec2.size());
+        ASSERT_EQ((size_t)0, vec2.size());
     }
 
-    ASSERT_EQ(1, vec[0].GetSize());
-    ASSERT_EQ(10, vec[1].GetSize());
+    ASSERT_EQ((size_t)1, vec[0].GetSize());
+    ASSERT_EQ((size_t)10, vec[1].GetSize());
 }
 
 TEST(ClusterTest, GetNormSum) {

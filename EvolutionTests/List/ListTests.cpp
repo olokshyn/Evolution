@@ -30,23 +30,23 @@ namespace {
 TEST(ListTest, Creation) {
     List list;
     ASSERT_EQ(1, initList(&list, NULL, free));
-    ASSERT_EQ(0, list.length);
+    ASSERT_EQ((size_t)0, list.length);
     size_t i = 0;
     FOR_EACH_IN_LIST(&list) {
         ++i;
     }
-    ASSERT_EQ(0, i);
+    ASSERT_EQ((size_t)0, i);
     ASSERT_EQ(1, destroyList(&list));
 
     List* list_p = (List*)malloc(sizeof(List));
     ASSERT_NE((void*)0, list_p);
     ASSERT_EQ(1, initList(list_p, NULL, free));
-    ASSERT_EQ(0, list_p->length);
+    ASSERT_EQ((size_t)0, list_p->length);
     i = 0;
     FOR_EACH_IN_LIST(list_p) {
         ++i;
     }
-    ASSERT_EQ(0, i);
+    ASSERT_EQ((size_t)0, i);
     ASSERT_EQ(1, destroyListPointer(list_p));
 }
 
@@ -167,13 +167,13 @@ TEST(ListTest, EmptyList) {
     }
 
     ASSERT_EQ(1, clearList(list_p));
-    ASSERT_EQ(0, list_p->length);
+    ASSERT_EQ((size_t)0, list_p->length);
 
     size_t i = 0;
     FOR_EACH_IN_LIST(list_p) {
         ++i;
     }
-    ASSERT_EQ(0, i);
+    ASSERT_EQ((size_t)0, i);
 
     for (i = 0; i < elems_count; ++i) {
         el = (double*)malloc(sizeof(double));
@@ -302,9 +302,9 @@ TEST(ListTest, MoveList) {
 
     ASSERT_EQ(1, moveList(list_p_2, list_p));
 
-    ASSERT_EQ(NULL, list_p->head);
-    ASSERT_EQ(NULL, list_p->tail);
-    ASSERT_EQ(0, list_p->length);
+    ASSERT_EQ((void*)0, list_p->head);
+    ASSERT_EQ((void*)0, list_p->tail);
+    ASSERT_EQ((size_t)0, list_p->length);
 
     size_t i = 0;
     FOR_EACH_IN_LIST(list_p_2) {
@@ -332,9 +332,9 @@ TEST(ListTest, MoveList) {
     ASSERT_EQ(1, moveList(list_p, list_p_2));
     ASSERT_EQ(2 * elems_count, list_p->length);
 
-    ASSERT_EQ(NULL, list_p_2->head);
-    ASSERT_EQ(NULL, list_p_2->tail);
-    ASSERT_EQ(0, list_p_2->length);
+    ASSERT_EQ((void*)0, list_p_2->head);
+    ASSERT_EQ((void*)0, list_p_2->tail);
+    ASSERT_EQ((size_t)0, list_p_2->length);
 
     i = 0;
     pass_count = 0;
@@ -410,7 +410,7 @@ TEST(ListTest, FindByVal) {
     *el = 5.5;
     it = findByVal(list_p, el);
     free(el);
-    ASSERT_EQ(NULL, it.current);
+    ASSERT_EQ((void*)0, it.current);
 
     destroyListPointer(list_p);
 }
@@ -438,7 +438,7 @@ TEST(ListTest, FindByIndex) {
     ASSERT_EQ(list_p->tail, it.current);
 
     it = findByIndex(list_p, elems_count);
-    ASSERT_EQ(NULL, it.current);
+    ASSERT_EQ((void*)0, it.current);
 
     destroyListPointer(list_p);
 }
