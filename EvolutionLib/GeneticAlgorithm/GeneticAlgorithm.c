@@ -139,7 +139,9 @@ Species* PerformCrossover(World* world) {
                  fitnessIt = begin(fitness_list);
             !isIteratorExhausted(speciesIt);
             next(&speciesIt), next(&fitnessIt)) {
-        if (SPECIES_LENGTH(speciesIt.current->value) == 1) {
+        Species* species = (Species*)speciesIt.current->value;
+        if (SPECIES_LENGTH(species) <= 1) {
+            Log(DEBUG, "One or less entities in species");
             continue;
         }
 
@@ -147,8 +149,7 @@ Species* PerformCrossover(World* world) {
         if (world->species.length == 1) {
             crossover_prob = CROSSOVER_FIRST_TIME_PROB;
         }
-        else if (SPECIES_LENGTH(speciesIt.current->value)
-                 <= CROSSOVER_EXTINCTION_BIAS) {
+        else if (SPECIES_LENGTH(species) <= CROSSOVER_EXTINCTION_BIAS) {
             crossover_prob = 1.0;
         }
         else {
@@ -157,21 +158,21 @@ Species* PerformCrossover(World* world) {
                                  CROSSOVER_MIN_PROB);
         }
 
-        crossed_parents = (short*)calloc(
-                SPECIES_LENGTH(speciesIt.current->value),
-                sizeof(short));
+        crossed_parents = (short*)calloc(SPECIES_LENGTH(species),
+                                         sizeof(short));
         if (!crossed_parents) {
             goto error_PerformCrossover;
         }
+
         size_t i = 0;
-        for (ListIterator it1 = begin(speciesIt.current->value);
+        for (ListIterator it1 = begin(species->entitiesList);
                 !isIteratorExhausted(it1);
                 next(&it1), ++i) {
             if (crossed_parents[i]) {
                 continue;
             }
             size_t j = 0;
-            for (ListIterator it2 = begin(speciesIt.current->value);
+            for (ListIterator it2 = begin(species->entitiesList);
                     !isIteratorExhausted(it2) && !crossed_parents[i];
                     next(&it2), ++j) {
                 if (it1.current == it2.current
@@ -187,8 +188,8 @@ Species* PerformCrossover(World* world) {
                 if (!new_entity2) {
                     goto error_PerformCrossover;
                 }
-                OnePointCrossover(ENTITIES_IT_P_N(it1),
-                                  ENTITIES_IT_P_N(it2),
+                OnePointCrossover((Entity*)it1.current->value,
+                                  (Entity*)it2.current->value,
                                   new_entity1,
                                   new_entity2,
                                   &world->obj,
@@ -361,10 +362,8 @@ error_Step:
 
 double GetMaxFitness(World* world) {
     Entity* max_fitness_entity = NULL;
-    for (ListIterator speciesIt = begin(&world->species);
-            !isIteratorExhausted(speciesIt);
-            next(&speciesIt)) {
-        FOR_EACH_IN_SPECIES(speciesIt.current->value) {
+    FOR_EACH_IN_SPECIES_LIST(&world->species) {
+        FOR_EACH_IN_SPECIES(SPECIES_LIST_IT_P) {
             if (!max_fitness_entity
                     || ENTITIES_IT_P->fitness > max_fitness_entity->fitness) {
                 max_fitness_entity = ENTITIES_IT_P;

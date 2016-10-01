@@ -39,12 +39,12 @@ List* NormalizeEntitiesFitnesses(EntitiesList* entities);
     FOR_EACH_IN_LIST_N(LIST_P, LIST_IT)
 
 #define FOR_EACH_IN_ENTITIES(LIST_P) \
-    FOR_EACH_IN_LIST(LIST_P)
+    FOR_EACH_IN_ENTITIES_N(LIST_P, entities_it)
 
 #define ENTITIES_IT_P_N(LIST_IT) \
     LIST_IT_VALUE_P_N(LIST_IT, Entity)
 
 #define ENTITIES_IT_P \
-    LIST_IT_VALUE_P(Entity)
+    ENTITIES_IT_P_N(entities_it)
 
 #endif //EVOLUTION_ENTITY_H
