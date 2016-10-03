@@ -54,7 +54,8 @@ int StartEvolution(size_t max_iterations_count,
                 mutation_probability,
                 k_neighbour,
                 cluster_height,
-                objective);
+                objective,
+                max_iterations_count);
     if (GetLastError()) {
         printf("Error creating world: %d\n", GetLastError());
         return 0;
@@ -65,7 +66,7 @@ int StartEvolution(size_t max_iterations_count,
     size_t value_is_stable_count = 0;
     for (size_t i = 0; i < max_iterations_count; ++i) {
         begin = clock();
-        cur_fitness = Iteration(&world);
+        cur_fitness = Iteration(&world, i + 1);
         end = clock();
         time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
         if (GetLastError()) {

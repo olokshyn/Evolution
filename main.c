@@ -130,35 +130,35 @@ int main(int argc, char* argv[]) {
     // twelve_points_test();
     // fisher_iris_test();
 
-    size_t max_iterations_count = 100000;
-    size_t stable_value_iterations_count = 10;
+    size_t max_iterations_count = 1000000;
+    size_t stable_value_iterations_count = 10000;
     double stable_value_eps = 1e-10;
-    size_t individuals_count = 100;
+    size_t individuals_count = 1000;
     size_t chromosome_size = 20;
-    double mutation_probability = 0.5;
+    double mutation_probability = 0.125;
     size_t k_neighbour = 5;
     double cluster_height = 0.0;
 
-//    runForAllFucntions(max_iterations_count,
-//                       stable_value_iterations_count,
-//                       stable_value_eps,
-//                       individuals_count,
-//                       chromosome_size,
-//                       mutation_probability,
-//                       k_neighbour,
-//                       cluster_height);
+    runForAllFucntions(max_iterations_count,
+                       stable_value_iterations_count,
+                       stable_value_eps,
+                       individuals_count,
+                       chromosome_size,
+                       mutation_probability,
+                       k_neighbour,
+                       cluster_height);
 
-    double avg = getAvgIterCount(1,
-                                 max_iterations_count,
-                                 stable_value_iterations_count,
-                                 stable_value_eps,
-                                 individuals_count,
-                                 chromosome_size,
-                                 mutation_probability,
-                                 k_neighbour,
-                                 cluster_height,
-                                 DeJongF2Objective);
-    printf("Average iterations count: %.3f\n", avg);
+//    double avg = getAvgIterCount(1,
+//                                 max_iterations_count,
+//                                 stable_value_iterations_count,
+//                                 stable_value_eps,
+//                                 individuals_count,
+//                                 chromosome_size,
+//                                 mutation_probability,
+//                                 k_neighbour,
+//                                 cluster_height,
+//                                 DeJongF2Objective);
+//    printf("Average iterations count: %.3f\n", avg);
 
     ReleaseLogging();
 

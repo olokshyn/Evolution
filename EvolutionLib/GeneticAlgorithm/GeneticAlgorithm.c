@@ -26,7 +26,8 @@ void CreateWorld(World* world,
                  double mutation_probability,
                  size_t k,
                  double h,
-                 Objective objective) {
+                 Objective objective,
+                 size_t max_generations_count) {
     LOG_FUNC_START("CreateWorld");
 
     if (!InitDeathManager("death.log")) {
@@ -57,6 +58,7 @@ void CreateWorld(World* world,
     world->k = k;
     world->h = h;
     world->obj = objective;
+    world->max_generations_count = max_generations_count;
 
     new_species = CreateSpecies(world_size);
     if (!new_species) {
@@ -116,11 +118,12 @@ void PerformMutation(World* world) {
     }
 }
 
-Species* PerformCrossover(World* world) {
+Species* PerformCrossover(World* world, size_t generation_number) {
     LOG_FUNC_START("PerformCrossover");
 
     Species* new_species = NULL;
     List* fitness_list = NULL;
+    List* en_ft_list = NULL;
     Entity* new_entity1 = NULL;
     Entity* new_entity2 = NULL;
     short* crossed_parents = NULL;
@@ -135,11 +138,15 @@ Species* PerformCrossover(World* world) {
         goto error_PerformCrossover;
     }
 
+    // TODO: add %zu modifier to Log and use it instead of %d
+    Log(DEBUG, "Perform crossover in %d species", (int)world->species.length);
+
     for (ListIterator speciesIt = begin(&world->species),
                  fitnessIt = begin(fitness_list);
             !isIteratorExhausted(speciesIt);
             next(&speciesIt), next(&fitnessIt)) {
         Species* species = (Species*)speciesIt.current->value;
+        Log(INFO, "Crossing %d entities", (int)SPECIES_LENGTH(species));
         if (SPECIES_LENGTH(species) <= 1) {
             Log(DEBUG, "One or less entities in species");
             continue;
@@ -164,17 +171,24 @@ Species* PerformCrossover(World* world) {
             goto error_PerformCrossover;
         }
 
+        en_ft_list = NormalizeEntitiesFitnesses(species->entitiesList);
+        if (!en_ft_list) {
+            goto error_PerformCrossover;
+        }
+
         size_t i = 0;
-        for (ListIterator it1 = begin(species->entitiesList);
+        for (ListIterator it1 = begin(species->entitiesList),
+                    ft_it1 = begin(en_ft_list);
                 !isIteratorExhausted(it1);
-                next(&it1), ++i) {
+                next(&it1), next(&ft_it1), ++i) {
             if (crossed_parents[i]) {
                 continue;
             }
             size_t j = 0;
-            for (ListIterator it2 = begin(species->entitiesList);
+            for (ListIterator it2 = begin(species->entitiesList),
+                        ft_it2 = begin(en_ft_list);
                     !isIteratorExhausted(it2) && !crossed_parents[i];
-                    next(&it2), ++j) {
+                    next(&it2), next(&ft_it2), ++j) {
                 if (it1.current == it2.current
                         || crossed_parents[j]
                         || !doWithProbability(crossover_prob)) {
@@ -188,12 +202,16 @@ Species* PerformCrossover(World* world) {
                 if (!new_entity2) {
                     goto error_PerformCrossover;
                 }
-                OnePointCrossover((Entity*)it1.current->value,
-                                  (Entity*)it2.current->value,
-                                  new_entity1,
-                                  new_entity2,
-                                  &world->obj,
-                                  world->chr_size);
+                DHXCrossover((Entity*)it1.current->value,
+                             (Entity*)it2.current->value,
+                             new_entity1,
+                             new_entity2,
+                             &world->obj,
+                             *((double*)ft_it1.current->value),
+                             *((double*)ft_it2.current->value),
+                             world->chr_size,
+                             generation_number,
+                             world->max_generations_count);
                 if (!pushBack(new_species->entitiesList, new_entity1)) {
                     goto error_PerformCrossover;
                 }
@@ -209,6 +227,8 @@ Species* PerformCrossover(World* world) {
         }
         free(crossed_parents);
         crossed_parents = NULL;
+        destroyListPointer(en_ft_list);
+        en_ft_list = NULL;
     }
 
     destroyListPointer(fitness_list);
@@ -222,6 +242,7 @@ Species* PerformCrossover(World* world) {
 error_PerformCrossover:
     DestroySpecies(new_species);
     destroyListPointer(fitness_list);
+    destroyListPointer(en_ft_list);
     DestroyEntity(new_entity1);
     DestroyEntity(new_entity2);
     free(crossed_parents);
@@ -303,7 +324,7 @@ error_PerformSelection:
     return 0;
 }
 
-double Iteration(World* world) {
+double Iteration(World* world, size_t generation_number) {
     ResetLastError();
 
     IterationStart();
@@ -316,7 +337,7 @@ double Iteration(World* world) {
         goto error_Step;
     }
 
-    new_species = PerformCrossover(world);
+    new_species = PerformCrossover(world, generation_number);
     if (GetLastError()) {
         goto error_Step;
     }
