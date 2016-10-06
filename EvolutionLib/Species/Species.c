@@ -5,6 +5,7 @@
 #include "Species.h"
 
 #include "Common.h"
+#include "Logging/Logging.h"
 
 Species* CreateSpecies(size_t initial_size) {
     Species* species = (Species*)malloc(sizeof(Species));
@@ -36,9 +37,12 @@ SpeciesList* CreateSpeciesList() {
 double GetMidFitness(Species* species) {
     double fitness = 0.0;
     FOR_EACH_IN_SPECIES(species) {
+        LOG_RELEASE_ASSERT(ENTITIES_IT_P->fitness == ENTITIES_IT_P->fitness); // check for NaN
         fitness += ENTITIES_IT_P->fitness;
     }
-    return fitness / SPECIES_LENGTH(species);
+    double res = fitness / SPECIES_LENGTH(species);
+    LOG_RELEASE_ASSERT(res == res);  // check for NaN
+    return res;
 }
 
 List* NormalizeSpeciesFitnesses(SpeciesList* species) {
@@ -52,6 +56,9 @@ List* NormalizeSpeciesFitnesses(SpeciesList* species) {
     initList(fitness_list, NULL, free);
 
     FOR_EACH_IN_SPECIES_LIST(species) {
+        if (!SPECIES_LENGTH(SPECIES_LIST_IT_P)) {
+            continue;
+        }
         fitness = (double*)malloc(sizeof(double));
         if (!fitness) {
             goto error_NormalizeSpeciesFitnesses;

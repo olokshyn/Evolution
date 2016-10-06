@@ -22,6 +22,7 @@ int StartEvolution(size_t max_iterations_count,
                    double cluster_height,
                    Objective objective,
                    size_t* iterations_made,
+                   double* best_fitness,
                    short silent);
 
 #endif //EVOLUTION_EVOLUTIONLIB_H

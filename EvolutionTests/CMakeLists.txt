@@ -24,7 +24,7 @@ add_executable(EvolutionTests ${EVOLUTION_TESTS_SOURCE_FILES})
 target_link_libraries(EvolutionTests gtest_main)
 target_link_libraries(EvolutionTests EvolutionLib)
 
-#add_custom_command(
-#        TARGET EvolutionTests
-#        POST_BUILD
-#        COMMAND EvolutionTests)
+add_custom_command(
+        TARGET EvolutionTests
+        POST_BUILD
+        COMMAND EvolutionTests)

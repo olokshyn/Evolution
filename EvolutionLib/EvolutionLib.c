@@ -41,6 +41,7 @@ int StartEvolution(size_t max_iterations_count,
                    double cluster_height,
                    Objective objective,
                    size_t* iterations_made,
+                   double* best_fitness,
                    short silent) {
     clock_t begin, end;
     double time_spent = 0.0;
@@ -107,6 +108,9 @@ int StartEvolution(size_t max_iterations_count,
                 if (iterations_made) {
                     *iterations_made = i;
                 }
+                if (best_fitness) {
+                    *best_fitness = max_fitness;
+                }
                 fflush(stdout);
                 return success;
             }
@@ -137,6 +141,9 @@ int StartEvolution(size_t max_iterations_count,
     if (iterations_made) {
         *iterations_made = max_iterations_count;
     }
+    if (best_fitness) {
+        *best_fitness = max_fitness;
+    }
     fflush(stdout);
     return 0;
 
@@ -148,6 +155,9 @@ int StartEvolution(size_t max_iterations_count,
     ClearWorld(&world);
     if (iterations_made) {
         *iterations_made = max_iterations_count;
+    }
+    if (best_fitness) {
+        *best_fitness = max_fitness;
     }
     fflush(stdout);
     return 0;

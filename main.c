@@ -63,6 +63,7 @@ void runForAllFucntions(size_t max_iterations_count,
                        cluster_height,
                        objectiveFunctions[i],  // Objective function
                        NULL,
+                       NULL,
                        0);
         printf("\n");
     }
@@ -77,13 +78,16 @@ double getAvgIterCount(size_t tests_count,
                        double mutation_probability,
                        size_t k_neighbour,
                        double cluster_height,
-                       Objective objective) {
+                       Objective objective,
+                       double* best_fitness) {
     size_t success_iterations_count = 0;
     size_t all_iterations = 0;
     size_t iterations_made;
+    double current_fitness;
     int status;
     for (size_t i = 0; i < tests_count; ++i) {
         iterations_made = 0;
+
         status = StartEvolution(max_iterations_count,
                                 stable_value_iterations_count,
                                 stable_value_eps,
@@ -94,6 +98,7 @@ double getAvgIterCount(size_t tests_count,
                                 cluster_height,
                                 objective,
                                 &iterations_made,
+                                &current_fitness,
                                 0);
         if (GetLastError()) {
             return -1.0;
@@ -101,6 +106,12 @@ double getAvgIterCount(size_t tests_count,
         if (status) {
             ++success_iterations_count;
             all_iterations += iterations_made;
+        }
+        if (i == 0) {
+            *best_fitness = current_fitness;
+        }
+        else if (current_fitness > *best_fitness) {
+            *best_fitness = current_fitness;
         }
     }
     if (success_iterations_count > 0) {
@@ -148,6 +159,7 @@ int main(int argc, char* argv[]) {
                        k_neighbour,
                        cluster_height);
 
+//    double best_fitness;
 //    double avg = getAvgIterCount(1,
 //                                 max_iterations_count,
 //                                 stable_value_iterations_count,
@@ -157,7 +169,9 @@ int main(int argc, char* argv[]) {
 //                                 mutation_probability,
 //                                 k_neighbour,
 //                                 cluster_height,
-//                                 DeJongF2Objective);
+//                                 DeJongF2Objective,
+//                                 &best_fitness);
+//    printf("Best fitness: %3.f\n", best_fitness);
 //    printf("Average iterations count: %.3f\n", avg);
 
     ReleaseLogging();

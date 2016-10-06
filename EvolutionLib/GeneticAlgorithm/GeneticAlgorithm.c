@@ -272,6 +272,8 @@ void PerformChildrenSelection(World* world, Species* new_species) {
 size_t PerformSelection(World* world, SpeciesList* clustered_species) {
     LOG_FUNC_START("PerformSelection");
 
+    Log(DEBUG, "Old world size: %d", (int)world->world_size);
+
     List* fitness_list = NormalizeSpeciesFitnesses(clustered_species);
     if (!fitness_list) {
         goto error_PerformSelection;

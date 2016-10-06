@@ -49,6 +49,7 @@ void Normalize(List* numbers) {
     }
     sum += fabs(min) * numbers->length;
     if (fabs(sum) < DOUBLE_EPS) {
+        Log(DEBUG, "Normalize: elements sum is close to 0");
         return;
     }
 
@@ -58,7 +59,7 @@ void Normalize(List* numbers) {
                 ( *((double*)it.current->value) + fabs(min) ) / sum;
         test += *((double*)it.current->value);
     }
-    LOG_ASSERT(1.0 - test < DOUBLE_EPS);
+    LOG_RELEASE_ASSERT(1.0 - test < DOUBLE_EPS);
 }
 
 double EuclidMeasure(double* x, double* y, size_t size) {
