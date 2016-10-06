@@ -5,6 +5,7 @@
 #include "Crossovers.h"
 
 #include "CrossoverLib.h"
+#include "Logging/Logging.h"
 
 void OnePointCrossover(Entity* parent1,
                        Entity* parent2,
@@ -66,6 +67,8 @@ void DHXCrossover(Entity* parent1,
             child2->chr[i] = dbcM(gen_numb, max_generations_count,
                                   parent1->chr[i], parent2->chr[i],
                                   fitness1, fitness2);
+            LOG_ASSERT(child1->chr[i] == child1->chr[i]
+                       && child2->chr[i] == child2->chr[i]);
         }
         /*
          * parent1->fitness >= parent2->fitness
@@ -86,6 +89,8 @@ void DHXCrossover(Entity* parent1,
             child2->chr[i] = dbcM(gen_numb, max_generations_count,
                                   parent1->chr[i], parent2->chr[i],
                                   fitness1, fitness2);
+            LOG_ASSERT(child1->chr[i] == child1->chr[i]
+                       && child2->chr[i] == child2->chr[i]);
         }
     }
     child1->fitness = obj->func(child1->chr, (int)chromosome_size);

@@ -35,14 +35,12 @@ SpeciesList* CreateSpeciesList() {
 }
 
 double GetMidFitness(Species* species) {
+    LOG_ASSERT(SPECIES_LENGTH(species) != 0);
     double fitness = 0.0;
     FOR_EACH_IN_SPECIES(species) {
-        LOG_RELEASE_ASSERT(ENTITIES_IT_P->fitness == ENTITIES_IT_P->fitness); // check for NaN
         fitness += ENTITIES_IT_P->fitness;
     }
-    double res = fitness / SPECIES_LENGTH(species);
-    LOG_RELEASE_ASSERT(res == res);  // check for NaN
-    return res;
+    return fitness / SPECIES_LENGTH(species);
 }
 
 List* NormalizeSpeciesFitnesses(SpeciesList* species) {
