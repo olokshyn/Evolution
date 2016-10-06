@@ -14,8 +14,13 @@ static LogLevel current_log_level = INFO;
 static FILE* log_file = NULL;
 static FILE* fitness_file = NULL;
 
-
-static const char* GetLogLevelName(LogLevel log_level);
+static const char* const LogLevelsNames[5] = {
+        [NOT_SET] = "NOT_SET",
+        [INFO] = "INFO",
+        [DEBUG] = "DEBUG",
+        [WARNING] = "WARNING",
+        [ERROR] = "ERROR"
+};
 
 int InitLogging(const char* log_filename, LogLevel log_level) {
     if (!log_file) {
@@ -57,7 +62,7 @@ void Log(LogLevel log_level, const char* format, ...) {
     if (!log_file || log_level < current_log_level) {
         return;
     }
-    fprintf(log_file, "[%s]:", GetLogLevelName(log_level));
+    fprintf(log_file, "[%s]:", LogLevelsNames[log_level]);
     va_list ap;
     va_start(ap, format);
     char* str = strdup(format);
@@ -95,24 +100,4 @@ void Log(LogLevel log_level, const char* format, ...) {
 void LogMaxFitness(double fitness) {
     fprintf(fitness_file, "%.3f\n", fitness);
     fflush(fitness_file);
-}
-
-// static functions -------
-
-
-static const char* GetLogLevelName(LogLevel log_level) {
-    static const char* info = "INFO";
-    static const char* debug = "DEBUG";
-    static const char* error = "ERROR";
-    static const char* no_level = "Log level is not set";
-    switch (log_level) {
-        case INFO:
-            return info;
-        case DEBUG:
-            return debug;
-        case ERROR:
-            return error;
-        default:
-            return no_level;
-    }
 }

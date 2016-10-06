@@ -141,38 +141,38 @@ int main(int argc, char* argv[]) {
     // twelve_points_test();
     // fisher_iris_test();
 
-    size_t max_iterations_count = 1000000;
-    size_t stable_value_iterations_count = 10000;
-    double stable_value_eps = 1e-10;
-    size_t individuals_count = 1000;
-    size_t chromosome_size = 20;
+    size_t max_iterations_count = 5000;
+    size_t stable_value_iterations_count = 100;
+    double stable_value_eps = 1e-5;
+    size_t individuals_count = 61;
+    size_t chromosome_size = 25;
     double mutation_probability = 0.125;
     size_t k_neighbour = 5;
     double cluster_height = 0.0;
 
-    runForAllFucntions(max_iterations_count,
-                       stable_value_iterations_count,
-                       stable_value_eps,
-                       individuals_count,
-                       chromosome_size,
-                       mutation_probability,
-                       k_neighbour,
-                       cluster_height);
+//    runForAllFucntions(max_iterations_count,
+//                       stable_value_iterations_count,
+//                       stable_value_eps,
+//                       individuals_count,
+//                       chromosome_size,
+//                       mutation_probability,
+//                       k_neighbour,
+//                       cluster_height);
 
-//    double best_fitness;
-//    double avg = getAvgIterCount(1,
-//                                 max_iterations_count,
-//                                 stable_value_iterations_count,
-//                                 stable_value_eps,
-//                                 individuals_count,
-//                                 chromosome_size,
-//                                 mutation_probability,
-//                                 k_neighbour,
-//                                 cluster_height,
-//                                 DeJongF2Objective,
-//                                 &best_fitness);
-//    printf("Best fitness: %3.f\n", best_fitness);
-//    printf("Average iterations count: %.3f\n", avg);
+    double best_fitness;
+    double avg = getAvgIterCount(15,
+                                 max_iterations_count,
+                                 stable_value_iterations_count,
+                                 stable_value_eps,
+                                 individuals_count,
+                                 chromosome_size,
+                                 mutation_probability,
+                                 k_neighbour,
+                                 cluster_height,
+                                 AckleyFuncObjective,
+                                 &best_fitness);
+    printf("Best fitness: %.3f\n", best_fitness);
+    printf("Average iterations count: %.3f\n", avg);
 
     ReleaseLogging();
 

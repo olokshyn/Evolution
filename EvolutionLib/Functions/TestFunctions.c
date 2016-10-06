@@ -63,8 +63,8 @@ Objective StretchedVSineWaveFuncObjective = {
 
 Objective AckleyFuncObjective = {
     .func = AckleyFunc,
-    .min = 32.768,
-    .max = -32.768,
+    .min = -32.768,
+    .max = 32.768,
     .optimum = 0,
 };
 

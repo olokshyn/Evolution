@@ -18,7 +18,7 @@
 #include <signal.h>
 #define LOG_RELEASE_ASSERT(cond) if (!(cond)) { Log(ERROR, "Assertion error: %s : %s : %d", __FILE__, __func__, __LINE__); raise(SIGABRT); }
 
-typedef enum {NOT_SET, INFO, DEBUG, ERROR} LogLevel;
+typedef enum {NOT_SET, INFO, DEBUG, WARNING, ERROR} LogLevel;
 
 int InitLogging(const char* log_filename, LogLevel log_level);
 

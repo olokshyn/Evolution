@@ -33,7 +33,8 @@ int selectRandom(int rangeLow, int rangeHigh) {
 }
 
 void Normalize(List* numbers) {
-    if (!numbers->length) {
+    if (numbers->length < 2) {
+        Log(WARNING, "Normalize: cannot normalize less than 2 numbers");
         return;
     }
     double sum = 0.0;
@@ -49,17 +50,51 @@ void Normalize(List* numbers) {
     }
     sum += fabs(min) * numbers->length;
     if (fabs(sum) < DOUBLE_EPS) {
-        Log(DEBUG, "Normalize: elements sum is close to 0");
+        Log(WARNING, "Normalize: elements sum is close to 0");
         return;
     }
 
     double test = 0.0;
     for (it = begin(numbers); !isIteratorExhausted(it); next(&it)) {
-        *((double*)it.current->value) =
-                ( *((double*)it.current->value) + fabs(min) ) / sum;
-        test += *((double*)it.current->value);
+        *(double*)it.current->value =
+                ( *(double*)it.current->value + fabs(min) ) / sum;
+        test += *(double*)it.current->value;
     }
     LOG_RELEASE_ASSERT(1.0 - test < DOUBLE_EPS);
+}
+
+void Scale(List* numbers, double a, double b) {
+    if (numbers->length < 2) {
+        Log(WARNING, "Scale: cannot scale less than 2 numbers");
+        return;
+    }
+    ListIterator it = begin(numbers);
+    double min = *((double*)it.current->value);
+    double max = *((double*)it.current->value);
+
+    for ( ; !isIteratorExhausted(it); next(&it)) {
+        double current = *(double*)it.current->value;
+        if (current < min) {
+            min = current;
+        }
+        if (current > max) {
+            max = current;
+        }
+    }
+
+    if (max - min < DOUBLE_EPS) {
+        Log(WARNING, "Scale: max - min is close to 0");
+        return;
+    }
+
+    for (it = begin(numbers); !isIteratorExhausted(it); next(&it)) {
+        *(double*)it.current->value =
+                a + (b - a) * (*(double*)it.current->value - min) / (max - min);
+        LOG_RELEASE_ASSERT((*(double*)it.current->value >= a
+                            || fabs(*(double*)it.current->value - a) < DOUBLE_EPS)
+                           && (*(double*)it.current->value <= b ||
+                               fabs(*(double*)it.current->value - b) < DOUBLE_EPS));
+    }
 }
 
 double EuclidMeasure(double* x, double* y, size_t size) {

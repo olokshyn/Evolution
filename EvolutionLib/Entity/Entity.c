@@ -107,7 +107,7 @@ List* NormalizeEntitiesFitnesses(EntitiesList* entities) {
         fitness = NULL;
     }
 
-    Normalize(fitness_list);
+    Scale(fitness_list, 0.1, 0.9);
 
     return fitness_list;
 
