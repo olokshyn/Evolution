@@ -332,7 +332,6 @@ double Iteration(World* world, size_t generation_number) {
     IterationStart();
 
     Species* new_species = NULL;
-    SpeciesList* clustered_species = NULL;
 
     PerformMutation(world);
     if (GetLastError()) {
@@ -344,29 +343,16 @@ double Iteration(World* world, size_t generation_number) {
         goto error_Step;
     }
 
-    PerformChildrenSelection(world, new_species);
-    if (GetLastError()) {
-        goto error_Step;
-    }
-
-    clustered_species = PerformClustering(world, new_species);
-    if (GetLastError()) {
-        goto error_Step;
-    }
+    world->world_size += SPECIES_LENGTH(new_species);
+    moveList(((Species*)world->species.head->value)->entitiesList,
+             new_species->entitiesList);
     DestroySpecies(new_species);
     new_species = NULL;
 
-    size_t new_world_size = PerformSelection(world, clustered_species);
+    world->world_size = PerformSelection(world, &world->species);
     if (GetLastError()) {
-        destroyListPointer(clustered_species);
-        return 0.0;
+        goto error_Step;
     }
-
-    clearList(&world->species);
-    moveList(&world->species, clustered_species);
-    destroyListPointer(clustered_species);
-    clustered_species = NULL;
-    world->world_size = new_world_size;
 
     CountDiedSpecies(world);
 
@@ -379,7 +365,6 @@ double Iteration(World* world, size_t generation_number) {
 
 error_Step:
     DestroySpecies(new_species);
-    destroyListPointer(clustered_species);
     return 0.0;
 }
 
