@@ -10,7 +10,7 @@
     #define THREADS_COUNT 4
 #endif
 
-#define ENABLE_CLUSTERING 1
+#define SPECIATION 1
 
 #define COLORED_OUTPUT 0
 

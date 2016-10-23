@@ -326,6 +326,8 @@ error_PerformSelection:
     return 0;
 }
 
+#if SPECIATION == 1
+// With speciation
 double Iteration(World* world, size_t generation_number) {
     ResetLastError();
 
@@ -382,6 +384,50 @@ error_Step:
     destroyListPointer(clustered_species);
     return 0.0;
 }
+#else
+// Without speciation
+double Iteration(World* world, size_t generation_number) {
+    ResetLastError();
+
+    IterationStart();
+
+    Species* new_species = NULL;
+
+    PerformMutation(world);
+    if (GetLastError()) {
+        goto error_Step;
+    }
+
+    new_species = PerformCrossover(world, generation_number);
+    if (GetLastError()) {
+        goto error_Step;
+    }
+
+    world->world_size += SPECIES_LENGTH(new_species);
+    moveList(((Species*)world->species.head->value)->entitiesList,
+             new_species->entitiesList);
+    DestroySpecies(new_species);
+    new_species = NULL;
+
+    world->world_size = PerformSelection(world, &world->species);
+    if (GetLastError()) {
+        goto error_Step;
+    }
+
+    CountDiedSpecies(world);
+
+    IterationEnd();
+
+    double max_fitness = GetMaxFitness(world);
+    Log(INFO, "Iteration: max fitness: %.3f", max_fitness);
+    LogMaxFitness(max_fitness);
+    return max_fitness;
+
+error_Step:
+    DestroySpecies(new_species);
+    return 0.0;
+}
+#endif
 
 double GetMaxFitness(World* world) {
     Entity* max_fitness_entity = NULL;
