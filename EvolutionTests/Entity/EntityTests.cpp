@@ -85,10 +85,11 @@ TEST(EntityTest, NormalizeEntitiesFitnesses) {
     FOR_EACH_IN_LIST(fitness_list) {
         ++i;
         sum += LIST_IT_VALUE(double);
+
+        ASSERT_LE(0.1, LIST_IT_VALUE(double));
+        ASSERT_GE(0.9, LIST_IT_VALUE(double));
     }
     ASSERT_EQ(en_list->length, i);
-
-    ASSERT_FLOAT_EQ(1.0, sum);
 
     destroyListPointer(fitness_list);
     DestroyEntitiesList(en_list);
