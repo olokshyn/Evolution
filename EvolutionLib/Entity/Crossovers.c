@@ -11,7 +11,7 @@ void OnePointCrossover(Entity* parent1,
                        Entity* parent2,
                        Entity* child1,
                        Entity* child2,
-                       Objective* obj,
+                       const Objective* obj,
                        size_t chromosome_size) {
     size_t crossover_point = (chromosome_size % 2 == 0) ?
                              (chromosome_size / 2) :
@@ -39,7 +39,7 @@ void DHXCrossover(Entity* parent1,
                   Entity* parent2,
                   Entity* child1,
                   Entity* child2,
-                  Objective* obj,
+                  const Objective* obj,
                   double fitness1,  // normalized
                   double fitness2,  // normalized
                   size_t chromosome_size,

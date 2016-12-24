@@ -3,19 +3,40 @@
 //
 
 #include <stdio.h>
+#include <math.h>
 #include <time.h>
 
-#include "EvolutionLib/EvolutionLib.h"
+#include "GeneticAlgorithm/GAParameters.h"
+#include "GeneticAlgorithm/GAOperators.h"
+#include "GeneticAlgorithm/GeneticAlgorithm.h"
+#include "Functions/TestFunctions.h"
 
+#include "Logging/Logging.h"
 
-void runForAllFucntions(size_t max_iterations_count,
-                        size_t stable_value_iterations_count,
-                        double stable_value_eps,
-                        size_t individuals_count,
-                        size_t chromosome_size,
-                        double mutation_probability,
-                        size_t k_neighbour,
-                        double cluster_height) {
+#if COLORED_OUTPUT
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+    #define ANSI_COLOR_RED     "\x1b[31m"
+    #define ANSI_COLOR_RESET   "\x1b[0m"
+#else
+    #define ANSI_COLOR_GREEN
+    #define ANSI_COLOR_RED
+    #define ANSI_COLOR_RESET
+#endif
+
+#define EPS 0.001
+
+const char* success_template = ANSI_COLOR_GREEN "SUCCESS" ANSI_COLOR_RESET
+": optimum: %.3f \t best: %.3f "
+"\t iterations: %zu "
+"\t avg time spent on a step: %.3f\n";
+
+const char* failure_template = ANSI_COLOR_RED "FAILURE" ANSI_COLOR_RESET
+": optimum: %.3f \t best: %.3f "
+"\t iterations: %zu "
+"\t avg time spent on a step: %.3f\n";
+
+void RunForAllFucntions(GAParameters* parameters,
+                        GAOperators* operators) {
     const char* functionNames[] = {
             "De Jong`s F1 function",
             "De Jong`s F2 function",
@@ -51,73 +72,82 @@ void runForAllFucntions(size_t max_iterations_count,
 
     size_t functionsCount = sizeof(functionNames) / sizeof(char*);
 
-    for (size_t i = 0; i < functionsCount; ++i) {
+    for (size_t i = 0; i != functionsCount; ++i) {
         printf("%s\n", functionNames[i]);
-        StartEvolution(max_iterations_count,
-                       stable_value_iterations_count,
-                       stable_value_eps,
-                       individuals_count,
-                       chromosome_size,
-                       mutation_probability,
-                       k_neighbour,
-                       cluster_height,
-                       objectiveFunctions[i],  // Objective function
-                       NULL,
-                       NULL,
-                       0);
+        parameters->objective = objectiveFunctions[i];
+
+        GAResult result = RunEvolution(parameters, operators);
+
+        if (result.error) {
+            printf("Error occurred\n");
+            return;
+        }
+
+        if (fabs(objectiveFunctions[i].optimum - result.optimum) < EPS) {
+            printf(success_template,
+                   objectiveFunctions[i].optimum,
+                   result.optimum,
+                   result.iterations_made,
+                   result.time_spent_per_iteration);
+        }
+        else {
+            printf(failure_template,
+                   objectiveFunctions[i].optimum,
+                   result.optimum,
+                   result.iterations_made,
+                   result.time_spent_per_iteration);
+        }
+
         printf("\n");
     }
 }
 
-double getAvgIterCount(size_t tests_count,
-                       size_t max_iterations_count,
-                       size_t stable_value_iterations_count,
-                       double stable_value_eps,
-                       size_t individuals_count,
-                       size_t chromosome_size,
-                       double mutation_probability,
-                       size_t k_neighbour,
-                       double cluster_height,
-                       Objective objective,
-                       double* best_fitness) {
+void RunForOneAvg(GAParameters* parameters,
+                  GAOperators* operators,
+                  size_t tests_count) {
+    double avg_optimum = 0.0;
+    double avg_iterations_count = 0.0;
+    double avg_time_spent = 0.0;
     size_t success_iterations_count = 0;
-    size_t all_iterations = 0;
-    size_t iterations_made;
-    double current_fitness;
-    int status;
-    for (size_t i = 0; i < tests_count; ++i) {
-        iterations_made = 0;
+    for (size_t i = 0; i != tests_count; ++i) {
 
-        status = StartEvolution(max_iterations_count,
-                                stable_value_iterations_count,
-                                stable_value_eps,
-                                individuals_count,
-                                chromosome_size,
-                                mutation_probability,
-                                k_neighbour,
-                                cluster_height,
-                                objective,
-                                &iterations_made,
-                                &current_fitness,
-                                0);
-        if (GetLastError()) {
-            return -1.0;
+        GAResult result = RunEvolution(parameters, operators);
+
+        if (result.error) {
+            printf("Error occured\n");
+            return;
         }
-        if (status) {
+
+        if (fabs(parameters->objective.optimum - result.optimum) < EPS) {
+            printf(success_template,
+                   parameters->objective.optimum,
+                   result.optimum,
+                   result.iterations_made,
+                   result.time_spent_per_iteration);
+
             ++success_iterations_count;
-            all_iterations += iterations_made;
         }
-        if (i == 0) {
-            *best_fitness = current_fitness;
+        else {
+            printf(failure_template,
+                   parameters->objective.optimum,
+                   result.optimum,
+                   result.iterations_made,
+                   result.time_spent_per_iteration);
         }
-        else if (current_fitness > *best_fitness) {
-            *best_fitness = current_fitness;
-        }
+
+        avg_optimum += result.optimum;
+        avg_iterations_count += result.iterations_made;
+        avg_time_spent += result.time_spent_per_iteration;
     }
-    if (success_iterations_count > 0) {
-        return (double)all_iterations / success_iterations_count;
-    }
-    return -1;
+
+    avg_optimum /= tests_count;
+    avg_iterations_count /= tests_count;
+    avg_time_spent /= tests_count;
+
+    printf("Avg optimum: %.3f\n"
+                   "Avg iterations made: %.3f\n"
+                   "Avg time spent: %.3f\n",
+           avg_optimum, avg_iterations_count, avg_time_spent);
 }
 
 int main(int argc, char* argv[]) {
@@ -141,38 +171,23 @@ int main(int argc, char* argv[]) {
     // twelve_points_test();
     // fisher_iris_test();
 
-    size_t max_iterations_count = 5000;
-    size_t stable_value_iterations_count = 100;
-    double stable_value_eps = 1e-5;
-    size_t individuals_count = 61;
-    size_t chromosome_size = 25;
-    double mutation_probability = 0.125;
-    size_t k_neighbour = 5;
-    double cluster_height = 0.0;
+    GAParameters parameters = {
+            .initial_world_size = 61,
+            .chromosome_size = 25,
+            .mutation_probability = 0.125,
+            .k = 5,
+            .h = 0.0,
+            .objective = SchwefelFuncObjective,
+            .max_generations_count = 100,
+            .stable_value_iterations_count = 100,
+            .stable_value_eps = 1e-5
+    };
 
-//    runForAllFucntions(max_iterations_count,
-//                       stable_value_iterations_count,
-//                       stable_value_eps,
-//                       individuals_count,
-//                       chromosome_size,
-//                       mutation_probability,
-//                       k_neighbour,
-//                       cluster_height);
+    GAOperators operators = DEFAULT_GA_OPERATORS;
 
-    double best_fitness;
-    double avg = getAvgIterCount(15,
-                                 max_iterations_count,
-                                 stable_value_iterations_count,
-                                 stable_value_eps,
-                                 individuals_count,
-                                 chromosome_size,
-                                 mutation_probability,
-                                 k_neighbour,
-                                 cluster_height,
-                                 AckleyFuncObjective,
-                                 &best_fitness);
-    printf("Best fitness: %.3f\n", best_fitness);
-    printf("Average iterations count: %.3f\n", avg);
+//    RunForOneAvg(&parameters, &operators, 5);
+    RunForAllFucntions(&parameters, &operators);
+
 
     ReleaseLogging();
 

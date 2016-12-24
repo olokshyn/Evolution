@@ -5,12 +5,13 @@
 #ifndef EVOLUTION_GAPARAMETERS_H
 #define EVOLUTION_GAPARAMETERS_H
 
+#include "GAFwd.h"
+#include "Common.h"
+
 #define ENABLE_THREADS 0
 #if defined(ENABLE_THREADS) && ENABLE_THREADS
     #define THREADS_COUNT 4
 #endif
-
-#define SPECIATION 1
 
 #define COLORED_OUTPUT 0
 
@@ -30,5 +31,17 @@
 #define SPECIES_LINK_PROBABILITY 0.5
 #define SPECIES_LINK_MIN -1.0
 #define SPECIES_LINK_MAX  1.0
+
+typedef struct ga_parameters {
+    size_t initial_world_size;
+    size_t chromosome_size;
+    double mutation_probability;
+    size_t k;
+    double h;
+    Objective objective;
+    size_t max_generations_count;
+    size_t stable_value_iterations_count;
+    double stable_value_eps;
+} GAParameters;
 
 #endif //EVOLUTION_GAPARAMETERS_H
