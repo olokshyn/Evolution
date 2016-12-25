@@ -35,6 +35,7 @@ typedef struct ga_parameters {
     size_t chromosome_size;
     double mutation_probability;
     double mutation_on_iteration_dependence;
+    double crossover_probability;
     size_t k;
     double h;
     Objective objective;

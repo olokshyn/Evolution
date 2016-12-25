@@ -66,8 +66,117 @@ int GAO_NonUniformMutation(World* world, size_t generation_number) {
     return 1;
 }
 
-Species* GAO_Crossover(World* world, size_t generation_number) {
-    LOG_FUNC_START("GAO_Crossover");
+Species* GAO_UniformCrossover(World* world, size_t generation_number) {
+    LOG_FUNC_START("GAO_UniformCrossover");
+
+    Species* new_species = NULL;
+    short* crossed_parents = NULL;
+    List* en_ft_list = NULL;
+    Entity* new_entity1 = NULL;
+    Entity* new_entity2 = NULL;
+
+    new_species = CreateSpecies(0);
+    if (!new_species) {
+        goto error_GAO_UniformCrossover;
+    }
+
+    // TODO: add %zu modifier to Log and use it instead of %d
+    Log(DEBUG, "Perform crossover in %d species", (int)world->species.length);
+
+    FOR_EACH_IN_SPECIES_LIST(&world->species) {
+        Species* species = SPECIES_LIST_IT_P;
+        Log(INFO, "Crossing %d entities", (int)SPECIES_LENGTH(species));
+        if (SPECIES_LENGTH(species) <= 1) {
+            Log(DEBUG, "One or less entities in species");
+            continue;
+        }
+
+        crossed_parents = (short*)calloc(SPECIES_LENGTH(species),
+                                         sizeof(short));
+        if (!crossed_parents) {
+            goto error_GAO_UniformCrossover;
+        }
+
+        en_ft_list = NormalizeEntitiesFitnesses(species->entitiesList);
+        if (!en_ft_list) {
+            goto error_GAO_UniformCrossover;
+        }
+
+        size_t i = 0;
+        for (ListIterator it1 = begin(species->entitiesList),
+                     ft_it1 = begin(en_ft_list);
+                     !isIteratorExhausted(it1);
+                     next(&it1), next(&ft_it1), ++i) {
+            if (crossed_parents[i]) {
+                continue;
+            }
+            size_t j = 0;
+            for (ListIterator it2 = begin(species->entitiesList),
+                         ft_it2 = begin(en_ft_list);
+                         !isIteratorExhausted(it2) && !crossed_parents[i];
+                         next(&it2), next(&ft_it2), ++j) {
+                if (it1.current == it2.current
+                            || crossed_parents[j]
+                            || !doWithProbability(
+                                world->parameters->crossover_probability)) {
+                    continue;
+                }
+                LOG_ASSERT(!crossed_parents[i] && !crossed_parents[j]);
+
+                new_entity1 = CreateEntity(world->chr_size);
+                if (!new_entity1) {
+                    goto error_GAO_UniformCrossover;
+                }
+                new_entity2 = CreateEntity(world->chr_size);
+                if (!new_entity2) {
+                    goto error_GAO_UniformCrossover;
+                }
+                DHXCrossover((Entity*)it1.current->value,
+                             (Entity*)it2.current->value,
+                             new_entity1,
+                             new_entity2,
+                             &world->parameters->objective,
+                             *((double*)ft_it1.current->value),
+                             *((double*)ft_it2.current->value),
+                             world->chr_size,
+                             generation_number,
+                             world->parameters->max_generations_count);
+                if (!pushBack(new_species->entitiesList, new_entity1)) {
+                    goto error_GAO_UniformCrossover;
+                }
+                new_entity1 = NULL;
+                if (!pushBack(new_species->entitiesList, new_entity2)) {
+                    goto error_GAO_UniformCrossover;
+                }
+                new_entity2 = NULL;
+
+                crossed_parents[i] = 1;
+                crossed_parents[j] = 1;
+            }
+        }
+        free(crossed_parents);
+        crossed_parents = NULL;
+        destroyListPointer(en_ft_list);
+        en_ft_list = NULL;
+    }
+
+    Log(DEBUG, "New entities count: %d", (int)SPECIES_LENGTH(new_species));
+
+    LOG_FUNC_END("GAO_UniformCrossover");
+
+    return new_species;
+
+error_GAO_UniformCrossover:
+    DestroySpecies(new_species);
+    free(crossed_parents);
+    destroyListPointer(en_ft_list);
+    DestroyEntity(new_entity1);
+    DestroyEntity(new_entity2);
+    return NULL;
+}
+
+Species* GAO_LinkedCrossover(World* world, size_t generation_number) {
+    LOG_FUNC_START("GAO_LinkedCrossover");
 
     Species* new_species = NULL;
     List* fitness_list = NULL;
@@ -183,7 +292,7 @@ Species* GAO_Crossover(World* world, size_t generation_number) {
 
     Log(DEBUG, "New entities count: %d", (int)SPECIES_LENGTH(new_species));
 
-    LOG_FUNC_END("GAO_Crossover");
+    LOG_FUNC_END("GAO_LinkedCrossover");
 
     return new_species;
 

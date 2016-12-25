@@ -174,8 +174,9 @@ int main(int argc, char* argv[]) {
     GAParameters parameters = {
             .initial_world_size = 61,
             .chromosome_size = 25,
-            .mutation_probability = 0.125,
-            .mutation_on_iteration_dependence = 1.0,
+            .mutation_probability = 0.6,
+            .mutation_on_iteration_dependence = 5.0,
+            .crossover_probability = 0.6,
             .k = 5,
             .h = 0.0,
             .objective = SchwefelFuncObjective,
