@@ -7,7 +7,7 @@
 #include <time.h>
 
 #include "GeneticAlgorithm/GAParameters.h"
-#include "GeneticAlgorithm/GAOperators/GAOperators.h"
+#include "GeneticAlgorithm/GAOperators.h"
 #include "GeneticAlgorithm/GeneticAlgorithm.h"
 #include "Functions/TestFunctions.h"
 
@@ -35,7 +35,7 @@ const char* failure_template = ANSI_COLOR_RED "FAILURE" ANSI_COLOR_RESET
 "\t iterations: %zu "
 "\t avg time spent on a step: %.3f\n";
 
-void RunForAllFucntions(GAParameters* parameters,
+void RunForAllFunctions(GAParameters* parameters,
                         GAOperators* operators) {
     const char* functionNames[] = {
             "De Jong`s F1 function",
@@ -186,8 +186,8 @@ int main(int argc, char* argv[]) {
 
     GAOperators operators = DEFAULT_GA_OPERATORS;
 
-//    RunForOneAvg(&parameters, &operators, 5);
-    RunForAllFucntions(&parameters, &operators);
+//    RunForOneAvg(&parameters, &operators, 1);
+    RunForAllFunctions(&parameters, &operators);
 
 
     ReleaseLogging();

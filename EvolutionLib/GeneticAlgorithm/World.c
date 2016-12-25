@@ -5,7 +5,7 @@
 #include "World.h"
 
 #include "GAParameters.h"
-#include "GAOperators/GAOperators.h"
+#include "GAOperators.h"
 
 #include "DeathManager/DeathManager.h"
 #include "Logging/Logging.h"
