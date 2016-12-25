@@ -2,16 +2,16 @@
 // Created by Oleg on 12/24/16.
 //
 
-#include "GAOperators.h"
+#include "GADefaultOperators.h"
 
 #include <math.h>
 
-#include "World.h"
-#include "GAParameters.h"
+#include "GeneticAlgorithm/World.h"
+#include "GeneticAlgorithm/GAParameters.h"
 #include "Entity/Crossovers.h"
 #include "AgglomerativeClustering/AgglomerativeClustering.h"
 
-#include "GALib.h"
+#include "GeneticAlgorithm/GALib.h"
 #include "Logging/Logging.h"
 #include "Common.h"
 
