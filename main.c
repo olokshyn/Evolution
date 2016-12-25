@@ -150,6 +150,89 @@ void RunForOneAvg(GAParameters* parameters,
            avg_optimum, avg_iterations_count, avg_time_spent);
 }
 
+void RunForAllHerreraFunctions(GAParameters* parameters,
+                               GAOperators* operators) {
+    size_t tests_count = 15;
+
+    const char* functionNames[] = {
+            "f1 - De Jong`s F1 function",
+            "f2 - De Jong`s F2 function",
+            "f3 - Rastrigin`s function",
+            "f4 - Ackley`s function",
+            "f6 - Griewangk`s function"
+    };
+
+    Objective objectiveFunctions[] = {
+            DeJongF1Objective,
+            DeJongF2Objective,
+            RastriginFuncObjective,
+            AckleyFuncObjective,
+            GriewangkFuncObjective
+    };
+
+    LOG_ASSERT(sizeof(functionNames) / sizeof(char*)
+               == sizeof(objectiveFunctions) / sizeof(Objective));
+
+    size_t functionsCount = sizeof(functionNames) / sizeof(char*);
+
+    FILE* report_file = fopen("RunReport.log", "w");
+    if (!report_file) {
+        printf("Failed to open RunReport.log\n");
+        return;
+    }
+
+    for (size_t i = 0; i != functionsCount; ++i) {
+        printf("%s\n", functionNames[i]);
+        fprintf(report_file, "%s\n", functionNames[i]);
+        parameters->objective = objectiveFunctions[i];
+
+        double avg_optimum = 0.0;
+        double avg_iterations_made = 0.0;
+        double avg_time_spent = 0.0;
+        for (size_t test_number = 0;
+                    test_number != tests_count;
+                    ++test_number) {
+            fprintf(report_file, "Test number %zu\n", test_number + 1);
+
+            GAResult result = RunEvolution(parameters, operators);
+
+            if (result.error) {
+                printf("Error occurred\n");
+                return;
+            }
+
+            avg_optimum += result.optimum;
+            avg_iterations_made += result.iterations_made;
+            avg_time_spent += result.time_spent_per_iteration;
+
+            if (fabs(objectiveFunctions[i].optimum - result.optimum) < EPS) {
+                fprintf(report_file,
+                        success_template,
+                        objectiveFunctions[i].optimum,
+                        result.optimum,
+                        result.iterations_made,
+                        result.time_spent_per_iteration);
+            }
+            else {
+                fprintf(report_file,
+                        failure_template,
+                        objectiveFunctions[i].optimum,
+                        result.optimum,
+                        result.iterations_made,
+                        result.time_spent_per_iteration);
+            }
+
+            fprintf(report_file, "\n");
+        }
+        printf("Avg optimum: %.3f\n", avg_optimum / tests_count);
+        printf("Avg iterations made: %.3f\n",
+               avg_iterations_made / tests_count);
+        printf("Avg time spent: %.3f\n", avg_time_spent);
+
+        printf("\n\n");
+    }
+}
+
 int main(int argc, char* argv[]) {
     srand((unsigned int)time(NULL));
 
@@ -164,13 +247,6 @@ int main(int argc, char* argv[]) {
     Log(INFO, "Release configuration");
 #endif
 
-
-    // runAllListTests();
-    // four_points_test();
-    // eight_points_test();
-    // twelve_points_test();
-    // fisher_iris_test();
-
     GAParameters parameters = {
             .initial_world_size = 61,
             .chromosome_size = 25,
@@ -180,8 +256,8 @@ int main(int argc, char* argv[]) {
             .k = 5,
             .h = 0.0,
             .objective = SchwefelFuncObjective,
-            .max_generations_count = 100,
-            .stable_value_iterations_count = 100,
+            .max_generations_count = 5000,
+            .stable_value_iterations_count = 1500,
             .stable_value_eps = 1e-5,
             .worst_selection_probability = 0.5,
             .best_selection_probability = 1.5
@@ -189,9 +265,7 @@ int main(int argc, char* argv[]) {
 
     GAOperators operators = HERRERA_GA_OPERATORS;
 
-//    RunForOneAvg(&parameters, &operators, 1);
-    RunForAllFunctions(&parameters, &operators);
-
+    RunForAllHerreraFunctions(&parameters, &operators);
 
     ReleaseLogging();
 

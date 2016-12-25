@@ -4,13 +4,13 @@ Objective DeJongF1Objective = {
     .func = DeJongF1,
     .min = -5.12,
     .max = 5.12,
-    .optimum = 0,
+    .optimum = 0
 };
 Objective DeJongF2Objective = {
     .func = DeJongF2,
-    .min = -2.048,
-    .max = 2.048,
-    .optimum = 0,
+    .min = -5.12,
+    .max = 5.12,
+    .optimum = 0
 };
 Objective DeJongF3Objective = {
     .func = DeJongF3,
@@ -23,28 +23,28 @@ Objective DeJongF4Objective = {
     .func = DeJongF4,
     .min = -1.28,
     .max = 1.28,
-    .optimum = 0,
+    .optimum = 0
 };
 Objective DeJongF5Objective = {
     .func = DeJongF5,
     .min = -65.536,
     .max = 65.536,
     .optimum = 500,
-    .max_args_count = 2,
+    .max_args_count = 2
 };
 
 Objective RastriginFuncObjective = {
     .func = RastriginFunc,
     .min = -5.12,
     .max = 5.12,
-    .optimum = 0,
+    .optimum = 0
 };
 
 Objective SchwefelFuncObjective = {
     .func = SchwefelFunc,
     .min = -500,
     .max = 500,
-    .optimum = 0,
+    .optimum = 0
 };
 
 Objective GriewangkFuncObjective = {
@@ -52,20 +52,21 @@ Objective GriewangkFuncObjective = {
     .min = -600,
     .max = 600,
     .optimum = 0,
+    .max_args_count = 10
 };
 
 Objective StretchedVSineWaveFuncObjective = {
     .func = StretchedVSineWaveFunc,
     .min = -100,
     .max = 100,
-    .optimum = 0,
+    .optimum = 0
 };
 
 Objective AckleyFuncObjective = {
     .func = AckleyFunc,
     .min = -32.768,
     .max = 32.768,
-    .optimum = 0,
+    .optimum = 0
 };
 
 Objective EggHolderFuncObjective = {
@@ -80,14 +81,14 @@ Objective RanaFuncObjective = {
     .func = RanaFunc,
     .min = -500,
     .max = 500,
-    .optimum = 0,
+    .optimum = 0
 };
 
 Objective PathologicalFuncObjective = {
     .func = PathologicalFunc,
     .min = -100,
     .max = 100,
-    .optimum = 0,
+    .optimum = 0
 };
 
 
@@ -153,10 +154,11 @@ double SchwefelFunc(double* args, int args_size) {
 }
 
 double GriewangkFunc(double* args, int args_size) {
-    double res = 1;
+    double res = 0;
     for (int i = 0; i < args_size; ++i) {
-        res += pow(args[i], 2) / 4000;
+        res += args[i] * args[i];
     }
+    res = res / 4000 + 1;
     double temp = 1;
     for (int i = 0; i < args_size; ++i) {
         temp *= cos(args[i] / sqrt((double)(i + 1)));
