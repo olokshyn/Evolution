@@ -5,7 +5,7 @@
 #ifndef EVOLUTION_GAOPERATORS_H
 #define EVOLUTION_GAOPERATORS_H
 
-#include "GeneticAlgorithm/GAFwd.h"
+#include "GAFwd.h"
 #include "Species/Species.h"
 
 typedef struct ga_operators {
@@ -13,7 +13,7 @@ typedef struct ga_operators {
     Species* (*crossover)(World* world, size_t generation_number);
     SpeciesList* (*clustering)(World* world, Species* new_species);
     int (*children_selection)(World* world, Species* new_species);
-    size_t (*selection)(World* world);
+    int (*selection)(World* world);
 } GAOperators;
 
 int GAO_UniformMutation(World* world, size_t generation_number);
@@ -26,7 +26,9 @@ SpeciesList* GAO_Clustering(World* world, Species* new_species);
 
 int GAO_ChildrenSelection(World* world, Species* new_species);
 
-size_t GAO_Selection(World* world);
+int GAO_Selection(World* world);
+
+int GAO_LinearRankingSelection(World* world);
 
 #define DEFAULT_GA_OPERATORS { \
     .mutation = GAO_UniformMutation, \
@@ -34,6 +36,12 @@ size_t GAO_Selection(World* world);
     .clustering = GAO_Clustering, \
     .children_selection = GAO_ChildrenSelection, \
     .selection = GAO_Selection \
+}
+
+#define HERRERA_GA_OPERATORS { \
+    .mutation = GAO_NonUniformMutation, \
+    .crossover = GAO_Crossover, \
+    .selection = GAO_LinearRankingSelection \
 }
 
 #endif //EVOLUTION_GAOPERATORS_H

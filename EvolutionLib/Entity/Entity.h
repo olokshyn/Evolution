@@ -15,7 +15,9 @@ typedef struct entity {
 
 typedef List EntitiesList;
 
-int EntityComparator(const void* a, const void* b);
+int EntityAscendingComparator(const void* a, const void* b);
+
+int EntityDescendingComparator(const void* a, const void* b);
 
 Entity* CreateEntity(size_t chr_size);
 

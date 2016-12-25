@@ -6,12 +6,12 @@
 
 #include <math.h>
 
-#include "GeneticAlgorithm/World.h"
-#include "GeneticAlgorithm/GAParameters.h"
+#include "World.h"
+#include "GAParameters.h"
 #include "Entity/Crossovers.h"
 #include "AgglomerativeClustering/AgglomerativeClustering.h"
 
-#include "GeneticAlgorithm/GALib.h"
+#include "GALib.h"
 #include "Logging/Logging.h"
 #include "Common.h"
 
@@ -21,7 +21,7 @@ static int PerformSelectionInSpecies(World* world,
 
 static int PerformLimitedSelectionInSpecies(World* world,
                                             Species* species,
-                                             double norm_fitness);
+                                            double norm_fitness);
 
 int GAO_UniformMutation(World* world, size_t generation_number) {
     FOR_EACH_IN_SPECIES_LIST(&world->species) {
@@ -216,7 +216,7 @@ int GAO_ChildrenSelection(World* world, Species* new_species) {
     return PerformSelectionInSpecies(world, new_species, world->world_size);
 }
 
-size_t GAO_Selection(World* world) {
+int GAO_Selection(World* world) {
     LOG_FUNC_START("GAO_Selection");
 
     Log(DEBUG, "Old world size: %d", (int)world->world_size);
@@ -236,9 +236,9 @@ size_t GAO_Selection(World* world) {
 
     Log(INFO, "Before selection in clustered_species");
     for (ListIterator it_cl = begin(clustered_species),
-                 it_ft = begin(fitness_list);
-         !isIteratorExhausted(it_cl);
-         next(&it_cl), next(&it_ft)) {
+                it_ft = begin(fitness_list);
+                !isIteratorExhausted(it_cl);
+                next(&it_cl), next(&it_ft)) {
         PerformLimitedSelectionInSpecies(world,
                                          (Species*)(it_cl.current->value),
                                          *((double*)it_ft.current->value));
@@ -247,6 +247,7 @@ size_t GAO_Selection(World* world) {
     Log(INFO, "After selection in clustered_species");
 
     Log(DEBUG, "New world size: %d", (int)new_world_size);
+    world->world_size = new_world_size;
 
     for (ListIterator it = begin(clustered_species);
          !isIteratorExhausted(it);
@@ -267,7 +268,7 @@ size_t GAO_Selection(World* world) {
 
     LOG_FUNC_END("GAO_Selection");
 
-    return new_world_size;
+    return 1;
 
 error_PerformSelection:
     destroyListPointer(fitness_list);
@@ -297,7 +298,7 @@ static int PerformSelectionInSpecies(World* world,
     qsort(entities_p,
           SPECIES_LENGTH(species),
           sizeof(Entity*),
-          EntityComparator);
+          EntityDescendingComparator);
 
     sorted_new_entities = CreateEntitiesList();
     if (!sorted_new_entities) {
@@ -345,4 +346,22 @@ static int PerformLimitedSelectionInSpecies(World* world,
     species_size = MIN(species_size, SPECIES_LENGTH(species));
     species_size = MAX(species_size, CROSSOVER_EXTINCTION_BIAS);
     return PerformSelectionInSpecies(world, species, species_size);
+}
+
+int GAO_LinearRankingSelection(World* world) {
+    size_t new_world_size = 0;
+    FOR_EACH_IN_SPECIES_LIST(&world->species) {
+        if (!LinearRankingSelection(world,
+                                    SPECIES_LIST_IT_P,
+                                    world->parameters->initial_world_size
+                                            / world->species.length)) {
+            goto error_GAO_LinearRankingSelection;
+        }
+        new_world_size += SPECIES_LENGTH(SPECIES_LIST_IT_P);
+    }
+    world->world_size = new_world_size;
+    return 1;
+
+error_GAO_LinearRankingSelection:
+    return 0;
 }

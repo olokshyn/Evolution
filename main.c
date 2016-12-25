@@ -181,10 +181,12 @@ int main(int argc, char* argv[]) {
             .objective = SchwefelFuncObjective,
             .max_generations_count = 100,
             .stable_value_iterations_count = 100,
-            .stable_value_eps = 1e-5
+            .stable_value_eps = 1e-5,
+            .worst_selection_probability = 0.5,
+            .best_selection_probability = 1.5
     };
 
-    GAOperators operators = DEFAULT_GA_OPERATORS;
+    GAOperators operators = HERRERA_GA_OPERATORS;
 
 //    RunForOneAvg(&parameters, &operators, 1);
     RunForAllFunctions(&parameters, &operators);

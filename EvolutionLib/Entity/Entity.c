@@ -8,10 +8,17 @@
 
 #include "Common.h"
 
-int EntityComparator(const void* a, const void* b) {
-    double diff = (*(Entity**)b)->fitness
-                  - (*(Entity**)a)->fitness;
-    return (fabs(diff) < DOUBLE_EPS) ? 0 : (diff > 0) - (diff < 0);
+#define ENTITY_ASCENDING_COMPARATOR(A, B) \
+    double diff = (*(Entity**)(A))->fitness \
+                   - (*(Entity**)(B))->fitness; \
+    return (fabs(diff) < DOUBLE_EPS) ? 0 : SIGN(diff);
+
+int EntityAscendingComparator(const void* a, const void* b) {
+    ENTITY_ASCENDING_COMPARATOR(a, b)
+}
+
+int EntityDescendingComparator(const void* a, const void* b) {
+    ENTITY_ASCENDING_COMPARATOR(b, a)
 }
 
 Entity* CreateEntity(size_t chr_size) {
@@ -61,7 +68,9 @@ EntitiesList* CreateEntitiesList() {
     if (!entities) {
         return NULL;
     }
-    initList(entities, EntityComparator, (void (*)(void*))DestroyEntity);
+    initList(entities,
+             EntityAscendingComparator,
+             (void (*)(void*))DestroyEntity);
     return entities;
 }
 

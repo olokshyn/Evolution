@@ -41,6 +41,8 @@ typedef struct ga_parameters {
     size_t max_generations_count;
     size_t stable_value_iterations_count;
     double stable_value_eps;
+    double worst_selection_probability;
+    double best_selection_probability;
 } GAParameters;
 
 #endif //EVOLUTION_GAPARAMETERS_H

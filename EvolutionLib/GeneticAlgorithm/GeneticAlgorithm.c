@@ -126,28 +126,24 @@ double Iteration(World* world, size_t generation_number) {
             moveList(&world->species, clustered_species);
             destroyListPointer(clustered_species);
             clustered_species = NULL;
-
-            world->world_size = 0;
-            FOR_EACH_IN_SPECIES_LIST(&world->species) {
-                world->world_size += SPECIES_LENGTH(SPECIES_LIST_IT_P);
-            }
         }
         else {
             if (!moveList(((Species*)world->species.head->value)->entitiesList,
                           new_species->entitiesList)) {
                 goto error_Iteration;
             }
+        }
 
-            world->world_size += SPECIES_LENGTH(new_species);
+        world->world_size = 0;
+        FOR_EACH_IN_SPECIES_LIST(&world->species) {
+            world->world_size += SPECIES_LENGTH(SPECIES_LIST_IT_P);
         }
 
         DestroySpecies(new_species);
         new_species = NULL;
 
         if (world->operators->selection) {
-            world->world_size =
-                    world->operators->selection(world);
-            if (!world->world_size) {
+            if (!world->operators->selection(world)) {
                 goto error_Iteration;
             }
         }
