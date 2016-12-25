@@ -16,4 +16,22 @@ typedef struct ga_operators {
     size_t (*selection)(World* world);
 } GAOperators;
 
+int GAO_UniformMutation(World* world);
+
+Species* GAO_Crossover(World* world, size_t generation_number);
+
+SpeciesList* GAO_Clustering(World* world, Species* new_species);
+
+int GAO_ChildrenSelection(World* world, Species* new_species);
+
+size_t GAO_Selection(World* world);
+
+#define DEFAULT_GA_OPERATORS { \
+    .mutation = GAO_UniformMutation, \
+    .crossover = GAO_Crossover, \
+    .clustering = GAO_Clustering, \
+    .children_selection = GAO_ChildrenSelection, \
+    .selection = GAO_Selection \
+}
+
 #endif //EVOLUTION_GAOPERATORS_H

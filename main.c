@@ -8,7 +8,6 @@
 
 #include "GeneticAlgorithm/GAParameters.h"
 #include "GeneticAlgorithm/GAOperators/GAOperators.h"
-#include "GeneticAlgorithm/GAOperators/GADefaultOperators.h"
 #include "GeneticAlgorithm/GeneticAlgorithm.h"
 #include "Functions/TestFunctions.h"
 

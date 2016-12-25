@@ -39,8 +39,7 @@ set(GENETIC_ALGORITHM_SOURCE_FILES
         GeneticAlgorithm/World.h
         GeneticAlgorithm/GAParameters.h
         GeneticAlgorithm/GAOperators/GAOperators.h
-        GeneticAlgorithm/GAOperators/GADefaultOperators.c
-        GeneticAlgorithm/GAOperators/GADefaultOperators.h)
+        GeneticAlgorithm/GAOperators/GAOperators.c)
 
 set(LIST_SOURCE_FILES
         List/List.c

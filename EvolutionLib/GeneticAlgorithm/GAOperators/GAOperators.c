@@ -2,7 +2,7 @@
 // Created by Oleg on 12/24/16.
 //
 
-#include "GADefaultOperators.h"
+#include "GAOperators.h"
 
 #include <math.h>
 
@@ -23,7 +23,7 @@ static int PerformLimitedSelectionInSpecies(World* world,
                                             Species* species,
                                              double norm_fitness);
 
-int GAO_DefaultMutation(World* world) {
+int GAO_UniformMutation(World* world) {
     FOR_EACH_IN_SPECIES_LIST(&world->species) {
         FOR_EACH_IN_SPECIES(SPECIES_LIST_IT_P) {
             if (doWithProbability(world->parameters->mutation_probability)) {
@@ -39,8 +39,8 @@ int GAO_DefaultMutation(World* world) {
     return 1;
 }
 
-Species* GAO_DefaultCrossover(World* world, size_t generation_number) {
-    LOG_FUNC_START("GAO_DefaultCrossover");
+Species* GAO_Crossover(World* world, size_t generation_number) {
+    LOG_FUNC_START("GAO_Crossover");
 
     Species* new_species = NULL;
     List* fitness_list = NULL;
@@ -156,7 +156,7 @@ Species* GAO_DefaultCrossover(World* world, size_t generation_number) {
 
     Log(DEBUG, "New entities count: %d", (int)SPECIES_LENGTH(new_species));
 
-    LOG_FUNC_END("GAO_DefaultCrossover");
+    LOG_FUNC_END("GAO_Crossover");
 
     return new_species;
 
@@ -170,7 +170,7 @@ error_PerformCrossover:
     return NULL;
 }
 
-SpeciesList* GAO_DefaultClustering(World* world, Species* new_species) {
+SpeciesList* GAO_Clustering(World* world, Species* new_species) {
     SpeciesList* clustered_species =
             AgglomerativeClustering(&world->species,
                                     new_species->entitiesList,
@@ -185,12 +185,12 @@ error_PerformClustering:
     return NULL;
 }
 
-int GAO_DefaultChildrenSelection(World* world, Species* new_species) {
+int GAO_ChildrenSelection(World* world, Species* new_species) {
     return PerformSelectionInSpecies(world, new_species, world->world_size);
 }
 
-size_t GAO_DefaultSelection(World* world) {
-    LOG_FUNC_START("GAO_DefaultSelection");
+size_t GAO_Selection(World* world) {
+    LOG_FUNC_START("GAO_Selection");
 
     Log(DEBUG, "Old world size: %d", (int)world->world_size);
 
@@ -238,7 +238,7 @@ size_t GAO_DefaultSelection(World* world) {
 
     LOG_ASSERT(world->world_size != 0);
 
-    LOG_FUNC_END("GAO_DefaultSelection");
+    LOG_FUNC_END("GAO_Selection");
 
     return new_world_size;
 
