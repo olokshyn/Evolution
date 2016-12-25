@@ -4,8 +4,11 @@
 
 #include "GALib.h"
 
-#include "Common.h"
+#include <math.h>
+
 #include "GAParameters.h"
+#include "Common.h"
+#include "Logging/Logging.h"
 
 int CountSpeciesLinks(List* fitness_list) {
     if (SPECIES_LINK_PROBABILITY == 0.0) {
@@ -46,4 +49,12 @@ int CountSpeciesLinks(List* fitness_list) {
 
     Normalize(fitness_list);
     return 1;
+}
+
+double NonUniformMutationDelta(size_t t, double y,
+                               const GAParameters* parameters) {
+    double r = getRand(0.0, 1.0);
+    return y * (1 - pow(r,
+                        pow(1 - t / (double)parameters->max_generations_count,
+                            parameters->mutation_on_iteration_dependence)));
 }

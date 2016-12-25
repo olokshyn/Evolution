@@ -98,7 +98,7 @@ double Iteration(World* world, size_t generation_number) {
     SpeciesList* clustered_species = NULL;
 
     if (world->operators->mutation) {
-        if (!world->operators->mutation(world)) {
+        if (!world->operators->mutation(world, generation_number)) {
             goto error_Iteration;
         }
     }

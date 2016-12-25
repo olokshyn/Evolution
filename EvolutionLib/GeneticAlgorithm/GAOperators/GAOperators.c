@@ -23,7 +23,7 @@ static int PerformLimitedSelectionInSpecies(World* world,
                                             Species* species,
                                              double norm_fitness);
 
-int GAO_UniformMutation(World* world) {
+int GAO_UniformMutation(World* world, size_t generation_number) {
     FOR_EACH_IN_SPECIES_LIST(&world->species) {
         FOR_EACH_IN_SPECIES(SPECIES_LIST_IT_P) {
             if (doWithProbability(world->parameters->mutation_probability)) {
@@ -33,6 +33,33 @@ int GAO_UniformMutation(World* world) {
                 ENTITIES_IT_P->fitness =
                         world->parameters->objective.func(ENTITIES_IT_P->chr,
                                                           (int)world->chr_size);
+            }
+        }
+    }
+    return 1;
+}
+
+int GAO_NonUniformMutation(World* world, size_t generation_number) {
+    FOR_EACH_IN_SPECIES_LIST(&world->species) {
+        FOR_EACH_IN_SPECIES(SPECIES_LIST_IT_P) {
+            if (doWithProbability(world->parameters->mutation_probability)) {
+                size_t i = (size_t)selectRandom(0, (int)world->chr_size - 1);
+                if (doWithProbability(0.5)) {
+                    ENTITIES_IT_P->chr[i] =
+                            ENTITIES_IT_P->chr[i]
+                            + NonUniformMutationDelta(generation_number,
+                                    world->parameters->objective.max
+                                            - ENTITIES_IT_P->chr[i],
+                                    world->parameters);
+                }
+                else {
+                    ENTITIES_IT_P->chr[i] =
+                            ENTITIES_IT_P->chr[i]
+                            - NonUniformMutationDelta(generation_number,
+                                     ENTITIES_IT_P->chr[i]
+                                             - world->parameters->objective.min,
+                                     world->parameters);
+                }
             }
         }
     }

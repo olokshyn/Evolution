@@ -36,6 +36,7 @@ typedef struct ga_parameters {
     size_t initial_world_size;
     size_t chromosome_size;
     double mutation_probability;
+    double mutation_on_iteration_dependence;
     size_t k;
     double h;
     Objective objective;
