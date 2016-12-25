@@ -23,17 +23,17 @@
     #define ANSI_COLOR_RESET
 #endif
 
-#define EPS 0.001
+#define EPS 1e-5
 
 const char* success_template = ANSI_COLOR_GREEN "SUCCESS" ANSI_COLOR_RESET
-": optimum: %.3f \t best: %.3f "
+": optimum: %.15f \t best: %.5f "
 "\t iterations: %zu "
-"\t avg time spent on a step: %.3f\n";
+"\t avg time spent on a step: %.5f\n";
 
 const char* failure_template = ANSI_COLOR_RED "FAILURE" ANSI_COLOR_RESET
-": optimum: %.3f \t best: %.3f "
+": optimum: %.15f \t best: %.5f "
 "\t iterations: %zu "
-"\t avg time spent on a step: %.3f\n";
+"\t avg time spent on a step: %.5f\n";
 
 void RunForAllFunctions(GAParameters* parameters,
                         GAOperators* operators) {
@@ -114,7 +114,7 @@ void RunForOneAvg(GAParameters* parameters,
         GAResult result = RunEvolution(parameters, operators);
 
         if (result.error) {
-            printf("Error occured\n");
+            printf("Error occurred\n");
             return;
         }
 
@@ -144,9 +144,9 @@ void RunForOneAvg(GAParameters* parameters,
     avg_iterations_count /= tests_count;
     avg_time_spent /= tests_count;
 
-    printf("Avg optimum: %.3f\n"
-                   "Avg iterations made: %.3f\n"
-                   "Avg time spent: %.3f\n",
+    printf("Avg optimum: %.5f\n"
+                   "Avg iterations made: %.5f\n"
+                   "Avg time spent: %.5f\n",
            avg_optimum, avg_iterations_count, avg_time_spent);
 }
 
@@ -223,13 +223,18 @@ void RunForAllHerreraFunctions(GAParameters* parameters,
             }
 
             fprintf(report_file, "\n");
+
+            fflush(report_file);
         }
-        printf("Avg optimum: %.3f\n", avg_optimum / tests_count);
-        printf("Avg iterations made: %.3f\n",
+        printf("Avg optimum: %.15f\n", avg_optimum / tests_count);
+        printf("Avg iterations made: %.5f\n",
                avg_iterations_made / tests_count);
-        printf("Avg time spent: %.3f\n", avg_time_spent);
+        printf("Avg time spent: %.5f\n", avg_time_spent);
 
         printf("\n\n");
+
+        fflush(stdout);
+        fflush(report_file);
     }
 }
 
