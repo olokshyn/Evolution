@@ -109,9 +109,11 @@ TEST(CrossoverLibTest, dbcM) {
         ASSERT_NE((void*)0, en1);
         Entity* en2 = CreateEntity(chr_size);
         ASSERT_NE((void*)0, en2);
+        double min = -1;
+        double max = 0;
         for (size_t i = 0; i < chr_size; ++i) {
-            en1->chr[i] = getRand(-1, 0);
-            en2->chr[i] = getRand(-1, 0);
+            en1->chr[i] = getRand(min, max);
+            en2->chr[i] = getRand(min, max);
         }
         double fitness1 = getRand(0, 1);
         double fitness2 = getRand(0, 1);
@@ -120,7 +122,8 @@ TEST(CrossoverLibTest, dbcM) {
             double Mt1 = dbcM(1, max_generations_count,
                               en1->chr[i],
                               en2->chr[i],
-                              fitness1, fitness2);
+                              fitness1, fitness2,
+                              min, max);
             ASSERT_FLOAT_EQ((en1->chr[i] + en2->chr[i]) / 2, Mt1);
             for (size_t gen_numb = 1;
                     gen_numb < max_generations_count;
@@ -129,7 +132,8 @@ TEST(CrossoverLibTest, dbcM) {
                 Mt1 = dbcM(gen_numb + 1, max_generations_count,
                            en1->chr[i],
                            en2->chr[i],
-                           fitness1, fitness2);
+                           fitness1, fitness2,
+                           min, max);
                 if ((fitness1 >= fitness2 && en1->chr[i] <= en2->chr[i])
                         || (fitness1 < fitness2 && en1->chr[i] >= en2->chr[i])) {
                     ASSERT_GE((float)Mt, (float)Mt1);
