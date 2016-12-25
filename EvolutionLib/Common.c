@@ -8,11 +8,11 @@
 
 #include "Logging/Logging.h"
 
-#define DOUBLE_EPS 1e-7
-
 double getRand(double min, double max) {
     // return gauss_rnd() * (max - min) + min;
-    return rand() / (RAND_MAX + 1.0) * (max - min) + min;
+    double r = rand() / (RAND_MAX + 1.0) * (max - min) + min;
+    LOG_RELEASE_ASSERT(r >= min && r <= max);
+    return r;
 }
 
 int doWithProbability(double prob) {

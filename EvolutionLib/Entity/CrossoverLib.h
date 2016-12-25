@@ -71,8 +71,10 @@ static inline double DynamicBase(size_t gen_numb, size_t max_generations_count,
     LOG_ASSERT(c1 >= a && c1 <= b);
     LOG_ASSERT(c2 >= a && c1 <= b);
     double m = b - a;
-    return a + m * norm(scale(gen_numb, max_generations_count),
-                        (c1 - a) / m, (c2 - a) / m);
+    double r = a + m * norm(scale(gen_numb, max_generations_count),
+                            (c1 - a) / m, (c2 - a) / m);
+    LOG_RELEASE_ASSERT(r >= a && r <= b);
+    return r;
 }
 
 static inline double dcF(size_t gen_numb, size_t max_generations_count,
@@ -105,15 +107,30 @@ static inline double dcMminus(size_t gen_numb, size_t max_generations_count,
 
 static inline double dbcM(size_t gen_numb, size_t max_generations_count,
                           double c1, double c2,
-                          double fitness1, double fitness2) {
+                          double fitness1, double fitness2,
+                          double a, double b) {
     LOG_ASSERT(gen_numb >= 1 && gen_numb <= max_generations_count);
     LOG_ASSERT(SIGN(fitness1) == SIGN(fitness2));
     LOG_ASSERT(fitness1 + fitness2 != 0);
     LOG_ASSERT(max_generations_count - 1 != 0);
+    LOG_ASSERT(b > a);
+    LOG_ASSERT(c1 >= a && c1 <= b);
+    LOG_ASSERT(c2 >= a && c1 <= b);
     double lambda = fitness1 / (fitness1 + fitness2);
     double q = 0.5 + (lambda - 0.5)
                      * (gen_numb - 1) / (max_generations_count - 1);
-    return q * c1 + (1 - q) * c2;
+    double r = q * c1 + (1 - q) * c2;
+
+    // TODO: think of a better solution
+    if (r < a && a - r < DOUBLE_EPS) {
+        r = a + DOUBLE_EPS;
+    }
+    else if (r > b && r - b < DOUBLE_EPS) {
+        r = b - DOUBLE_EPS;
+    }
+
+    LOG_RELEASE_ASSERT(r >= a && r <= b);
+    return r;
 }
 
 #endif //EVOLUTION_CROSSOVERLIB_H

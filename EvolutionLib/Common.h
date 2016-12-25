@@ -12,6 +12,8 @@
 
 #define SIGN(A) (((A) >= 0) - ((A) < 0))
 
+#define DOUBLE_EPS 1e-7
+
 typedef double(*ObjectiveFunc)(double*, int);
 
 typedef struct objective {

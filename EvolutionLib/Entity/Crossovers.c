@@ -66,7 +66,8 @@ void DHXCrossover(Entity* parent1,
             // Dynamic biased crossover (exploitation): right side
             child2->chr[i] = dbcM(gen_numb, max_generations_count,
                                   parent1->chr[i], parent2->chr[i],
-                                  fitness1, fitness2);
+                                  fitness1, fitness2,
+                                  obj->min, obj->max);
             LOG_ASSERT(child1->chr[i] == child1->chr[i]
                        && child2->chr[i] == child2->chr[i]);
         }
@@ -88,7 +89,8 @@ void DHXCrossover(Entity* parent1,
             // Dynamic biased crossover (exploitation): left side
             child2->chr[i] = dbcM(gen_numb, max_generations_count,
                                   parent1->chr[i], parent2->chr[i],
-                                  fitness1, fitness2);
+                                  fitness1, fitness2,
+                                  obj->min, obj->max);
             LOG_ASSERT(child1->chr[i] == child1->chr[i]
                        && child2->chr[i] == child2->chr[i]);
         }

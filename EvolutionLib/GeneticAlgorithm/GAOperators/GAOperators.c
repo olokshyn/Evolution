@@ -90,9 +90,9 @@ Species* GAO_Crossover(World* world, size_t generation_number) {
     Log(DEBUG, "Perform crossover in %d species", (int)world->species.length);
 
     for (ListIterator speciesIt = begin(&world->species),
-                 fitnessIt = begin(fitness_list);
-         !isIteratorExhausted(speciesIt);
-         next(&speciesIt), next(&fitnessIt)) {
+             fitnessIt = begin(fitness_list);
+             !isIteratorExhausted(speciesIt);
+             next(&speciesIt), next(&fitnessIt)) {
         Species* species = (Species*)speciesIt.current->value;
         Log(INFO, "Crossing %d entities", (int)SPECIES_LENGTH(species));
         if (SPECIES_LENGTH(species) <= 1) {
@@ -138,8 +138,8 @@ Species* GAO_Crossover(World* world, size_t generation_number) {
                  !isIteratorExhausted(it2) && !crossed_parents[i];
                  next(&it2), next(&ft_it2), ++j) {
                 if (it1.current == it2.current
-                    || crossed_parents[j]
-                    || !doWithProbability(crossover_prob)) {
+                        || crossed_parents[j]
+                        || !doWithProbability(crossover_prob)) {
                     continue;
                 }
                 new_entity1 = CreateEntity(world->chr_size);

@@ -8,8 +8,6 @@
 
 #include "Common.h"
 
-#define DOUBLE_EPS 0.0001
-
 int EntityComparator(const void* a, const void* b) {
     double diff = (*(Entity**)b)->fitness
                   - (*(Entity**)a)->fitness;
