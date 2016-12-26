@@ -384,6 +384,36 @@ error_PerformSelection:
     return 0;
 }
 
+int GAO_LinearRankingSelection(World* world) {
+
+    List* fitness_list = NormalizeSpeciesFitnesses(&world->species);
+    if (!fitness_list) {
+        goto error_GAO_LinearRankingSelection;
+    }
+
+    size_t new_world_size = 0;
+    for (ListIterator sp_it = begin(&world->species),
+                 ft_it = begin(fitness_list);
+            !isIteratorExhausted(sp_it);
+            next(&sp_it), next(&ft_it)) {
+        Species* species = (Species*)sp_it.current->value;
+        size_t alive_count = (size_t)(world->parameters->initial_world_size
+                                      * *(double*)ft_it.current->value);
+        if (!LinearRankingSelection(world, species, alive_count)) {
+            goto error_GAO_LinearRankingSelection;
+        }
+        new_world_size += SPECIES_LENGTH(species);
+    }
+    world->world_size = new_world_size;
+
+    destroyListPointer(fitness_list);
+    return 1;
+
+error_GAO_LinearRankingSelection:
+    destroyListPointer(fitness_list);
+    return 0;
+}
+
 // Static methods section -----------
 
 static int PerformSelectionInSpecies(World* world,
@@ -455,22 +485,4 @@ static int PerformLimitedSelectionInSpecies(World* world,
     species_size = MIN(species_size, SPECIES_LENGTH(species));
     species_size = MAX(species_size, CROSSOVER_EXTINCTION_BIAS);
     return PerformSelectionInSpecies(world, species, species_size);
-}
-
-int GAO_LinearRankingSelection(World* world) {
-    size_t new_world_size = 0;
-    FOR_EACH_IN_SPECIES_LIST(&world->species) {
-        if (!LinearRankingSelection(world,
-                                    SPECIES_LIST_IT_P,
-                                    world->parameters->initial_world_size
-                                            / world->species.length)) {
-            goto error_GAO_LinearRankingSelection;
-        }
-        new_world_size += SPECIES_LENGTH(SPECIES_LIST_IT_P);
-    }
-    world->world_size = new_world_size;
-    return 1;
-
-error_GAO_LinearRankingSelection:
-    return 0;
 }

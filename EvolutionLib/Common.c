@@ -33,10 +33,16 @@ int selectRandom(int rangeLow, int rangeHigh) {
 }
 
 void Normalize(List* numbers) {
-    if (numbers->length < 2) {
-        Log(WARNING, "Normalize: cannot normalize less than 2 numbers");
+    if (numbers->length == 0) {
+        Log(WARNING, "Normalize: cannot normalize empty list");
         return;
     }
+    if (numbers->length == 1) {
+        *(double*)numbers->head->value = 1.0;
+        Log(WARNING, "Normalize: normalizing list of one element");
+        return;
+    }
+
     double sum = 0.0;
     ListIterator it = begin(numbers);
     double min = *((double*)it.current->value);
