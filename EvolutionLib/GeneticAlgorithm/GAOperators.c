@@ -175,8 +175,8 @@ error_GAO_UniformCrossover:
     return NULL;
 }
 
-Species* GAO_LinkedCrossover(World* world, size_t generation_number) {
-    LOG_FUNC_START("GAO_LinkedCrossover");
+Species* GAO_FitnessCrossover(World* world, size_t generation_number) {
+    LOG_FUNC_START("GAO_FitnessCrossover");
 
     Species* new_species = NULL;
     List* fitness_list = NULL;
@@ -292,7 +292,7 @@ Species* GAO_LinkedCrossover(World* world, size_t generation_number) {
 
     Log(DEBUG, "New entities count: %d", (int)SPECIES_LENGTH(new_species));
 
-    LOG_FUNC_END("GAO_LinkedCrossover");
+    LOG_FUNC_END("GAO_FitnessCrossover");
 
     return new_species;
 

@@ -36,14 +36,15 @@ typedef struct ga_parameters {
     double mutation_probability;
     double mutation_on_iteration_dependence;
     double crossover_probability;
+    double selection_worst_probability;
+    double selection_best_probability;
+    size_t selection_elitists_count;
     size_t k;
     double h;
     Objective objective;
     size_t max_generations_count;
     size_t stable_value_iterations_count;
     double stable_value_eps;
-    double worst_selection_probability;
-    double best_selection_probability;
 } GAParameters;
 
 #endif //EVOLUTION_GAPARAMETERS_H

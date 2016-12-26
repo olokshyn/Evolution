@@ -22,7 +22,7 @@ int GAO_NonUniformMutation(World* world, size_t generation_number);
 
 Species* GAO_UniformCrossover(World* world, size_t generation_number);
 
-Species* GAO_LinkedCrossover(World* world, size_t generation_number);
+Species* GAO_FitnessCrossover(World* world, size_t generation_number);
 
 SpeciesList* GAO_Clustering(World* world, Species* new_species);
 
@@ -33,8 +33,8 @@ int GAO_Selection(World* world);
 int GAO_LinearRankingSelection(World* world);
 
 #define DEFAULT_GA_OPERATORS { \
-    .mutation = GAO_UniformMutation, \
-    .crossover = GAO_LinkedCrossover, \
+    .mutation = GAO_NonUniformMutation, \
+    .crossover = GAO_UniformCrossover, \
     .clustering = GAO_Clustering, \
     .children_selection = GAO_ChildrenSelection, \
     .selection = GAO_Selection \

@@ -68,11 +68,12 @@ int LinearRankingSelection(World* world,
         return 1;
     }
 
-    double mu_minus = world->parameters->worst_selection_probability;
-    double mu_plus = world->parameters->best_selection_probability;
+    double mu_minus = world->parameters->selection_worst_probability;
+    double mu_plus = world->parameters->selection_best_probability;
     LOG_ASSERT(mu_minus >= 0 && mu_minus <= 1);
     LOG_ASSERT(mu_plus >= 1 && mu_plus <= 2);
     LOG_ASSERT(fabs(2 - mu_minus - mu_plus) < DOUBLE_EPS);
+    LOG_ASSERT(world->parameters->selection_elitists_count < alive_count);
 
     Entity** entities_p = NULL;
     double* selection_probs = NULL;
@@ -105,6 +106,29 @@ int LinearRankingSelection(World* world,
     if (!sorted_new_entities) {
         goto error_LinearRankingSelection;
     }
+
+    if (world->parameters->selection_elitists_count) {
+        for (size_t i = 0; i != alive_count; ++i) {
+            if (i == world->parameters->selection_elitists_count) {
+                break;
+            }
+            new_entity = CopyEntity(entities_p[SPECIES_LENGTH(species) - i - 1],
+                                    world->chr_size);
+            if (!new_entity) {
+                goto error_LinearRankingSelection;
+            }
+            if (!pushBack(sorted_new_entities, new_entity)) {
+                goto error_LinearRankingSelection;
+            }
+            new_entity = NULL;
+            entities_p[SPECIES_LENGTH(species) - i - 1] = NULL;
+        }
+    }
+
+    if (alive_count >= world->parameters->selection_elitists_count) {
+        alive_count -= world->parameters->selection_elitists_count;
+    }
+
     for (size_t i = 0; i != alive_count; ++i) {
         double r = getRand(0, selection_probs[SPECIES_LENGTH(species) - 1]);
         for (size_t j = 0; j != SPECIES_LENGTH(species); ++j) {

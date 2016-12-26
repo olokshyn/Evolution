@@ -26,12 +26,12 @@
 #define EPS 1e-5
 
 const char* success_template = ANSI_COLOR_GREEN "SUCCESS" ANSI_COLOR_RESET
-": optimum: %.15f \t best: %.5f "
+": optimum: %.15f \t best: %.15f "
 "\t iterations: %zu "
 "\t avg time spent on a step: %.5f\n";
 
 const char* failure_template = ANSI_COLOR_RED "FAILURE" ANSI_COLOR_RESET
-": optimum: %.15f \t best: %.5f "
+": optimum: %.15f \t best: %.15f "
 "\t iterations: %zu "
 "\t avg time spent on a step: %.5f\n";
 
@@ -258,14 +258,15 @@ int main(int argc, char* argv[]) {
             .mutation_probability = 0.6,
             .mutation_on_iteration_dependence = 5.0,
             .crossover_probability = 0.6,
+            .selection_worst_probability = 0.5,
+            .selection_best_probability = 1.5,
+            .selection_elitists_count = 15,
             .k = 5,
             .h = 0.0,
             .objective = SchwefelFuncObjective,
             .max_generations_count = 5000,
             .stable_value_iterations_count = 1500,
             .stable_value_eps = 1e-5,
-            .worst_selection_probability = 0.5,
-            .best_selection_probability = 1.5
     };
 
     GAOperators operators = HERRERA_GA_OPERATORS;

@@ -6,12 +6,14 @@ Objective DeJongF1Objective = {
     .max = 5.12,
     .optimum = 0
 };
+
 Objective DeJongF2Objective = {
     .func = DeJongF2,
     .min = -5.12,
     .max = 5.12,
     .optimum = 0
 };
+
 Objective DeJongF3Objective = {
     .func = DeJongF3,
     .min = -5.12,
@@ -19,12 +21,14 @@ Objective DeJongF3Objective = {
     .optimum = 25,
     .max_args_count = 5
 };
+
 Objective DeJongF4Objective = {
     .func = DeJongF4,
     .min = -1.28,
     .max = 1.28,
     .optimum = 0
 };
+
 Objective DeJongF5Objective = {
     .func = DeJongF5,
     .min = -65.536,
