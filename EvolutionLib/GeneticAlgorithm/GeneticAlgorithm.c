@@ -52,22 +52,23 @@ GAResult RunEvolution(const GAParameters* parameters,
             max_fitness = cur_fitness;
         }
 
-        if (fabs(max_fitness - prev_max_fitness)
-            < parameters->stable_value_eps) {
+        if (parameters->stable_value_iterations_count) {
+            if (fabs(max_fitness - prev_max_fitness)
+                        < parameters->stable_value_eps) {
 
-            ++value_is_stable_count;
-            if (parameters->stable_value_iterations_count
-                && value_is_stable_count
-                   >= parameters->stable_value_iterations_count) {
+                ++value_is_stable_count;
+                if (value_is_stable_count
+                            >= parameters->stable_value_iterations_count) {
 
-                result.optimum = max_fitness;
-                result.iterations_made = i;
-                result.time_spent_per_iteration = time_spent / i;
-                goto exit_RunEvolution;
+                    result.optimum = max_fitness;
+                    result.iterations_made = i;
+                    result.time_spent_per_iteration = time_spent / i;
+                    goto exit_RunEvolution;
+                }
             }
-        }
-        else {
-            value_is_stable_count = 0;
+            else {
+                value_is_stable_count = 0;
+            }
         }
         prev_max_fitness = max_fitness;
     }

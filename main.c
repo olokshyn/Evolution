@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
             .h = 0.0,
             .objective = SchwefelFuncObjective,
             .max_generations_count = 5000,
-            .stable_value_iterations_count = 1500,
+            .stable_value_iterations_count = 0,
             .stable_value_eps = 1e-5,
     };
 
