@@ -36,6 +36,8 @@ double GetMidFitness(Species* species);
 
 List* NormalizeSpeciesFitnesses(SpeciesList* species);
 
+List* NormalizeSpeciesFitnesses2(SpeciesList* species);
+
 #define FOR_EACH_IN_SPECIES_N(SPECIES_P, LIST_IT) \
     FOR_EACH_IN_ENTITIES_N(((Species*)SPECIES_P)->entitiesList, LIST_IT)
 

@@ -10,6 +10,7 @@
 
 double getRand(double min, double max) {
     // return gauss_rnd() * (max - min) + min;
+    // LinearRankingSelection relies on [min, max) interval
     double r = rand() / (RAND_MAX + 1.0) * (max - min) + min;
     LOG_RELEASE_ASSERT(r >= min && r <= max);
     return r;
@@ -69,9 +70,45 @@ void Normalize(List* numbers) {
     LOG_RELEASE_ASSERT(1.0 - test < DOUBLE_EPS);
 }
 
+// TODO: Remove this
+void Normalize2(List* numbers) {
+    if (numbers->length == 0) {
+        Log(WARNING, "Normalize2: cannot normalize empty list");
+        return;
+    }
+    if (numbers->length == 1) {
+        *(double*)numbers->head->value = 1.0;
+        Log(WARNING, "Normalize2: normalizing list of one element");
+        return;
+    }
+
+    double sum = 0.0;
+    ListIterator it = begin(numbers);
+    for ( ; !isIteratorExhausted(it); next(&it)) {
+        double value = *((double*)it.current->value);
+        sum += value;
+    }
+    if (fabs(sum) < DOUBLE_EPS) {
+        Log(WARNING, "Normalize2: elements sum is close to 0");
+        return;
+    }
+
+    double test = 0.0;
+    for (it = begin(numbers); !isIteratorExhausted(it); next(&it)) {
+        *(double*)it.current->value /= sum;
+        test += *(double*)it.current->value;
+    }
+    LOG_RELEASE_ASSERT(fabs(1.0 - test) < DOUBLE_EPS);
+}
+
 void Scale(List* numbers, double a, double b) {
-    if (numbers->length < 2) {
-        Log(WARNING, "Scale: cannot scale less than 2 numbers");
+    if (numbers->length == 0) {
+        Log(WARNING, "Scale: cannot scale empty list");
+        return;
+    }
+    if (numbers->length == 1) {
+        Log(WARNING, "Scale: scaling list of one element");
+        *(double*)numbers->head->value = b;
         return;
     }
     ListIterator it = begin(numbers);

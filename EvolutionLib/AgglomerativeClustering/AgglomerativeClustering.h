@@ -14,7 +14,7 @@ extern "C" {
 
 #include "Species/Species.h"
 
-#define MAX_CLUSTER_COUNT 8
+#define MAX_CLUSTER_COUNT 3
 
 SpeciesList* AgglomerativeClustering(SpeciesList* clusters,
                                      EntitiesList* entities,

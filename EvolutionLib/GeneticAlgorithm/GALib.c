@@ -67,13 +67,14 @@ int LinearRankingSelection(World* world,
     if (alive_count >= SPECIES_LENGTH(species)) {
         return 1;
     }
+    LOG_ASSERT(SPECIES_LENGTH(species) > 1);
 
     double mu_minus = world->parameters->selection_worst_probability;
     double mu_plus = world->parameters->selection_best_probability;
     LOG_ASSERT(mu_minus >= 0 && mu_minus <= 1);
     LOG_ASSERT(mu_plus >= 1 && mu_plus <= 2);
     LOG_ASSERT(fabs(2 - mu_minus - mu_plus) < DOUBLE_EPS);
-    LOG_ASSERT(world->parameters->selection_elitists_count < alive_count);
+    // LOG_ASSERT(world->parameters->selection_elitists_count < alive_count);
 
     Entity** entities_p = NULL;
     double* selection_probs = NULL;

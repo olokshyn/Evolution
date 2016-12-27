@@ -30,6 +30,7 @@ double getRand(double min, double max);
 int doWithProbability(double prob);
 int selectRandom(int rangeLow, int rangeHigh);
 void Normalize(List* numbers);
+void Normalize2(List* numbers);
 void Scale(List* numbers, double a, double b);
 double EuclidMeasure(double* x, double* y, size_t size);
 

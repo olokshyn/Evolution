@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
             .crossover_probability = 0.6,
             .selection_worst_probability = 0.5,
             .selection_best_probability = 1.5,
-            .selection_elitists_count = 15,
+            .selection_elitists_count = 5,
             .k = 5,
             .h = 0.0,
             .max_generations_count = 5000,
@@ -268,9 +268,26 @@ int main(int argc, char* argv[]) {
             .stable_value_eps = 1e-5,
     };
 
-    GAOperators operators = HERRERA_GA_OPERATORS;
+    GAOperators operators[] = {
+            HERRERA_GA_OPERATORS,
+            HERRERA_WITH_CLUSTERING_GA_OPERATORS,
+            LOKSHYN_GA_OPERATORS
+    };
 
-    RunForAllHerreraFunctions(&parameters, &operators);
+    const char* operators_names[] = {
+            "Herrera GA",
+            "Herrera with clustering GA",
+            "Lokshyn GA"
+    };
+
+    LOG_ASSERT(sizeof(operators) / sizeof(operators[0])
+               == sizeof(operators_names) / sizeof(operators_names[0]));
+    size_t operators_count = sizeof(operators) / sizeof(operators[0]);
+
+    for (size_t i = 0; i != operators_count; ++i) {
+        printf("\n---Operators: %s ---\n", operators_names[i]);
+        RunForAllHerreraFunctions(&parameters, &operators[i]);
+    }
 
     ReleaseLogging();
 

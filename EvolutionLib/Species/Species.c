@@ -77,3 +77,38 @@ error_NormalizeSpeciesFitnesses:
     free(fitness);
     return NULL;
 }
+
+List* NormalizeSpeciesFitnesses2(SpeciesList* species) {
+    List* fitness_list = NULL;
+    double* fitness = NULL;
+
+    fitness_list = (List*)malloc(sizeof(List));
+    if (!fitness_list) {
+        goto error_NormalizeSpeciesFitnesses;
+    }
+    initList(fitness_list, NULL, free);
+
+    FOR_EACH_IN_SPECIES_LIST(species) {
+        if (!SPECIES_LENGTH(SPECIES_LIST_IT_P)) {
+            continue;
+        }
+        fitness = (double*)malloc(sizeof(double));
+        if (!fitness) {
+            goto error_NormalizeSpeciesFitnesses;
+        }
+        *fitness = GetMidFitness(SPECIES_LIST_IT_P);
+        if (!pushBack(fitness_list, fitness)) {
+            goto error_NormalizeSpeciesFitnesses;
+        }
+        fitness = NULL;
+    }
+
+    Normalize2(fitness_list);
+
+    return fitness_list;
+
+    error_NormalizeSpeciesFitnesses:
+    destroyListPointer(fitness_list);
+    free(fitness);
+    return NULL;
+}

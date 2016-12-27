@@ -199,7 +199,7 @@ Species* GAO_FitnessCrossover(World* world, size_t generation_number) {
     Log(DEBUG, "Perform crossover in %d species", (int)world->species.length);
 
     for (ListIterator speciesIt = begin(&world->species),
-             fitnessIt = begin(fitness_list);
+                 fitnessIt = begin(fitness_list);
              !isIteratorExhausted(speciesIt);
              next(&speciesIt), next(&fitnessIt)) {
         Species* species = (Species*)speciesIt.current->value;
@@ -325,8 +325,8 @@ int GAO_ChildrenSelection(World* world, Species* new_species) {
     return PerformSelectionInSpecies(world, new_species, world->world_size);
 }
 
-int GAO_Selection(World* world) {
-    LOG_FUNC_START("GAO_Selection");
+int GAO_SpeciesLinksSelection(World* world) {
+    LOG_FUNC_START("GAO_SpeciesLinksSelection");
 
     Log(DEBUG, "Old world size: %d", (int)world->world_size);
 
@@ -375,7 +375,7 @@ int GAO_Selection(World* world) {
 
     LOG_ASSERT(world->world_size != 0);
 
-    LOG_FUNC_END("GAO_Selection");
+    LOG_FUNC_END("GAO_SpeciesLinksSelection");
 
     return 1;
 
@@ -386,7 +386,7 @@ error_PerformSelection:
 
 int GAO_LinearRankingSelection(World* world) {
 
-    List* fitness_list = NormalizeSpeciesFitnesses(&world->species);
+    List* fitness_list = NormalizeSpeciesFitnesses2(&world->species);
     if (!fitness_list) {
         goto error_GAO_LinearRankingSelection;
     }
@@ -397,14 +397,30 @@ int GAO_LinearRankingSelection(World* world) {
             !isIteratorExhausted(sp_it);
             next(&sp_it), next(&ft_it)) {
         Species* species = (Species*)sp_it.current->value;
-        size_t alive_count = (size_t)(world->parameters->initial_world_size
-                                      * *(double*)ft_it.current->value);
+        size_t alive_count = (size_t)round(world->parameters->initial_world_size
+                                           * *(double*)ft_it.current->value);
+        if (!alive_count) {
+            ++alive_count;
+        }
         if (!LinearRankingSelection(world, species, alive_count)) {
             goto error_GAO_LinearRankingSelection;
         }
         new_world_size += SPECIES_LENGTH(species);
     }
     world->world_size = new_world_size;
+
+    for (ListIterator it = begin(&world->species);
+            !isIteratorExhausted(it);
+            ) {
+        if (SPECIES_LENGTH(it.current->value) == 0) {
+            ListIterator temp_it = it;
+            next(&it);
+            removeFromList(temp_it);
+        }
+        else {
+            next(&it);
+        }
+    }
 
     destroyListPointer(fitness_list);
     return 1;

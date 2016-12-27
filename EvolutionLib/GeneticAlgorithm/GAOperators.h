@@ -28,22 +28,36 @@ SpeciesList* GAO_Clustering(World* world, Species* new_species);
 
 int GAO_ChildrenSelection(World* world, Species* new_species);
 
-int GAO_Selection(World* world);
+int GAO_SpeciesLinksSelection(World* world);
 
 int GAO_LinearRankingSelection(World* world);
 
 #define DEFAULT_GA_OPERATORS { \
-    .mutation = GAO_NonUniformMutation, \
-    .crossover = GAO_UniformCrossover, \
+    .mutation = GAO_UniformMutation, \
+    .crossover = GAO_FitnessCrossover, \
     .clustering = GAO_Clustering, \
     .children_selection = GAO_ChildrenSelection, \
-    .selection = GAO_Selection \
+    .selection = GAO_SpeciesLinksSelection \
 }
 
 #define HERRERA_GA_OPERATORS { \
     .mutation = GAO_NonUniformMutation, \
     .crossover = GAO_UniformCrossover, \
     .selection = GAO_LinearRankingSelection \
+}
+
+#define HERRERA_WITH_CLUSTERING_GA_OPERATORS { \
+    .mutation = GAO_NonUniformMutation, \
+    .crossover = GAO_UniformCrossover, \
+    .clustering = GAO_Clustering, \
+    .selection = GAO_LinearRankingSelection \
+}
+
+#define LOKSHYN_GA_OPERATORS { \
+    .mutation = GAO_NonUniformMutation, \
+    .crossover = GAO_UniformCrossover, \
+    .clustering = GAO_Clustering, \
+    .selection = GAO_SpeciesLinksSelection \
 }
 
 #endif //EVOLUTION_GAOPERATORS_H
