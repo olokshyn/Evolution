@@ -386,7 +386,7 @@ error_PerformSelection:
 
 int GAO_LinearRankingSelection(World* world) {
 
-    List* fitness_list = NormalizeSpeciesFitnesses2(&world->species);
+    List* fitness_list = NormalizeSpeciesFitnesses(&world->species);
     if (!fitness_list) {
         goto error_GAO_LinearRankingSelection;
     }

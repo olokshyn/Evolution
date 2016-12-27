@@ -44,6 +44,10 @@ void Normalize(List* numbers) {
         return;
     }
 
+    Scale(numbers, 1.0, 2.0);
+    Normalize2(numbers);
+    return;
+
     double sum = 0.0;
     ListIterator it = begin(numbers);
     double min = *((double*)it.current->value);
