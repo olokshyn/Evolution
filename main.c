@@ -35,8 +35,69 @@ const char* failure_template = ANSI_COLOR_RED "FAILURE" ANSI_COLOR_RESET
 "\t iterations: %zu "
 "\t avg time spent on a step: %.5f\n";
 
+void RunForOneAvg(GAParameters* parameters,
+                  GAOperators* operators,
+                  size_t tests_count,
+                  FILE* report_file) {
+    double avg_optimum = 0.0;
+    double avg_iterations_made = 0.0;
+    double avg_time_spent = 0.0;
+    for (size_t test_number = 0;
+         test_number != tests_count;
+         ++test_number) {
+        if (report_file) {
+            fprintf(report_file, "Test number %zu\n", test_number + 1);
+        }
+
+        GAResult result = RunEvolution(parameters, operators);
+
+        if (result.error) {
+            printf("Error occurred\n");
+            return;
+        }
+
+        avg_optimum += result.optimum;
+        avg_iterations_made += result.iterations_made;
+        avg_time_spent += result.time_spent_per_iteration;
+
+        if (fabs(parameters->objective.optimum - result.optimum) < EPS) {
+            if (report_file) {
+                fprintf(report_file,
+                        success_template,
+                        parameters->objective.optimum,
+                        result.optimum,
+                        result.iterations_made,
+                        result.time_spent_per_iteration);
+            }
+        }
+        else {
+            if (report_file) {
+                fprintf(report_file,
+                        failure_template,
+                        parameters->objective.optimum,
+                        result.optimum,
+                        result.iterations_made,
+                        result.time_spent_per_iteration);
+            }
+        }
+
+        if (report_file) {
+            fprintf(report_file, "\n");
+            fflush(report_file);
+        }
+    }
+    printf("Avg optimum: %.15f\n", avg_optimum / tests_count);
+    printf("Avg iterations made: %.5f\n",
+           avg_iterations_made / tests_count);
+    printf("Avg time spent: %.5f\n", avg_time_spent);
+
+    printf("\n\n");
+    fflush(stdout);
+}
+
 void RunForAllFunctions(GAParameters* parameters,
-                        GAOperators* operators) {
+                        GAOperators* operators,
+                        size_t tests_count) {
     const char* functionNames[] = {
             "De Jong`s F1 function",
             "De Jong`s F2 function",
@@ -72,88 +133,23 @@ void RunForAllFunctions(GAParameters* parameters,
 
     size_t functionsCount = sizeof(functionNames) / sizeof(char*);
 
+    FILE* report_file = fopen("RunReport.log", "w");
+    if (!report_file) {
+        printf("Failed to open RunReport.log\n");
+        return;
+    }
+
     for (size_t i = 0; i != functionsCount; ++i) {
         printf("%s\n", functionNames[i]);
         parameters->objective = objectiveFunctions[i];
 
-        GAResult result = RunEvolution(parameters, operators);
-
-        if (result.error) {
-            printf("Error occurred\n");
-            return;
-        }
-
-        if (fabs(objectiveFunctions[i].optimum - result.optimum) < EPS) {
-            printf(success_template,
-                   objectiveFunctions[i].optimum,
-                   result.optimum,
-                   result.iterations_made,
-                   result.time_spent_per_iteration);
-        }
-        else {
-            printf(failure_template,
-                   objectiveFunctions[i].optimum,
-                   result.optimum,
-                   result.iterations_made,
-                   result.time_spent_per_iteration);
-        }
-
-        printf("\n");
+        RunForOneAvg(parameters, operators, tests_count, report_file);
     }
-}
-
-void RunForOneAvg(GAParameters* parameters,
-                  GAOperators* operators,
-                  size_t tests_count) {
-    double avg_optimum = 0.0;
-    double avg_iterations_count = 0.0;
-    double avg_time_spent = 0.0;
-    size_t success_iterations_count = 0;
-    for (size_t i = 0; i != tests_count; ++i) {
-
-        GAResult result = RunEvolution(parameters, operators);
-
-        if (result.error) {
-            printf("Error occurred\n");
-            return;
-        }
-
-        if (fabs(parameters->objective.optimum - result.optimum) < EPS) {
-            printf(success_template,
-                   parameters->objective.optimum,
-                   result.optimum,
-                   result.iterations_made,
-                   result.time_spent_per_iteration);
-
-            ++success_iterations_count;
-        }
-        else {
-            printf(failure_template,
-                   parameters->objective.optimum,
-                   result.optimum,
-                   result.iterations_made,
-                   result.time_spent_per_iteration);
-        }
-
-        avg_optimum += result.optimum;
-        avg_iterations_count += result.iterations_made;
-        avg_time_spent += result.time_spent_per_iteration;
-    }
-
-    avg_optimum /= tests_count;
-    avg_iterations_count /= tests_count;
-    avg_time_spent /= tests_count;
-
-    printf("Avg optimum: %.5f\n"
-                   "Avg iterations made: %.5f\n"
-                   "Avg time spent: %.5f\n",
-           avg_optimum, avg_iterations_count, avg_time_spent);
 }
 
 void RunForAllHerreraFunctions(GAParameters* parameters,
-                               GAOperators* operators) {
-    size_t tests_count = 15;
-
+                               GAOperators* operators,
+                               size_t tests_count) {
     const char* functionNames[] = {
             "f1 - De Jong`s F1 function",
             "f2 - De Jong`s F2 function",
@@ -186,55 +182,7 @@ void RunForAllHerreraFunctions(GAParameters* parameters,
         fprintf(report_file, "%s\n", functionNames[i]);
         parameters->objective = objectiveFunctions[i];
 
-        double avg_optimum = 0.0;
-        double avg_iterations_made = 0.0;
-        double avg_time_spent = 0.0;
-        for (size_t test_number = 0;
-                    test_number != tests_count;
-                    ++test_number) {
-            fprintf(report_file, "Test number %zu\n", test_number + 1);
-
-            GAResult result = RunEvolution(parameters, operators);
-
-            if (result.error) {
-                printf("Error occurred\n");
-                return;
-            }
-
-            avg_optimum += result.optimum;
-            avg_iterations_made += result.iterations_made;
-            avg_time_spent += result.time_spent_per_iteration;
-
-            if (fabs(objectiveFunctions[i].optimum - result.optimum) < EPS) {
-                fprintf(report_file,
-                        success_template,
-                        objectiveFunctions[i].optimum,
-                        result.optimum,
-                        result.iterations_made,
-                        result.time_spent_per_iteration);
-            }
-            else {
-                fprintf(report_file,
-                        failure_template,
-                        objectiveFunctions[i].optimum,
-                        result.optimum,
-                        result.iterations_made,
-                        result.time_spent_per_iteration);
-            }
-
-            fprintf(report_file, "\n");
-
-            fflush(report_file);
-        }
-        printf("Avg optimum: %.15f\n", avg_optimum / tests_count);
-        printf("Avg iterations made: %.5f\n",
-               avg_iterations_made / tests_count);
-        printf("Avg time spent: %.5f\n", avg_time_spent);
-
-        printf("\n\n");
-
-        fflush(stdout);
-        fflush(report_file);
+        RunForOneAvg(parameters, operators, tests_count, report_file);
     }
 }
 
@@ -286,7 +234,7 @@ int main(int argc, char* argv[]) {
 
     for (size_t i = 0; i != operators_count; ++i) {
         printf("\n---Operators: %s ---\n", operators_names[i]);
-        RunForAllHerreraFunctions(&parameters, &operators[i]);
+        RunForAllFunctions(&parameters, &operators[i], 15);
     }
 
     ReleaseLogging();

@@ -45,17 +45,15 @@ int GAO_NonUniformMutation(World* world, size_t generation_number) {
             if (doWithProbability(world->parameters->mutation_probability)) {
                 size_t i = (size_t)selectRandom(0, (int)world->chr_size - 1);
                 if (doWithProbability(0.5)) {
-                    ENTITIES_IT_P->chr[i] =
-                            ENTITIES_IT_P->chr[i]
-                            + NonUniformMutationDelta(generation_number,
+                    ENTITIES_IT_P->chr[i] +=
+                            NonUniformMutationDelta(generation_number,
                                     world->parameters->objective.max
                                             - ENTITIES_IT_P->chr[i],
                                     world->parameters);
                 }
                 else {
-                    ENTITIES_IT_P->chr[i] =
-                            ENTITIES_IT_P->chr[i]
-                            - NonUniformMutationDelta(generation_number,
+                    ENTITIES_IT_P->chr[i] -=
+                            NonUniformMutationDelta(generation_number,
                                      ENTITIES_IT_P->chr[i]
                                              - world->parameters->objective.min,
                                      world->parameters);
