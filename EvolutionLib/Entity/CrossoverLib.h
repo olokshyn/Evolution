@@ -110,12 +110,13 @@ static inline double dbcM(size_t gen_numb, size_t max_generations_count,
                           double fitness1, double fitness2,
                           double a, double b) {
     LOG_ASSERT(gen_numb >= 1 && gen_numb <= max_generations_count);
-    LOG_ASSERT(SIGN(fitness1) == SIGN(fitness2));
-    LOG_ASSERT(fitness1 + fitness2 != 0);
     LOG_ASSERT(max_generations_count - 1 != 0);
     LOG_ASSERT(b > a);
     LOG_ASSERT(c1 >= a && c1 <= b);
     LOG_ASSERT(c2 >= a && c1 <= b);
+    LOG_RELEASE_ASSERT(SIGN(fitness1) == SIGN(fitness2));
+    LOG_RELEASE_ASSERT(fitness1 + fitness2 != 0);
+
     double lambda = fitness1 / (fitness1 + fitness2);
     double q = 0.5 + (lambda - 0.5)
                      * (gen_numb - 1) / (max_generations_count - 1);

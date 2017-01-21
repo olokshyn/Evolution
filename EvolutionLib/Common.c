@@ -131,16 +131,21 @@ void Scale(List* numbers, double a, double b) {
 
     if (max - min < DOUBLE_EPS) {
         Log(WARNING, "Scale: max - min is close to 0");
-        return;
+        FOR_EACH_IN_LIST(numbers) {
+            LIST_IT_VALUE(double) = (a + b) / 2.0;
+        }
     }
-
-    for (it = begin(numbers); !isIteratorExhausted(it); next(&it)) {
-        *(double*)it.current->value =
-                a + (b - a) * (*(double*)it.current->value - min) / (max - min);
-        LOG_RELEASE_ASSERT((*(double*)it.current->value >= a
-                            || fabs(*(double*)it.current->value - a) < DOUBLE_EPS)
-                           && (*(double*)it.current->value <= b ||
-                               fabs(*(double*)it.current->value - b) < DOUBLE_EPS));
+    else {
+        for (it = begin(numbers); !isIteratorExhausted(it); next(&it)) {
+            *(double*)it.current->value = a + (b - a)
+                    * (*(double*)it.current->value - min) / (max - min);
+            LOG_RELEASE_ASSERT((*(double*)it.current->value >= a
+                                || fabs(*(double*)it.current->value - a)
+                                   < DOUBLE_EPS)
+                               && (*(double*)it.current->value <= b ||
+                                   fabs(*(double*)it.current->value - b)
+                                   < DOUBLE_EPS));
+        }
     }
 }
 
