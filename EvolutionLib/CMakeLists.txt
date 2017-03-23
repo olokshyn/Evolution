@@ -56,10 +56,10 @@ set(SPECIES_SOURCE_FILES
 #set(THREADS_SOURCE_FILES
 #        Threads/Threads.c
 #        Threads/Threads.h)
-#
-#set(WISHART_SOURCE_FILES
-#        Wishart/Wishart.c
-#        Wishart/Wishart.h)
+
+set(WISHART_SOURCE_FILES
+        Wishart/Wishart.c
+        Wishart/Wishart.h)
 
 set(EVOLUTION_LIB_SOURCE_FILES
         ${AGGLOMERATIVE_CLUSTERING_SOURCE_FILES}
@@ -70,6 +70,7 @@ set(EVOLUTION_LIB_SOURCE_FILES
         ${LIST_SOURCE_FILES}
         ${LOGGING_SOURCE_FILES}
         ${SPECIES_SOURCE_FILES}
+        ${WISHART_SOURCE_FILES}
         Common.c
         Common.h)
 
