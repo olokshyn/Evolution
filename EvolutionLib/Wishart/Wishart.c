@@ -4,6 +4,7 @@
 
 #include "Wishart.h"
 
+#include "Common.h"
 #include "Logging/Logging.h"
 
 typedef struct graph {
@@ -52,12 +53,18 @@ static void _intDst(void* value) {
 
 static int _doubleCmp(const void* p1, const void* p2) {
     double diff = *(double*)p1 - *(double*)p2;
+    if (DOUBLE_EQ(diff, 0.0)) {
+        return 0;
+    }
     return (diff > 0) - (diff < 0);
 }
 
 static int _VectorCmp(const void* p1, const void* p2) {
     double diff = ((Vector*)p1)->kDistance
                   - ((Vector*)p2)->kDistance;
+    if (DOUBLE_EQ(diff, 0.0)) {
+        return 0;
+    }
     return (diff > 0) - (diff < 0);
 }
 
@@ -149,7 +156,7 @@ static void countKDistances(Vectors* vectors, size_t k) {
               vectors->count,
               sizeof(double),
               _doubleCmp);
-        vectors->v[i].kDistance = point_distances[k];
+        vectors->v[i].kDistance = point_distances[MIN(k, vectors->count - 1)];
     }
     free(point_distances);
 }
@@ -166,11 +173,19 @@ static void countDensities(Vectors* vectors, size_t k) {
 }
 
 static void sortVectorsByKDistance(Vectors* vectors) {
-    qsort(vectors->v,
-          vectors->count,
-          sizeof(Vector),
-          _VectorCmp);
-    countDistances(vectors);
+    // qsort: The order of equivalent elements is undefined.
+    // Preserve the order at least for sorted sequences.
+    // If not already sorted, the order is still undefined.
+    for (int i = 0; i != vectors->count - 1; ++i) {
+        if (DOUBLE_GT(vectors->v[i].kDistance, vectors->v[i + 1].kDistance)) {
+            qsort(vectors->v,
+                  vectors->count,
+                  sizeof(Vector),
+                  _VectorCmp);
+            countDistances(vectors);
+            break;
+        }
+    }
 }
 
 
@@ -193,14 +208,18 @@ static void releaseGraph(Graph* graph) {
     free(graph);
 }
 
-static Graph* buildGraph(Vectors* vectors) {
+static Graph* buildGraph(Vectors* vectors, size_t k) {
     Graph* graph = _initGraph(vectors->count);
     size_t i, j;
     for (i = 0; i < vectors->count; ++i) {
-        for (j = 0; j < vectors->count; ++j) {
+        size_t neighbours_found = 0;
+        for (j = 0; j < vectors->count && neighbours_found < k; ++j) {
             if (i != j
-                && vectors->distances[i][j] <= vectors->v[i].kDistance) {
+                && DOUBLE_LE(vectors->distances[i][j],
+                             vectors->v[i].kDistance)) {
+
                 graph->edges[i][j] = 1;
+                ++neighbours_found;
             }
         }
     }
@@ -269,7 +288,7 @@ size_t* Wishart(const double* const* vectors,
 
     sortVectorsByKDistance(wVectors);
 
-    Graph* graph_n = buildGraph(wVectors);
+    Graph* graph_n = buildGraph(wVectors, k);
     // end of step 1
 
     // step 2

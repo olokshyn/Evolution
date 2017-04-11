@@ -50,9 +50,12 @@
  * 3. Four points:
  *    3.1 in one class: unspecified, refer to conditions
  *    3.2 impossible
+ *        (possible due to the order nearest neighbors are considered,
+ *         but it contradicts the conditions for this case)
  *    3.3 k = 1
  *        1) d(x1, x2) <= d(x3, x4)
  *        2) d(x1, x4) = d(x3, x4) = d(x1, x2)
+ *           (produces 3.2 due to the order nearest neighbors are considered)
  *    3.4 k = 1
  *        1) d(x1, x3) = d(x2, x3) <= d(x1, x4)
  *        2) d(x1, x4) = d(x2, x3) = d(x1, x3)
@@ -62,17 +65,25 @@
  *        1) d(x1, x3) = d(x2, x3) <= d(x2, x4)
  *        2) d(x1, x3) = d(x2, x4)
  *        3) d(x1, x4) = d(x2, x3) = d(x1, x3) = d(x2, x4)
+ *           (produces 3.4 due to the order nearest neighbors are considered)
  *        4) d(x1, x4) = d(x2, x4) = d(x1, x3)
+ *           (produces 3.4 due to the order nearest neighbors are considered)
  *    3.6 k = 1
  *        1) d(x1, x3) = d(x2, x3) <= d(x1, x4)
+ *           (produces 3.4 due to the order nearest neighbors are considered)
  *        2) d(x1, x3) = d(x2, x4) = d(x2, x3) = d(x1, x4)
+ *           (produces 3.4 due to the order nearest neighbors are considered)
  *        3) d(x1, x4) = d(x2, x3)
  *        4) d(x1, x4) = d(x2, x4) = d(x2, x3)
  *    3.7 k = 1
  *        1) d(x1, x3) = d(x2, x3) <= d(x2, x4)
+ *           (produces 3.5 due to the order nearest neighbors are considered)
  *        2) d(x1, x3) = d(x2, x3) <= d(x3, x4)
+ *           (produces 3.4 due to the order nearest neighbors are considered)
  *        3) d(x1, x3) = d(x2, x3) = d(x2, x4)
+ *           (produces 3.5 due to the order nearest neighbors are considered)
  *        4) d(x1, x3) = d(x2, x3) = d(x2, x4) = d(x3, x4)
+ *           (produces 3.5 due to the order nearest neighbors are considered)
  *    3.8 impossible
  */
 
@@ -205,6 +216,26 @@ TEST(WishartTest, three_2_2_positive) {
     }
 }
 
+TEST(WishartTest, four_3_2_positive) {
+    // This test case contradicts the conditions for 3.2
+    // but is legal due to the order nearest neighbors are considered
+
+    // 3.3 2) d(x1, x4) = d(x3, x4) = d(x1, x2)
+    const vector< vector<double> > points = {
+            { 0.4, 0.4 },
+            { 0.2, 0.2 },
+            { 0.8, 0.8 },
+            { 0.6, 0.6 }
+    };
+
+    auto cluster_numbers = run_wishart(points, 1, 0.7);
+    ASSERT_EQ(4, cluster_numbers.size());
+    ASSERT_EQ(1, cluster_numbers[0]);
+    ASSERT_EQ(1, cluster_numbers[1]);
+    ASSERT_EQ(2, cluster_numbers[2]);
+    ASSERT_EQ(1, cluster_numbers[3]);
+}
+
 TEST(WishartTest, four_3_3_positive) {
     for (const vector< vector<double> >& points : vector< vector< vector<double> > >(
             {
@@ -222,12 +253,15 @@ TEST(WishartTest, four_3_3_positive) {
                             { 1.0, 1.0 }
                     },
 
-                    { // 2) d(x1, x4) = d(x3, x4) = d(x1, x2)
-                            { 0.4, 0.4 },
-                            { 0.2, 0.2 },
-                            { 0.8, 0.8 },
-                            { 0.6, 0.6 }
-                    }
+// The algorithm won`t produce expected results in this case
+// due to the order nearest neighbors are considered:
+// x1 ~ x2, x2 ~ x1, x3 ~ x4, x4 ~ x1
+//                    { // 2) d(x1, x4) = d(x3, x4) = d(x1, x2)
+//                            { 0.4, 0.4 },
+//                            { 0.2, 0.2 },
+//                            { 0.8, 0.8 },
+//                            { 0.6, 0.6 }
+//                    }
             })) {
         auto cluster_numbers = run_wishart(points, 1, 0.2);
         ASSERT_EQ(4, cluster_numbers.size());
@@ -266,14 +300,49 @@ TEST(WishartTest, four_3_4_positive) {
                             { 0.2, 0.2 },
                             { 0.6, 0.6 },
                             { 0.4, 0.4 },
-                            { 0.126795, 0.473205 }
+                            { 0.1 * sqrt(3) + 0.3, 0.3 - 0.1 * sqrt(3) }
                     },
 
                     { // 4) d(x1, x4) = d(x2, x3) = d(x1, x3) = d(x3, x4)
                             { 0.2, 0.2 },
                             { 0.6, 0.6 },
                             { 0.4, 0.4 },
-                            { 0.473205, 0.126795 }
+                            { -0.1 * sqrt(3) + 0.3, 0.3 + 0.1 * sqrt(3) }
+                    },
+
+                    { // 3.5 3) d(x1, x4) = d(x2, x3) = d(x1, x3) = d(x2, x4)
+                            { 0.0, 0.0 },
+                            { 0.4, 0.4 },
+                            { 0.0, 0.4 },
+                            { 0.4, 0.0 }
+                    },
+
+                    { // 3.5 4) d(x1, x4) = d(x2, x4) = d(x1, x3)
+                            { 0.0, 0.0 },
+                            { 0.8, 0.0 },
+                            { 0.0, 0.4 },
+                            { 0.4, 0.0 }
+                    },
+
+                    { // 3.6 1) d(x1, x3) = d(x2, x3) <= d(x1, x4)
+                            { 0.1, 0.1 },
+                            { 0.4, 0.4 },
+                            { 0.4, 0.1 },
+                            { 0.1, -0.3 }
+                    },
+
+                    { // 3.6 2) d(x1, x3) = d(x2, x4) = d(x2, x3) = d(x1, x4)
+                            { 0.0, 0.0 },
+                            { 0.4, 0.4 },
+                            { 0.0, 0.4 },
+                            { 0.4, 0.0 }
+                    },
+
+                    { // 3.7 2) d(x1, x3) = d(x2, x3) <= d(x3, x4)
+                            { 0.1, 0.1 },
+                            { 0.4, 0.4 },
+                            { 0.4, 0.1 },
+                            { 0.9, 0.1 }
                     }
             })) {
         auto cluster_numbers = run_wishart(points, 1, 0.2);
@@ -302,18 +371,42 @@ TEST(WishartTest, four_3_5_positive) {
                             { 0.8, 0.8 }
                     },
 
-                    { // 3) d(x1, x4) = d(x2, x3) = d(x1, x3) = d(x2, x4)
-                            { 0.0, 0.0 },
+//                    The algorithm won`t produce expected results in thess cases
+//                    due to the order nearest neighbors are considered
+//
+//                    { // 3) d(x1, x4) = d(x2, x3) = d(x1, x3) = d(x2, x4)
+//                            { 0.0, 0.0 },
+//                            { 0.4, 0.4 },
+//                            { 0.0, 0.4 },
+//                            { 0.4, 0.0 }
+//                    },
+//
+//                    { // 4) d(x1, x4) = d(x2, x4) = d(x1, x3)
+//                            { 0.0, 0.0 },
+//                            { 0.8, 0.0 },
+//                            { 0.0, 0.4 },
+//                            { 0.4, 0.0 }
+//                    }
+
+                    { // 3.7 1) d(x1, x3) = d(x2, x3) <= d(x2, x4)
+                            { 0.1, 0.1 },
                             { 0.4, 0.4 },
-                            { 0.0, 0.4 },
-                            { 0.4, 0.0 }
+                            { 0.4, 0.1 },
+                            { 0.9, 0.4 }
                     },
 
-                    { // 4) d(x1, x4) = d(x2, x4) = d(x1, x3)
+                    { // 3.7 3) d(x1, x3) = d(x2, x3) = d(x2, x4)
+                            { 0.1, 0.1 },
+                            { 0.4, 0.4 },
+                            { 0.4, 0.1 },
+                            { 0.7, 0.4 }
+                    },
+
+                    { // 3.7 4) d(x1, x3) = d(x2, x3) = d(x2, x4) = d(x3, x4)
                             { 0.0, 0.0 },
-                            { 0.8, 0.0 },
-                            { 0.0, 0.4 },
-                            { 0.4, 0.0 }
+                            { 0.3 + 0.3 * sin(M_PI / 3), 0.3 / 2 },
+                            { 0.3, 0.0 },
+                            { 0.3 + 0.3 * sin(M_PI / 3), -0.3 / 2 }
                     }
             })) {
         auto cluster_numbers = run_wishart(points, 1, 0.2);
@@ -328,19 +421,21 @@ TEST(WishartTest, four_3_5_positive) {
 TEST(WishartTest, four_3_6_positive) {
     for (const vector< vector<double> >& points : vector< vector< vector<double> > >(
             {
-                    { // 1) d(x1, x3) = d(x2, x3) <= d(x1, x4)
-                            { 0.1, 0.1 },
-                            { 0.4, 0.4 },
-                            { 0.4, 0.1 },
-                            { 0.1, -0.3 }
-                    },
-
-                    { // 2) d(x1, x3) = d(x2, x4) = d(x2, x3) = d(x1, x4)
-                            { 0.0, 0.0 },
-                            { 0.4, 0.4 },
-                            { 0.0, 0.4 },
-                            { 0.4, 0.0 }
-                    },
+//                    The algorithm won`t produce expected results in thess cases
+//                    due to the order nearest neighbors are considered
+//                    { // 1) d(x1, x3) = d(x2, x3) <= d(x1, x4)
+//                            { 0.1, 0.1 },
+//                            { 0.4, 0.4 },
+//                            { 0.4, 0.1 },
+//                            { 0.1, -0.3 }
+//                    },
+//
+//                    { // 2) d(x1, x3) = d(x2, x4) = d(x2, x3) = d(x1, x4)
+//                            { 0.0, 0.0 },
+//                            { 0.4, 0.4 },
+//                            { 0.0, 0.4 },
+//                            { 0.4, 0.0 }
+//                    },
 
                     { // 3) d(x1, x4) = d(x2, x3)
                             { 0.0, 0.0 },
@@ -368,33 +463,35 @@ TEST(WishartTest, four_3_6_positive) {
 TEST(WishartTest, four_3_7_positive) {
     for (const vector< vector<double> >& points : vector< vector< vector<double> > >(
             {
-                    { // 1) d(x1, x3) = d(x2, x3) <= d(x2, x4)
-                            { 0.1, 0.1 },
-                            { 0.4, 0.4 },
-                            { 0.4, 0.1 },
-                            { 0.9, 0.4 }
-                    },
-
-                    { // 2) d(x1, x3) = d(x2, x3) <= d(x3, x4)
-                            { 0.1, 0.1 },
-                            { 0.4, 0.4 },
-                            { 0.4, 0.1 },
-                            { 0.9, 0.1 }
-                    },
-
-                    { // 3) d(x1, x3) = d(x2, x3) = d(x2, x4)
-                            { 0.1, 0.1 },
-                            { 0.4, 0.4 },
-                            { 0.4, 0.1 },
-                            { 0.7, 0.4 }
-                    },
-
-                    { // 4) d(x1, x3) = d(x2, x3) = d(x2, x4) = d(x3, x4)
-                            { 0.0, 0.0 },
-                            { 0.3 + 0.3 * sin(M_PI / 3), 0.3 / 2 },
-                            { 0.3, 0.0 },
-                            { 0.3 + 0.3 * sin(M_PI / 3), -0.3 / 2 }
-                    }
+//                    The algorithm won`t produce expected results in thess cases
+//                    due to the order nearest neighbors are considered
+//                    { // 1) d(x1, x3) = d(x2, x3) <= d(x2, x4)
+//                            { 0.1, 0.1 },
+//                            { 0.4, 0.4 },
+//                            { 0.4, 0.1 },
+//                            { 0.9, 0.4 }
+//                    },
+//
+//                    { // 2) d(x1, x3) = d(x2, x3) <= d(x3, x4)
+//                            { 0.1, 0.1 },
+//                            { 0.4, 0.4 },
+//                            { 0.4, 0.1 },
+//                            { 0.9, 0.1 }
+//                    },
+//
+//                    { // 3) d(x1, x3) = d(x2, x3) = d(x2, x4)
+//                            { 0.1, 0.1 },
+//                            { 0.4, 0.4 },
+//                            { 0.4, 0.1 },
+//                            { 0.7, 0.4 }
+//                    },
+//
+//                    { // 4) d(x1, x3) = d(x2, x3) = d(x2, x4) = d(x3, x4)
+//                            { 0.0, 0.0 },
+//                            { 0.3 + 0.3 * sin(M_PI / 3), 0.3 / 2 },
+//                            { 0.3, 0.0 },
+//                            { 0.3 + 0.3 * sin(M_PI / 3), -0.3 / 2 }
+//                    }
             })) {
         auto cluster_numbers = run_wishart(points, 1, 0.2);
         ASSERT_EQ(4, cluster_numbers.size());

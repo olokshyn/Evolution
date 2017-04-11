@@ -12,7 +12,13 @@
 
 #define SIGN(A) (((A) >= 0) - ((A) < 0))
 
-#define DOUBLE_EPS 1e-7
+#define DOUBLE_EPS 1e-10
+
+#define DOUBLE_EQ(A, B) (fabs((A) - (B)) < DOUBLE_EPS)
+#define DOUBLE_LE(A, B) (DOUBLE_EQ(A, B) || (A) < (B))
+#define DOUBLE_LT(A, B) (!DOUBLE_EQ(A, B) && (A) < (B))
+#define DOUBLE_GE(A, B) (DOUBLE_EQ(A, B) || (A) > (B))
+#define DOUBLE_GT(A, B) (!DOUBLE_EQ(A, B) && (A) > (B))
 
 typedef double(*ObjectiveFunc)(double*, int);
 
