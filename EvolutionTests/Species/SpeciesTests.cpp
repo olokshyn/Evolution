@@ -59,7 +59,7 @@ TEST(SpeciesTest, NormalizeSpeciesFitnesses) {
     ASSERT_NE((void*)0, sp_list);
     Species* sp = NULL;
     for (size_t i = 0; i < species_count; ++i) {
-        sp = MockCreateSpecies(entities_count, chr_size, NULL);
+        sp = MockCreateSpecies(entities_count, chr_size);
         ASSERT_NE((void*)0, sp);
         ASSERT_EQ(1, pushBack(sp_list, sp));
     }
@@ -73,8 +73,8 @@ TEST(SpeciesTest, NormalizeSpeciesFitnesses) {
                  ft_it = begin(fitness_list);
             !isIteratorExhausted(sp_list_it);
             next(&sp_list_it), next(&ft_it)) {
-        ASSERT_FLOAT_EQ(GetMidFitness((Species*)sp_list_it.current->value),
-                        *(double*)ft_it.current->value);
+        EXPECT_LE(0.0, *(double*)ft_it.current->value);
+        EXPECT_GE(1.0, *(double*)ft_it.current->value);
         ++i;
     }
     ASSERT_EQ(species_count, i);

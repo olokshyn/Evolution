@@ -35,7 +35,7 @@ add_custom_command(
         ${CMAKE_CURRENT_BINARY_DIR}/FisherIris.txt
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Wishart/FisherIris.txt)
 
-#add_custom_command(
-#        TARGET EvolutionTests
-#        POST_BUILD
-#        COMMAND EvolutionTests)
+add_custom_command(
+        TARGET EvolutionTests
+        POST_BUILD
+        COMMAND EvolutionTests)

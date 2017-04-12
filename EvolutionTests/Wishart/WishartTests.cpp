@@ -503,7 +503,7 @@ TEST(WishartTest, four_3_7_positive) {
     }
 }
 
-TEST(WishartTest, FisherIris) {
+TEST(WishartTest, DISABLED_FisherIris) {
     const size_t iris_dimensions = 4;
     const size_t iris_count = 150;
     const size_t iris_cluster_size = 50;

@@ -4,7 +4,17 @@
 
 #include "TestsCommon.h"
 
-Entity* MockCreateEntity(size_t chr_size, Objective* obj) {
+static double random_func(double* x, int n) {
+    return getRand(0.0, 1.0);
+}
+
+const Objective random_objective = {
+    random_func,
+    0.0,
+    1.0
+};
+
+Entity* MockCreateEntity(size_t chr_size, const Objective* obj) {
     Entity* new_entity = CreateEntity(chr_size);
     if (!new_entity) {
         goto error_MockCreateEntity;
@@ -26,7 +36,7 @@ error_MockCreateEntity:
     return NULL;
 }
 
-Species* MockCreateSpecies(size_t size, size_t chr_size, Objective* obj) {
+Species* MockCreateSpecies(size_t size, size_t chr_size, const Objective* obj) {
     Species* new_species = NULL;
     Entity* new_entity = NULL;
 

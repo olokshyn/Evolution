@@ -11,8 +11,12 @@ extern "C" {
 #include "Species/Species.h"
 }
 
-Entity* MockCreateEntity(size_t chr_size, Objective* obj = NULL);
+extern const Objective random_objective;
 
-Species* MockCreateSpecies(size_t size, size_t chr_size, Objective* obj = NULL);
+Entity* MockCreateEntity(size_t chr_size,
+                         const Objective* obj = &random_objective);
+
+Species* MockCreateSpecies(size_t size, size_t chr_size,
+                           const Objective* obj = &random_objective);
 
 #endif //EVOLUTION_TESTSCOMMON_H
