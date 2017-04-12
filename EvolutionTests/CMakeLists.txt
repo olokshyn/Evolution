@@ -27,6 +27,14 @@ add_executable(EvolutionTests ${EVOLUTION_TESTS_SOURCE_FILES})
 target_link_libraries(EvolutionTests gtest_main)
 target_link_libraries(EvolutionTests EvolutionLib)
 
+add_custom_command(
+        TARGET EvolutionTests
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_SOURCE_DIR}/Wishart/FisherIris.txt
+        ${CMAKE_CURRENT_BINARY_DIR}/FisherIris.txt
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Wishart/FisherIris.txt)
+
 #add_custom_command(
 #        TARGET EvolutionTests
 #        POST_BUILD

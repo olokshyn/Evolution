@@ -93,6 +93,7 @@
 #include <numeric>
 #include <functional>
 #include <memory>
+#include <fstream>
 
 #include "gtest/gtest.h"
 
@@ -135,7 +136,7 @@ namespace {
 
 using namespace std;
 
-TEST(WishartTest, one_point) {
+TEST(WishartTest, one_positive) {
     vector< vector<double> > points = {
             { 1.0, 1.0 }
     };
@@ -144,11 +145,11 @@ TEST(WishartTest, one_point) {
         auto cluster_numbers = run_wishart(points, 1, h);
 
         ASSERT_EQ(1, cluster_numbers.size());
-        ASSERT_EQ(1, cluster_numbers.at(0));
+        EXPECT_EQ(1, cluster_numbers.at(0));
     }
 }
 
-TEST(WishartTest, two_points) {
+TEST(WishartTest, two_positive) {
     vector< vector<double> > points = {
             { 0.0, 0.0 },
             { 0.5, 0.5 }
@@ -159,13 +160,13 @@ TEST(WishartTest, two_points) {
             auto cluster_numbers = run_wishart(points, k, h);
 
             ASSERT_EQ(2, cluster_numbers.size());
-            ASSERT_EQ(1, cluster_numbers[0]);
-            ASSERT_EQ(1, cluster_numbers[1]);
+            EXPECT_EQ(1, cluster_numbers[0]);
+            EXPECT_EQ(1, cluster_numbers[1]);
         }
     }
 }
 
-TEST(WishartTest, three_points_in_one_cluster) {
+TEST(WishartTest, three_2_1_positive) {
     vector< vector<double> > points1 = {
             { 0.1, 0.1 },
             { 0.2, 0.2 },
@@ -176,7 +177,7 @@ TEST(WishartTest, three_points_in_one_cluster) {
         auto cluster_numbers = run_wishart(points1, 1, h);
 
         ASSERT_EQ(3, cluster_numbers.size());
-        ASSERT_EQ(1, std::accumulate(cluster_numbers.begin(),
+        EXPECT_EQ(1, std::accumulate(cluster_numbers.begin(),
                                      cluster_numbers.end(),
                                      1, std::multiplies<size_t>()));
     }
@@ -191,7 +192,7 @@ TEST(WishartTest, three_points_in_one_cluster) {
         auto cluster_numbers = run_wishart(points2, 2, h);
 
         ASSERT_EQ(3, cluster_numbers.size());
-        ASSERT_EQ(1, std::accumulate(cluster_numbers.begin(),
+        EXPECT_EQ(1, std::accumulate(cluster_numbers.begin(),
                                      cluster_numbers.end(),
                                      1, std::multiplies<size_t>()));
     }
@@ -209,9 +210,9 @@ TEST(WishartTest, three_2_2_positive) {
         for (double h = 0; h <= 1.0; h += 0.1) {
             auto cluster_numbers = run_wishart(points, 1, h);
             ASSERT_EQ(3, cluster_numbers.size());
-            ASSERT_EQ(1, cluster_numbers[0]);
-            ASSERT_EQ(2, cluster_numbers[1]);
-            ASSERT_TRUE(cluster_numbers[2] == 1 || cluster_numbers[2] == 2);
+            EXPECT_EQ(1, cluster_numbers[0]);
+            EXPECT_EQ(2, cluster_numbers[1]);
+            EXPECT_TRUE(cluster_numbers[2] == 1 || cluster_numbers[2] == 2);
         }
     }
 }
@@ -230,10 +231,10 @@ TEST(WishartTest, four_3_2_positive) {
 
     auto cluster_numbers = run_wishart(points, 1, 0.7);
     ASSERT_EQ(4, cluster_numbers.size());
-    ASSERT_EQ(1, cluster_numbers[0]);
-    ASSERT_EQ(1, cluster_numbers[1]);
-    ASSERT_EQ(2, cluster_numbers[2]);
-    ASSERT_EQ(1, cluster_numbers[3]);
+    EXPECT_EQ(1, cluster_numbers[0]);
+    EXPECT_EQ(1, cluster_numbers[1]);
+    EXPECT_EQ(2, cluster_numbers[2]);
+    EXPECT_EQ(1, cluster_numbers[3]);
 }
 
 TEST(WishartTest, four_3_3_positive) {
@@ -265,10 +266,10 @@ TEST(WishartTest, four_3_3_positive) {
             })) {
         auto cluster_numbers = run_wishart(points, 1, 0.2);
         ASSERT_EQ(4, cluster_numbers.size());
-        ASSERT_EQ(1, cluster_numbers[0]);
-        ASSERT_EQ(1, cluster_numbers[1]);
-        ASSERT_EQ(2, cluster_numbers[2]);
-        ASSERT_EQ(2, cluster_numbers[3]);
+        EXPECT_EQ(1, cluster_numbers[0]);
+        EXPECT_EQ(1, cluster_numbers[1]);
+        EXPECT_EQ(2, cluster_numbers[2]);
+        EXPECT_EQ(2, cluster_numbers[3]);
     }
 }
 
@@ -347,10 +348,10 @@ TEST(WishartTest, four_3_4_positive) {
             })) {
         auto cluster_numbers = run_wishart(points, 1, 0.2);
         ASSERT_EQ(4, cluster_numbers.size());
-        ASSERT_EQ(1, cluster_numbers[0]);
-        ASSERT_EQ(2, cluster_numbers[1]);
-        ASSERT_EQ(1, cluster_numbers[2]);
-        ASSERT_EQ(1, cluster_numbers[3]);
+        EXPECT_EQ(1, cluster_numbers[0]);
+        EXPECT_EQ(2, cluster_numbers[1]);
+        EXPECT_EQ(1, cluster_numbers[2]);
+        EXPECT_EQ(1, cluster_numbers[3]);
     }
 }
 
@@ -411,10 +412,10 @@ TEST(WishartTest, four_3_5_positive) {
             })) {
         auto cluster_numbers = run_wishart(points, 1, 0.2);
         ASSERT_EQ(4, cluster_numbers.size());
-        ASSERT_EQ(1, cluster_numbers[0]);
-        ASSERT_EQ(2, cluster_numbers[1]);
-        ASSERT_EQ(1, cluster_numbers[2]);
-        ASSERT_EQ(2, cluster_numbers[3]);
+        EXPECT_EQ(1, cluster_numbers[0]);
+        EXPECT_EQ(2, cluster_numbers[1]);
+        EXPECT_EQ(1, cluster_numbers[2]);
+        EXPECT_EQ(2, cluster_numbers[3]);
     }
 }
 
@@ -453,10 +454,10 @@ TEST(WishartTest, four_3_6_positive) {
             })) {
         auto cluster_numbers = run_wishart(points, 1, 0.2);
         ASSERT_EQ(4, cluster_numbers.size());
-        ASSERT_EQ(1, cluster_numbers[0]);
-        ASSERT_EQ(2, cluster_numbers[1]);
-        ASSERT_EQ(2, cluster_numbers[2]);
-        ASSERT_EQ(1, cluster_numbers[3]);
+        EXPECT_EQ(1, cluster_numbers[0]);
+        EXPECT_EQ(2, cluster_numbers[1]);
+        EXPECT_EQ(2, cluster_numbers[2]);
+        EXPECT_EQ(1, cluster_numbers[3]);
     }
 }
 
@@ -495,9 +496,44 @@ TEST(WishartTest, four_3_7_positive) {
             })) {
         auto cluster_numbers = run_wishart(points, 1, 0.2);
         ASSERT_EQ(4, cluster_numbers.size());
-        ASSERT_EQ(1, cluster_numbers[0]);
-        ASSERT_EQ(2, cluster_numbers[1]);
-        ASSERT_EQ(2, cluster_numbers[2]);
-        ASSERT_EQ(2, cluster_numbers[3]);
+        EXPECT_EQ(1, cluster_numbers[0]);
+        EXPECT_EQ(2, cluster_numbers[1]);
+        EXPECT_EQ(2, cluster_numbers[2]);
+        EXPECT_EQ(2, cluster_numbers[3]);
+    }
+}
+
+TEST(WishartTest, FisherIris) {
+    const size_t iris_dimensions = 4;
+    const size_t iris_count = 150;
+    const size_t iris_cluster_size = 50;
+    const char* iris_filename = "FisherIris.txt";
+
+    vector< vector<double> > iris(iris_count);
+
+    ifstream iris_file(iris_filename);
+    if (!iris_file.is_open()) {
+        throw runtime_error("Failed to open iris file");
+    }
+
+    for (size_t i = 0; i != iris_count; ++i) {
+        iris[i] = vector<double>(iris_dimensions);
+        for (size_t j = 0; j != iris_dimensions; ++j) {
+            iris_file >> iris[i][j];
+        }
+        int cluster_number;
+        iris_file >> cluster_number;
+    }
+    iris_file.close();
+
+    auto cluster_numbers = run_wishart(iris, 1, 0.9);
+
+    ASSERT_EQ(iris_count, cluster_numbers.size());
+    for (size_t i = 0; i != iris_count / iris_cluster_size; ++i) {
+        size_t cluster_number = cluster_numbers[i * iris_cluster_size];
+        for (size_t j = i * iris_cluster_size;
+                j != (i + 1) * iris_cluster_size; ++j) {
+            EXPECT_EQ(cluster_number, cluster_numbers[j]);
+        }
     }
 }
