@@ -503,7 +503,7 @@ TEST(WishartTest, four_3_7_positive) {
     }
 }
 
-TEST(WishartTest, DISABLED_FisherIris) {
+TEST(WishartTest, FisherIris) {
     const size_t iris_dimensions = 4;
     const size_t iris_count = 150;
     const size_t iris_cluster_size = 50;
@@ -526,14 +526,20 @@ TEST(WishartTest, DISABLED_FisherIris) {
     }
     iris_file.close();
 
-    auto cluster_numbers = run_wishart(iris, 1, 0.9);
+    auto cluster_numbers = run_wishart(iris, 3, 0.0133397);
 
+    size_t correctly_clusterd_count = 0;
     ASSERT_EQ(iris_count, cluster_numbers.size());
     for (size_t i = 0; i != iris_count / iris_cluster_size; ++i) {
         size_t cluster_number = cluster_numbers[i * iris_cluster_size];
         for (size_t j = i * iris_cluster_size;
                 j != (i + 1) * iris_cluster_size; ++j) {
-            EXPECT_EQ(cluster_number, cluster_numbers[j]);
+            if (cluster_number == cluster_numbers[j]
+                    && (i == 0 || cluster_number
+                                  != cluster_numbers[(i - 1) * iris_cluster_size])) {
+                ++correctly_clusterd_count;
+            }
         }
     }
+    EXPECT_GE(correctly_clusterd_count / (double)iris_count, 0.66);
 }
