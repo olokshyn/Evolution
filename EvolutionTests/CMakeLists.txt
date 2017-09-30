@@ -30,12 +30,12 @@ target_link_libraries(EvolutionTests EvolutionLib)
 add_custom_command(
         TARGET EvolutionTests
         POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_SOURCE_DIR}/Wishart/FisherIris.txt
-        ${CMAKE_CURRENT_BINARY_DIR}/FisherIris.txt
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Wishart/FisherIris.txt)
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/Wishart/data
+        ${CMAKE_CURRENT_BINARY_DIR}/data
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Wishart/data)
 
-add_custom_command(
-        TARGET EvolutionTests
-        POST_BUILD
-        COMMAND EvolutionTests)
+#add_custom_command(
+#        TARGET EvolutionTests
+#        POST_BUILD
+#        COMMAND EvolutionTests)
