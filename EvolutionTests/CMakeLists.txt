@@ -14,6 +14,8 @@ set(SPECIES_TEST_SOURCE_FILES
         Species/SpeciesTests.cpp)
 set(WISHART_TEST_SOURCE_FILES
         Wishart/WishartTests.cpp)
+set(OPTICS_TEST_SOURCE_FILES
+        OPTICS/OpticsTests.cpp)
 
 set(EVOLUTION_TESTS_SOURCE_FILES
         ${AGGLOMERATIVE_CLUSTERING_TEST_SOURCE_FILES}
@@ -21,6 +23,7 @@ set(EVOLUTION_TESTS_SOURCE_FILES
         ${LIST_TEST_SOURCE_FILES}
         ${SPECIES_TEST_SOURCE_FILES}
         ${WISHART_TEST_SOURCE_FILES}
+        ${OPTICS_TEST_SOURCE_FILES}
         TestsCommon.cpp
         TestsCommon.h)
 add_executable(EvolutionTests ${EVOLUTION_TESTS_SOURCE_FILES})

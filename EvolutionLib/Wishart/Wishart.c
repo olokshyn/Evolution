@@ -273,8 +273,8 @@ static short isSignificantCluster(Vectors* vectors,
 size_t* Wishart(const double* const* vectors,
                 size_t vectors_count,
                 size_t vector_length,
-                size_t k,
-                double h) {
+                double h,
+                size_t k) {
     LOG_ASSERT(h >= 0.0);
     size_t i, j;
 
@@ -466,8 +466,8 @@ size_t* Wishart(const double* const* vectors,
 List* WishartWrapped(const double* const* vectors,
                      size_t vectors_count,
                      size_t vector_length,
-                     size_t k,
-                     double h) {
+                     double h,
+                     size_t k) {
     size_t* w = Wishart(vectors, vectors_count, vector_length, k, h);
     List* clusters = (List*)malloc(sizeof(List));
     initList(clusters, NULL, (void (*)(void*))destroyListPointer);

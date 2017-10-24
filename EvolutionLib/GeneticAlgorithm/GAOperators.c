@@ -9,7 +9,7 @@
 #include "World.h"
 #include "GAParameters.h"
 #include "Entity/Crossovers.h"
-#include "AgglomerativeClustering/AgglomerativeClustering.h"
+#include "OPTICS/optics.h"
 
 #include "GALib.h"
 #include "Logging/Logging.h"
@@ -22,6 +22,8 @@ static int PerformSelectionInSpecies(World* world,
 static int PerformLimitedSelectionInSpecies(World* world,
                                             Species* species,
                                             double norm_fitness);
+
+static double ScaleEps(World* world, Species* new_entities, double eps);
 
 int GAO_UniformMutation(World* world, size_t generation_number) {
     FOR_EACH_IN_SPECIES_LIST(&world->species) {
@@ -304,12 +306,12 @@ error_PerformCrossover:
     return NULL;
 }
 
-SpeciesList* GAO_Clustering(World* world, Species* new_species) {
-    SpeciesList* clustered_species =
-            AgglomerativeClustering(&world->species,
-                                    new_species->entitiesList,
-                                    world->chr_size,
-                                    world->parameters->h);
+SpeciesList* GAO_Clustering(World* world, Species* new_species,
+                            double eps, size_t min_pts) {
+    SpeciesList* clustered_species = OPTICSClustering(
+            world, new_species,
+            ScaleEps(world, new_species, world->parameters->eps),
+            world->parameters->min_pts);
     if (!clustered_species) {
         goto error_PerformClustering;
     }
@@ -499,4 +501,78 @@ static int PerformLimitedSelectionInSpecies(World* world,
     species_size = MIN(species_size, SPECIES_LENGTH(species));
     species_size = MAX(species_size, CROSSOVER_EXTINCTION_BIAS);
     return PerformSelectionInSpecies(world, species, species_size);
+}
+
+static double ScaleEps(World* world, Species* new_entities, double eps) {
+    size_t entities_size = world->world_size + new_entities->entitiesList->length;
+    if (!entities_size) {
+        Log(WARNING, "%s: There are no entities", __FUNCTION__);
+        return 0.0;
+    }
+
+    const Entity* * entities = calloc(entities_size, sizeof(Entity*));
+    if (!entities) {
+        Log(ERROR, "%s: Failed to allocate entities", __FUNCTION__);
+        return 0.0;
+    }
+
+    size_t next_index = 0;
+    FOR_EACH_IN_SPECIES_LIST(&world->species) {
+        FOR_EACH_IN_SPECIES(SPECIES_LIST_IT_P) {
+            LOG_ASSERT(next_index < entities_size);
+            entities[next_index++] = ENTITIES_IT_P;
+        }
+    }
+    FOR_EACH_IN_SPECIES(new_entities) {
+        LOG_ASSERT(next_index < entities_size);
+        entities[next_index++] = ENTITIES_IT_P;
+    }
+
+    double min_distance = -1.0;
+    double max_distance = 0.0;
+
+    for (size_t i = 0; i != entities_size - 1; ++i) {
+        for (size_t j = i + 1; j != entities_size; ++j) {
+            double distance = EuclidMeasure(entities[i]->chr,
+                                            entities[j]->chr,
+                                            world->chr_size);
+            if (min_distance < 0.0 || min_distance > distance) {
+                min_distance = distance;
+            }
+            if (max_distance < distance)
+            {
+                max_distance = distance;
+            }
+        }
+    }
+    if (min_distance < 0.0) {
+        min_distance = 0.0;
+    }
+
+    double mid_distance = (min_distance + max_distance) / 2;
+    size_t small_distances = 0;
+    size_t large_distances = 0;
+    for (size_t i = 0; i != entities_size - 1; ++i) {
+        for (size_t j = i + 1; j != entities_size; ++j) {
+            double distance = EuclidMeasure(entities[i]->chr,
+                                            entities[j]->chr,
+                                            world->chr_size);
+            if (distance <= mid_distance) {
+                ++small_distances;
+            }
+            else {
+                ++large_distances;
+            }
+        }
+    }
+
+    free(entities);
+    // small_distances / distances * 2
+    // [0, 2], 1 - equally distributed
+    double scaling_multiplier = small_distances / 0.5
+                                / (double)(small_distances
+                                           + large_distances);
+    // [0.5 eps, 1.5 eps]
+    eps = MAX(MIN(eps / 2.0 * (1.0 + scaling_multiplier), 0.95), 0.05);
+    return min_distance + (max_distance - min_distance) * eps;
 }

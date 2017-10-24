@@ -61,6 +61,16 @@ set(WISHART_SOURCE_FILES
         Wishart/Wishart.c
         Wishart/Wishart.h)
 
+set(OPTICS_SOURCE_FILES
+        OPTICS/optics.cpp
+        OPTICS/optics.h
+        OPTICS/PrioritizedQueue.h
+        OPTICS/OpticsObject.h
+        OPTICS/OrderedSeeds.cpp
+        OPTICS/OrderedSeeds.h
+        OPTICS/OpticsObjectsManager.cpp
+        OPTICS/OpticsObjectsManager.h)
+
 set(EVOLUTION_LIB_SOURCE_FILES
         ${AGGLOMERATIVE_CLUSTERING_SOURCE_FILES}
         ${DEATH_MANAGER_SOURCE_FILES}
@@ -71,6 +81,7 @@ set(EVOLUTION_LIB_SOURCE_FILES
         ${LOGGING_SOURCE_FILES}
         ${SPECIES_SOURCE_FILES}
         ${WISHART_SOURCE_FILES}
+        ${OPTICS_SOURCE_FILES}
         Common.c
         Common.h)
 

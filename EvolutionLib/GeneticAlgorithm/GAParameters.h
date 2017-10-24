@@ -39,8 +39,8 @@ typedef struct ga_parameters {
     double selection_worst_probability;
     double selection_best_probability;
     size_t selection_elitists_count;
-    size_t k;
-    double h;
+    size_t min_pts;
+    double eps;
     Objective objective;
     size_t max_generations_count;
     size_t stable_value_iterations_count;

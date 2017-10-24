@@ -52,12 +52,13 @@ GAResult RunEvolution(const GAParameters* parameters,
             max_fitness = cur_fitness;
         }
 
-        if (parameters->stable_value_iterations_count) {
-            if (fabs(max_fitness - prev_max_fitness)
+        if (!world->world_size || parameters->stable_value_iterations_count) {
+            if (!world->world_size || fabs(max_fitness - prev_max_fitness)
                         < parameters->stable_value_eps) {
 
                 ++value_is_stable_count;
-                if (value_is_stable_count
+                if (!world->world_size
+                        || value_is_stable_count
                             >= parameters->stable_value_iterations_count) {
 
                     result.optimum = max_fitness;
@@ -118,7 +119,9 @@ double Iteration(World* world, size_t generation_number) {
 
         if (world->operators->clustering) {
             clustered_species =
-                    world->operators->clustering(world, new_species);
+                    world->operators->clustering(world, new_species,
+                                                 world->parameters->eps,
+                                                 world->parameters->min_pts);
             if (!clustered_species) {
                 goto error_Iteration;
             }
@@ -143,7 +146,7 @@ double Iteration(World* world, size_t generation_number) {
         DestroySpecies(new_species);
         new_species = NULL;
 
-        if (world->operators->selection) {
+        if (world->operators->selection && world->world_size) {
             if (!world->operators->selection(world)) {
                 goto error_Iteration;
             }

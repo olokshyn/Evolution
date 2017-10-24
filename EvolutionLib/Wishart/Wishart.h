@@ -32,13 +32,13 @@ typedef struct cluster {
 size_t* Wishart(const double* const* vectors,
                 size_t vectors_count,
                 size_t vector_length,
-                size_t k,
-                double h);
+                double h,
+                size_t k);
 
 List* WishartWrapped(const double* const* vectors,
                      size_t vectors_count,
                      size_t vector_length,
-                     size_t k,
-                     double h);
+                     double h,
+                     size_t k);
 
 #endif //EVOLUTION_WISHART_H

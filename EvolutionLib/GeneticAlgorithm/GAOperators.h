@@ -11,7 +11,8 @@
 typedef struct ga_operators {
     int (*mutation)(World* world, size_t generation_number);
     Species* (*crossover)(World* world, size_t generation_number);
-    SpeciesList* (*clustering)(World* world, Species* new_species);
+    SpeciesList* (*clustering)(World* world, Species* new_species,
+                               double eps, size_t min_pts);
     int (*children_selection)(World* world, Species* new_species);
     int (*selection)(World* world);
 } GAOperators;
@@ -24,7 +25,8 @@ Species* GAO_UniformCrossover(World* world, size_t generation_number);
 
 Species* GAO_FitnessCrossover(World* world, size_t generation_number);
 
-SpeciesList* GAO_Clustering(World* world, Species* new_species);
+SpeciesList* GAO_Clustering(World* world, Species* new_species,
+                            double eps, size_t min_pts);
 
 int GAO_ChildrenSelection(World* world, Species* new_species);
 

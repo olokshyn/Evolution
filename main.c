@@ -209,10 +209,10 @@ int main(int argc, char* argv[]) {
             .selection_worst_probability = 0.5,
             .selection_best_probability = 1.5,
             .selection_elitists_count = 5,
-            .k = 5,
-            .h = 0.0,
+            .min_pts = 1,
+            .eps = 0.09,
             .max_generations_count = 5000,
-            .stable_value_iterations_count = 0,
+            .stable_value_iterations_count = 100,
             .stable_value_eps = 1e-5,
     };
 
