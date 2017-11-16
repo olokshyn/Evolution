@@ -12,45 +12,43 @@
 #include "World.h"
 
 
-int CountSpeciesLinks(List* fitness_list) {
-    if (SPECIES_LINK_PROBABILITY == 0.0) {
-        return 1;
+bool CountSpeciesLinks(LIST_TYPE(double) fitnesses) {
+    if (DOUBLE_EQ(SPECIES_LINK_PROBABILITY, 0.0)) {
+        return true;
     }
 
-    int* counted = (int*)calloc(fitness_list->length, sizeof(int));
+    bool* counted = (bool*)calloc(list_len(fitnesses), sizeof(bool));
     if (!counted) {
-        return 0;
+        return false;
     }
 
     size_t i = 0;
-    for (ListIterator it1 = begin(fitness_list);
-            !isIteratorExhausted(it1);
-            next(&it1), ++i) {
+    for (LIST_ITER_TYPE(double) iter_i = list_begin(double, fitnesses);
+            list_iter_valid(iter_i);
+            list_next(double, iter_i), ++i) {
         if (counted[i]) {
             continue;
         }
         size_t j = 0;
-        for (ListIterator it2 = begin(fitness_list);
-                !isIteratorExhausted(it2) && !counted[i];
-                next(&it2), ++j) {
-            if (it1.current == it2.current
+        for (LIST_ITER_TYPE(double) iter_j = list_begin(double, fitnesses);
+                list_iter_valid(iter_j) && !counted[i];
+                list_next(double, iter_j), ++j) {
+            if (list_iter_eq(iter_i, iter_j)
                     || counted[j]
                     || !doWithProbability(SPECIES_LINK_PROBABILITY)) {
                 continue;
             }
-            *((double*)it1.current->value) +=
+            list_iter_value(iter_i) +=
                     getRand(SPECIES_LINK_MIN, SPECIES_LINK_MAX)
-                    *  *((double*)it2.current->value);
-            counted[i] = 1;
-            counted[j] = 1;
+                    * list_iter_value(iter_j);
+            counted[i] = true;
+            counted[j] = true;
         }
-        *((double*)it1.current->value) = MAX(*((double*)it1.current->value),
-                                             1.0);
+        list_iter_value(iter_i) = MAX(list_iter_value(iter_i), 1.0);
     }
     free(counted);
-
-    Normalize(fitness_list);
-    return 1;
+    Normalize(fitnesses);
+    return true;
 }
 
 double NonUniformMutationDelta(size_t t, double y,
@@ -61,13 +59,13 @@ double NonUniformMutationDelta(size_t t, double y,
                             parameters->mutation_on_iteration_dependence)));
 }
 
-int LinearRankingSelection(World* world,
-                           Species* species,
-                           size_t alive_count) {
-    if (alive_count >= SPECIES_LENGTH(species)) {
-        return 1;
+bool LinearRankingSelection(World* world,
+                            Species* species,
+                            size_t alive_count) {
+    if (alive_count >= list_len(species->entities)) {
+        return true;
     }
-    LOG_ASSERT(SPECIES_LENGTH(species) > 1);
+    LOG_RELEASE_ASSERT(list_len(species->entities) > 1);
 
     double mu_minus = world->parameters->selection_worst_probability;
     double mu_plus = world->parameters->selection_best_probability;
@@ -76,70 +74,64 @@ int LinearRankingSelection(World* world,
     LOG_ASSERT(fabs(2 - mu_minus - mu_plus) < DOUBLE_EPS);
     // LOG_ASSERT(world->parameters->selection_elitists_count < alive_count);
 
-    Entity** entities_p = NULL;
-    double* selection_probs = NULL;
-    EntitiesList* sorted_new_entities = NULL;
-    Entity* new_entity = NULL;
-
-    entities_p = (Entity**)malloc(sizeof(Entity*) * SPECIES_LENGTH(species));
-    if (!entities_p) {
-        goto error_LinearRankingSelection;
-    }
-    selection_probs = (double*)calloc(SPECIES_LENGTH(species), sizeof(double));
+    double* selection_probs = (double*)calloc(list_len(species->entities),
+                                              sizeof(double));
     if (!selection_probs) {
-        goto error_LinearRankingSelection;
+        return false;
     }
+
     size_t index = 0;
     double sum = 0.0;
-    FOR_EACH_IN_SPECIES(species) {
-        entities_p[index++] = ENTITIES_IT_P;
-        sum += 1.0 / SPECIES_LENGTH(species)
+    list_for_each(EntityPtr, species->entities, var) {
+        sum += 1.0 / list_len(species->entities)
                * (mu_minus + (mu_plus - mu_minus)
-                             * (index - 1) / (SPECIES_LENGTH(species) - 1));
-        selection_probs[index - 1] = sum;
+                             * (index) / (list_len(species->entities) - 1));
+        selection_probs[index++] = sum;
     }
-    qsort(entities_p,
-          SPECIES_LENGTH(species),
-          sizeof(Entity*),
-          EntityAscendingComparator);
 
-    sorted_new_entities = CreateEntitiesList();
+    LIST_TYPE(EntityPtr) sorted_new_entities = list_create(EntityPtr);
     if (!sorted_new_entities) {
-        goto error_LinearRankingSelection;
+        goto destroy_selection_probs;
     }
 
+    Entity** entities_p = SortedEntitiesPointers(species->entities,
+                                                 EntityAscendingComparator);
+    if (!entities_p) {
+        goto destroy_sorted_new_entities;
+    }
+
+    Entity* new_entity = NULL;
     if (world->parameters->selection_elitists_count) {
-        for (size_t i = 0; i != alive_count; ++i) {
-            if (i == world->parameters->selection_elitists_count) {
-                break;
-            }
-            new_entity = CopyEntity(entities_p[SPECIES_LENGTH(species) - i - 1],
-                                    world->chr_size);
+        for (size_t i = 0;
+                i != alive_count
+                && i != world->parameters->selection_elitists_count;
+                ++i) {
+            new_entity = CopyEntity(entities_p[i], world->chr_size);
             if (!new_entity) {
-                goto error_LinearRankingSelection;
+                goto destroy_entities_p;
             }
-            if (!pushBack(sorted_new_entities, new_entity)) {
-                goto error_LinearRankingSelection;
+            if (!list_push_back(EntityPtr, sorted_new_entities, new_entity)) {
+                goto destroy_new_entity;
             }
             new_entity = NULL;
-            entities_p[SPECIES_LENGTH(species) - i - 1] = NULL;
+            entities_p[i] = NULL;
+        }
+
+        if (alive_count >= world->parameters->selection_elitists_count) {
+            alive_count -= world->parameters->selection_elitists_count;
         }
     }
 
-    if (alive_count >= world->parameters->selection_elitists_count) {
-        alive_count -= world->parameters->selection_elitists_count;
-    }
-
     for (size_t i = 0; i != alive_count; ++i) {
-        double r = getRand(0, selection_probs[SPECIES_LENGTH(species) - 1]);
-        for (size_t j = 0; j != SPECIES_LENGTH(species); ++j) {
+        double r = getRand(0, selection_probs[list_len(species->entities) - 1]);
+        for (size_t j = 0; j != list_len(species->entities); ++j) {
             if (entities_p[j] && selection_probs[j] > r) {
                 new_entity = CopyEntity(entities_p[j], world->chr_size);
                 if (!new_entity) {
-                    goto error_LinearRankingSelection;
+                    goto destroy_entities_p;
                 }
-                if (!pushBack(sorted_new_entities, new_entity)) {
-                    goto error_LinearRankingSelection;
+                if (!list_push_back(EntityPtr, sorted_new_entities, new_entity)) {
+                    goto destroy_new_entity;
                 }
                 new_entity = NULL;
                 entities_p[j] = NULL;
@@ -148,26 +140,28 @@ int LinearRankingSelection(World* world,
         }
     }
 
-    for (size_t i = 0; i != SPECIES_LENGTH(species); ++i) {
+    for (size_t i = 0; i != list_len(species->entities); ++i) {
         if (entities_p[i]) {
-            LOG_ASSERT(entities_p[i]->old == 0 || entities_p[i]->old == 1);
             species->died += entities_p[i]->old;
         }
     }
 
-    destroyListPointer(species->entitiesList);
-    species->entitiesList = sorted_new_entities;
+    DestroyEntitiesList(species->entities);
+    species->entities = sorted_new_entities;
     sorted_new_entities = NULL;
     free(entities_p);
     free(selection_probs);
-    entities_p = NULL;
 
-    return 1;
+    return true;
 
-error_LinearRankingSelection:
-    free(entities_p);
-    free(selection_probs);
+destroy_new_entity:
     DestroyEntity(new_entity);
-    destroyListPointer(sorted_new_entities);
-    return 0;
+destroy_entities_p:
+    free(entities_p);
+destroy_sorted_new_entities:
+    DestroyEntitiesList(sorted_new_entities);
+destroy_selection_probs:
+    free(selection_probs);
+
+    return false;
 }

@@ -33,120 +33,71 @@ int selectRandom(int rangeLow, int rangeHigh) {
     return (int)round(getRand(0, 1) * (rangeHigh - rangeLow)) + rangeLow;
 }
 
-void Normalize(List* numbers) {
-    if (numbers->length == 0) {
-        Log(WARNING, "Normalize: cannot normalize empty list");
-        return;
-    }
-    if (numbers->length == 1) {
-        *(double*)numbers->head->value = 1.0;
-        Log(WARNING, "Normalize: normalizing list of one element");
-        return;
-    }
-
-    Scale(numbers, 1.0, 2.0);
-    Normalize2(numbers);
-    return;
-
-    double sum = 0.0;
-    ListIterator it = begin(numbers);
-    double min = *((double*)it.current->value);
-
-    for ( ; !isIteratorExhausted(it); next(&it)) {
-        double value = *((double*)it.current->value);
-        sum += value;
-        if (value < min) {
-            min = value;
-        }
-    }
-    sum += fabs(min) * numbers->length;
-    if (fabs(sum) < DOUBLE_EPS) {
-        Log(WARNING, "Normalize: elements sum is close to 0");
-        return;
-    }
-
-    double test = 0.0;
-    for (it = begin(numbers); !isIteratorExhausted(it); next(&it)) {
-        *(double*)it.current->value =
-                ( *(double*)it.current->value + fabs(min) ) / sum;
-        test += *(double*)it.current->value;
-    }
-    LOG_RELEASE_ASSERT(1.0 - test < DOUBLE_EPS);
+void Normalize(LIST_TYPE(double) numbers) {
+    // TODO: maybe something different should be done here?
+    Scale(numbers, 0.1, 0.9);
 }
 
-// TODO: Remove this
-void Normalize2(List* numbers) {
-    if (numbers->length == 0) {
-        Log(WARNING, "Normalize2: cannot normalize empty list");
+void Scale(LIST_TYPE(double) numbers, double a, double b) {
+    LOG_RELEASE_ASSERT(numbers);
+
+    if (list_len(numbers) == 0) {
+        Log(WARNING, "%s: cannot scale empty list", __func__);
         return;
     }
-    if (numbers->length == 1) {
-        *(double*)numbers->head->value = 1.0;
-        Log(WARNING, "Normalize2: normalizing list of one element");
+    if (list_len(numbers) == 1) {
+        Log(WARNING, "%s: scaling list of one element", __func__);
+        list_first(numbers) = b;
         return;
     }
 
-    double sum = 0.0;
-    ListIterator it = begin(numbers);
-    for ( ; !isIteratorExhausted(it); next(&it)) {
-        double value = *((double*)it.current->value);
-        sum += value;
-    }
-    if (fabs(sum) < DOUBLE_EPS) {
-        Log(WARNING, "Normalize2: elements sum is close to 0");
-        return;
-    }
-
-    double test = 0.0;
-    for (it = begin(numbers); !isIteratorExhausted(it); next(&it)) {
-        *(double*)it.current->value /= sum;
-        test += *(double*)it.current->value;
-    }
-    LOG_RELEASE_ASSERT(fabs(1.0 - test) < DOUBLE_EPS);
-}
-
-void Scale(List* numbers, double a, double b) {
-    if (numbers->length == 0) {
-        Log(WARNING, "Scale: cannot scale empty list");
-        return;
-    }
-    if (numbers->length == 1) {
-        Log(WARNING, "Scale: scaling list of one element");
-        *(double*)numbers->head->value = b;
-        return;
-    }
-    ListIterator it = begin(numbers);
-    double min = *((double*)it.current->value);
-    double max = *((double*)it.current->value);
-
-    for ( ; !isIteratorExhausted(it); next(&it)) {
-        double current = *(double*)it.current->value;
-        if (current < min) {
-            min = current;
+    LIST_ITER_TYPE(double) iter = list_begin(double, numbers);
+    double min = list_first(numbers);
+    double max = list_first(numbers);
+    for (; list_iter_valid(iter); list_next(double, iter)) {
+        if (list_iter_value(iter) < min) {
+            min = list_iter_value(iter);
         }
-        if (current > max) {
-            max = current;
+        if (list_iter_value(iter) > max) {
+            max = list_iter_value(iter);
         }
     }
 
-    if (max - min < DOUBLE_EPS) {
-        Log(WARNING, "Scale: max - min is close to 0");
-        FOR_EACH_IN_LIST(numbers) {
-            LIST_IT_VALUE(double) = (a + b) / 2.0;
+    if (!DOUBLE_EQ(min, max)) {
+        double factor = (b - a) / (max - min);
+        Log(DEBUG, "%s: min value: %0.3f, max value: %0.3f", __func__, min, max);
+
+        list_for_each(double, numbers, var) {
+            list_var_value(var) = (list_var_value(var) - min) * factor + a;
+
+            LOG_RELEASE_ASSERT(DOUBLE_GE(list_var_value(var), a)
+                               && DOUBLE_LE(list_var_value(var), b));
         }
     }
     else {
-        for (it = begin(numbers); !isIteratorExhausted(it); next(&it)) {
-            *(double*)it.current->value = a + (b - a)
-                    * (*(double*)it.current->value - min) / (max - min);
-            LOG_RELEASE_ASSERT((*(double*)it.current->value >= a
-                                || fabs(*(double*)it.current->value - a)
-                                   < DOUBLE_EPS)
-                               && (*(double*)it.current->value <= b ||
-                                   fabs(*(double*)it.current->value - b)
-                                   < DOUBLE_EPS));
+        Log(WARNING, "%s: scaling list of equal elements", __func__);
+        list_for_each(double, numbers, var) {
+            list_var_value(var) = b;
         }
     }
+}
+
+void ScaleSumToOne(LIST_TYPE(double) numbers) {
+    double sum = 0.0;
+    list_for_each(double, numbers, var) {
+        sum += list_var_value(var);
+    }
+    LOG_RELEASE_ASSERT(!DOUBLE_EQ(sum, 0.0));
+    list_for_each(double, numbers, var) {
+        list_var_value(var) /= sum;
+    }
+#ifndef NDEBUG
+    sum = 0.0;
+    list_for_each(double, numbers, var) {
+        sum += list_var_value(var);
+    }
+    LOG_ASSERT(DOUBLE_EQ(sum, 1.0));
+#endif
 }
 
 double EuclidMeasure(double* x, double* y, size_t size) {
@@ -156,44 +107,3 @@ double EuclidMeasure(double* x, double* y, size_t size) {
     }
     return sqrt(sum);
 }
-
-//double rnd() {
-//    return rand() / (double)RAND_MAX;
-//}
-
-//double gauss_rnd()
-//{
-//    static double r;
-//    static char flag = 0;
-//    double v1, v2, s;
-//    if (flag) {
-//        flag = 0;
-//        return r;
-//    }
-//    while (1) {
-//        v1 = 2.0 * rnd() - 1.0;
-//        v2 = 2.0 * rnd() - 1.0;
-//        s = v1 * v1 + v2 * v2;
-//        if ((s <= 1.0) && (s > 0.0)) {
-//            r = v1 * sqrt((-2.0) * log(s) / s);
-//            flag = 1;
-//            return v2 * sqrt((-2.0) * log(s) / s);
-//        }
-//    }
-//}
-
-//double fp_uniform(double a, double b)
-//{
-//    double t;
-//    unsigned char *p = (unsigned char *)&t;
-//    size_t i, n = 0;
-//    do
-//    {
-//        for (i = 0; i < sizeof (double); ++i)
-//        {
-//            p[i] = rand() / (RAND_MAX + 1.0) * (UCHAR_MAX + 1.0);
-//        }
-//        n++;
-//    } while (t == 0 || isnan(t) || t < a || t > b);
-//    return t;
-//}

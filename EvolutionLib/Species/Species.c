@@ -12,103 +12,78 @@ Species* CreateSpecies(size_t initial_size) {
     if (!species) {
         return NULL;
     }
-    species->entitiesList = CreateEntitiesList();
+    species->entities = list_create(EntityPtr);
+    if (!species->entities) {
+        goto error;
+    }
     species->died = 0;
     species->initial_size = initial_size;
     return species;
+
+error:
+    free(species);
+    return NULL;
 }
 
 void DestroySpecies(Species* species) {
     if (species) {
-        DestroyEntitiesList(species->entitiesList);
+        DestroyEntitiesList(species->entities);
         free(species);
     }
 }
 
-SpeciesList* CreateSpeciesList() {
-    SpeciesList* species = (SpeciesList*)malloc(sizeof(SpeciesList));
-    if (!species) {
-        return NULL;
+bool ClearPopulation(LIST_TYPE(SpeciesPtr) population) {
+    if (!population) {
+        return true;
     }
-    InitSpeciesList(species);
-    return species;
+    list_for_each(SpeciesPtr, population, var) {
+        DestroySpecies(list_var_value(var));
+    }
+    return list_clear(SpeciesPtr, population);
+}
+
+void DestroyPopulation(LIST_TYPE(SpeciesPtr) population) {
+    if (!population) {
+        return;
+    }
+    list_for_each(SpeciesPtr, population, var) {
+        DestroySpecies(list_var_value(var));
+    }
+    list_destroy(SpeciesPtr, population);
 }
 
 double GetMidFitness(Species* species) {
-    LOG_ASSERT(SPECIES_LENGTH(species) != 0);
+    LOG_RELEASE_ASSERT(species);
+    LOG_RELEASE_ASSERT(species->entities);
+    // Species must not be empty
+    LOG_RELEASE_ASSERT(list_len(species->entities));
+
     double fitness = 0.0;
-    FOR_EACH_IN_SPECIES(species) {
-        fitness += ENTITIES_IT_P->fitness;
+    list_for_each(EntityPtr, species->entities, var) {
+        fitness += list_var_value(var)->fitness;
     }
-    return fitness / SPECIES_LENGTH(species);
+    return fitness / list_len(species->entities);
 }
 
-List* NormalizeSpeciesFitnesses(SpeciesList* species) {
-    List* fitness_list = NULL;
-    double* fitness = NULL;
-
-    fitness_list = (List*)malloc(sizeof(List));
-    if (!fitness_list) {
-        goto error_NormalizeSpeciesFitnesses;
-    }
-    initList(fitness_list, NULL, free);
-
-    FOR_EACH_IN_SPECIES_LIST(species) {
-        if (!SPECIES_LENGTH(SPECIES_LIST_IT_P)) {
-            continue;
-        }
-        fitness = (double*)malloc(sizeof(double));
-        if (!fitness) {
-            goto error_NormalizeSpeciesFitnesses;
-        }
-        *fitness = GetMidFitness(SPECIES_LIST_IT_P);
-        if (!pushBack(fitness_list, fitness)) {
-            goto error_NormalizeSpeciesFitnesses;
-        }
-        fitness = NULL;
+LIST_TYPE(double) NormalizePopulationFitnesses(
+        LIST_TYPE(SpeciesPtr) population) {
+    LIST_TYPE(double) fitnesses = list_create(double);
+    if (!fitnesses) {
+        return NULL;
     }
 
-    Normalize(fitness_list);
-
-    return fitness_list;
-
-error_NormalizeSpeciesFitnesses:
-    destroyListPointer(fitness_list);
-    free(fitness);
-    return NULL;
-}
-
-List* NormalizeSpeciesFitnesses2(SpeciesList* species) {
-    List* fitness_list = NULL;
-    double* fitness = NULL;
-
-    fitness_list = (List*)malloc(sizeof(List));
-    if (!fitness_list) {
-        goto error_NormalizeSpeciesFitnesses;
-    }
-    initList(fitness_list, NULL, free);
-
-    FOR_EACH_IN_SPECIES_LIST(species) {
-        if (!SPECIES_LENGTH(SPECIES_LIST_IT_P)) {
-            continue;
+    list_for_each(SpeciesPtr, population, var) {
+        if (!list_push_back(double, fitnesses,
+                            GetMidFitness(list_var_value(var)))) {
+            goto destroy_fitnesses;
         }
-        fitness = (double*)malloc(sizeof(double));
-        if (!fitness) {
-            goto error_NormalizeSpeciesFitnesses;
-        }
-        *fitness = GetMidFitness(SPECIES_LIST_IT_P);
-        if (!pushBack(fitness_list, fitness)) {
-            goto error_NormalizeSpeciesFitnesses;
-        }
-        fitness = NULL;
     }
 
-    Normalize2(fitness_list);
+    Normalize(fitnesses);
 
-    return fitness_list;
+    return fitnesses;
 
-    error_NormalizeSpeciesFitnesses:
-    destroyListPointer(fitness_list);
-    free(fitness);
+destroy_fitnesses:
+    list_destroy(double, fitnesses);
     return NULL;
 }

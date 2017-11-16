@@ -27,7 +27,7 @@ GAResult RunEvolution(const GAParameters* parameters,
     World* world = CreateWorld(parameters, operators);
     if (!world) {
         Log(ERROR, "Error creating world");
-        goto error_RunEvolution;
+        return result;
     }
 
     clock_t begin, end;
@@ -42,7 +42,7 @@ GAResult RunEvolution(const GAParameters* parameters,
 
         double cur_fitness = Iteration(world, i + 1);
         if (GetLastError()) {
-            goto error_RunEvolution;
+            goto destroy_world;
         }
 
         end = clock();
@@ -52,19 +52,19 @@ GAResult RunEvolution(const GAParameters* parameters,
             max_fitness = cur_fitness;
         }
 
-        if (!world->world_size || parameters->stable_value_iterations_count) {
-            if (!world->world_size || fabs(max_fitness - prev_max_fitness)
-                        < parameters->stable_value_eps) {
+        if (!world->size || parameters->stable_value_iterations_count) {
+            if (!world->size || fabs(max_fitness - prev_max_fitness)
+                                < parameters->stable_value_eps) {
 
                 ++value_is_stable_count;
-                if (!world->world_size
-                        || value_is_stable_count
-                            >= parameters->stable_value_iterations_count) {
+                if (!world->size
+                    || value_is_stable_count
+                       >= parameters->stable_value_iterations_count) {
 
                     result.optimum = max_fitness;
                     result.iterations_made = i;
                     result.time_spent_per_iteration = time_spent / i;
-                    goto exit_RunEvolution;
+                    goto exit;
                 }
             }
             else {
@@ -79,13 +79,13 @@ GAResult RunEvolution(const GAParameters* parameters,
     result.time_spent_per_iteration = time_spent
                                       / parameters->max_generations_count;
 
-exit_RunEvolution:
-    ClearWorld(&world);
+exit:
+    DestroyWorld(world);
     return result;
 
-error_RunEvolution:
-    ClearWorld(&world);
-    result.error = 1;
+destroy_world:
+    DestroyWorld(world);
+    result.error = true;
     return result;
 }
 
@@ -96,62 +96,67 @@ double Iteration(World* world, size_t generation_number) {
 
     IterationStart();
 
-    Species* new_species = NULL;
-    SpeciesList* clustered_species = NULL;
-
     if (world->operators->mutation) {
         if (!world->operators->mutation(world, generation_number)) {
-            goto error_Iteration;
+            goto error;
         }
     }
 
+    LIST_TYPE(EntityPtr) new_entities = NULL;
+    LIST_TYPE(SpeciesPtr) clustered_species = NULL;
     if (world->operators->crossover) {
-        new_species = world->operators->crossover(world, generation_number);
-        if (!new_species) {
-            goto error_Iteration;
+        new_entities = world->operators->crossover(world, generation_number);
+        if (!new_entities) {
+            goto error;
         }
 
         if (world->operators->children_selection) {
-            if (!world->operators->children_selection(world, new_species)) {
-                goto error_Iteration;
+            if (!world->operators->children_selection(world, &new_entities)) {
+                goto destroy_new_entities;
             }
         }
 
         if (world->operators->clustering) {
             clustered_species =
-                    world->operators->clustering(world, new_species,
+                    world->operators->clustering(world, new_entities,
                                                  world->parameters->eps,
                                                  world->parameters->min_pts);
             if (!clustered_species) {
-                goto error_Iteration;
+                goto destroy_new_entities;
             }
 
-            clearList(&world->species);
-            moveList(&world->species, clustered_species);
-            destroyListPointer(clustered_species);
+            if (!ClearPopulation(world->population)) {
+                goto destroy_clustered_species;
+            }
+            if (!list_move(SpeciesPtr, clustered_species, world->population)) {
+                goto destroy_clustered_species;
+            }
+            LOG_ASSERT(list_len(clustered_species) == 0);
+            list_destroy(SpeciesPtr, clustered_species);
             clustered_species = NULL;
         }
         else {
-            if (!moveList(((Species*)world->species.head->value)->entitiesList,
-                          new_species->entitiesList)) {
-                goto error_Iteration;
+            if (!list_move(EntityPtr, new_entities,
+                           list_first(world->population)->entities)) {
+                goto destroy_new_entities;
             }
         }
+        DestroyEntitiesList(new_entities);
+        new_entities = NULL;
 
-        world->world_size = 0;
-        FOR_EACH_IN_SPECIES_LIST(&world->species) {
-            world->world_size += SPECIES_LENGTH(SPECIES_LIST_IT_P);
+        world->size = 0;
+        list_for_each(SpeciesPtr, world->population, var) {
+            world->size += list_len(list_var_value(var)->entities);
         }
 
-        DestroySpecies(new_species);
-        new_species = NULL;
-
-        if (world->operators->selection && world->world_size) {
+        if (world->operators->selection && world->size) {
             if (!world->operators->selection(world)) {
-                goto error_Iteration;
+                goto error;
             }
         }
     }
+
+    Log(INFO, "World size: %zu", world->size);
 
     CountDiedSpecies(world);
 
@@ -162,20 +167,26 @@ double Iteration(World* world, size_t generation_number) {
     LogMaxFitness(max_fitness);
     return max_fitness;
 
-error_Iteration:
-    DestroySpecies(new_species);
-    destroyListPointer(clustered_species);
+destroy_clustered_species:
+    DestroyPopulation(clustered_species);
+destroy_new_entities:
+    DestroyEntitiesList(new_entities);
+error:
     SetError(1);
     return 0.0;
 }
 
 double GetMaxFitness(World* world) {
     Entity* max_fitness_entity = NULL;
-    FOR_EACH_IN_SPECIES_LIST(&world->species) {
-        FOR_EACH_IN_SPECIES(SPECIES_LIST_IT_P) {
+    list_for_each(SpeciesPtr, world->population, species_var) {
+        list_for_each(EntityPtr,
+                      list_var_value(species_var)->entities,
+                      entity_var) {
             if (!max_fitness_entity
-                || ENTITIES_IT_P->fitness > max_fitness_entity->fitness) {
-                max_fitness_entity = ENTITIES_IT_P;
+                || list_var_value(entity_var)->fitness
+                   > max_fitness_entity->fitness) {
+
+                max_fitness_entity = list_var_value(entity_var);
             }
         }
     }
@@ -183,13 +194,13 @@ double GetMaxFitness(World* world) {
 }
 
 static void CountDiedSpecies(World* world) {
-    FOR_EACH_IN_SPECIES_LIST(&world->species) {
-        LOG_ASSERT(SPECIES_LIST_IT_P->initial_size != 0);
-        if (SPECIES_LIST_IT_P->died / (double)SPECIES_LIST_IT_P->initial_size
-            > EXTINCTION_BIAS) {
-            SPECIES_LIST_IT_P->died = 0;
-            SPECIES_LIST_IT_P->initial_size = SPECIES_LENGTH(SPECIES_LIST_IT_P);
-            MarkAllAsOld(SPECIES_LIST_IT_P->entitiesList);
+    list_for_each(SpeciesPtr, world->population, species_var) {
+        Species* species = list_var_value(species_var);
+        LOG_RELEASE_ASSERT(species->initial_size != 0);
+        if (species->died / (double)species->initial_size > EXTINCTION_BIAS) {
+            species->died = 0;
+            species->initial_size = list_len(species->entities);
+            SetEntitiesStatus(species->entities, true);
             RegisterDeath();
         }
     }

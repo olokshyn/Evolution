@@ -7,6 +7,7 @@
 #include <math.h>
 
 #include "Common.h"
+#include "Logging/Logging.h"
 
 #define ENTITY_ASCENDING_COMPARATOR(A, B) \
     double diff = (*(Entity**)(A))->fitness \
@@ -24,16 +25,16 @@ int EntityDescendingComparator(const void* a, const void* b) {
 Entity* CreateEntity(size_t chr_size) {
     Entity* entity = (Entity*)malloc(sizeof(Entity));
     if (!entity) {
-        goto  error_CreateEntity;
+        return NULL;
     }
     entity->chr = (double*)malloc(sizeof(double) * chr_size);
     if (!entity->chr) {
-        goto error_CreateEntity;
+        goto error;
     }
 
     return entity;
 
-error_CreateEntity:
+error:
     free(entity);
     return NULL;
 }
@@ -45,81 +46,89 @@ void DestroyEntity(Entity* entity) {
     }
 }
 
-Entity* CopyEntity(Entity* entity, size_t chr_size) {
+Entity* CopyEntity(const Entity* entity, size_t chr_size) {
+    if (!entity) {
+        return NULL;
+    }
     Entity* new_entity = (Entity*)malloc(sizeof(Entity));
     if (!new_entity) {
         return NULL;
     }
     new_entity->chr = (double*)malloc(sizeof(double) * chr_size);
     if (!new_entity->chr) {
-        free(new_entity);
-        return NULL;
+        goto error;
     }
-    for (size_t i = 0; i < chr_size; ++i) {
+    for (size_t i = 0; i != chr_size; ++i) {
         new_entity->chr[i] = entity->chr[i];
     }
     new_entity->fitness = entity->fitness;
     new_entity->old = entity->old;
+
     return new_entity;
+
+error:
+    free(new_entity);
+    return NULL;
 }
 
-EntitiesList* CreateEntitiesList() {
-    EntitiesList* entities = (EntitiesList*)malloc(sizeof(List));
+void DestroyEntitiesList(LIST_TYPE(EntityPtr) entities) {
     if (!entities) {
+        return;
+    }
+    list_for_each(EntityPtr, entities, var) {
+        DestroyEntity(list_var_value(var));
+    }
+    list_destroy(EntityPtr, entities);
+}
+
+void SetEntitiesStatus(LIST_TYPE(EntityPtr) entities, bool old) {
+    if (!entities) {
+        return;
+    }
+    list_for_each(EntityPtr, entities, var) {
+        list_var_value(var)->old = old;
+    }
+}
+
+LIST_TYPE(double) NormalizeEntitiesFitnesses(LIST_TYPE(EntityPtr) entities) {
+    LOG_RELEASE_ASSERT(entities);
+
+    LIST_TYPE(double) fitnesses = list_create(double);
+    if (!fitnesses) {
         return NULL;
     }
-    initList(entities,
-             EntityAscendingComparator,
-             (void (*)(void*))DestroyEntity);
-    return entities;
-}
 
-void MarkAllAsNew(EntitiesList* entities) {
-    if (!entities || !entities->length) {
-        return;
-    }
-    FOR_EACH_IN_ENTITIES(entities) {
-        ENTITIES_IT_P->old = 0;
-    }
-}
-
-void MarkAllAsOld(EntitiesList* entities) {
-    if (!entities || !entities->length) {
-        return;
-    }
-    FOR_EACH_IN_ENTITIES(entities) {
-        ENTITIES_IT_P->old = 1;
-    }
-}
-
-List* NormalizeEntitiesFitnesses(EntitiesList* entities) {
-    List* fitness_list = NULL;
-    double* fitness = NULL;
-
-    fitness_list = (List*)malloc(sizeof(List));
-    if (!fitness_list) {
-        goto error_NormalizeEntitiesFitnesses;
-    }
-    initList(fitness_list, NULL, free);
-
-    FOR_EACH_IN_ENTITIES(entities) {
-        fitness = (double*)malloc(sizeof(double));
-        if (!fitness) {
-            goto error_NormalizeEntitiesFitnesses;
+    list_for_each(EntityPtr, entities, var) {
+        if (!list_push_back(double, fitnesses, list_var_value(var)->fitness)) {
+            goto destroy_fitnesses;
         }
-        *fitness = ENTITIES_IT_P->fitness;
-        if (!pushBack(fitness_list, fitness)) {
-            goto error_NormalizeEntitiesFitnesses;
-        }
-        fitness = NULL;
     }
 
-    Scale(fitness_list, 0.1, 0.9);
+    Normalize(fitnesses);
 
-    return fitness_list;
+    return fitnesses;
 
-error_NormalizeEntitiesFitnesses:
-    destroyListPointer(fitness_list);
-    free(fitness);
+destroy_fitnesses:
+    list_destroy(double, fitnesses);
     return NULL;
+}
+
+Entity** SortedEntitiesPointers(LIST_TYPE(EntityPtr) entities,
+                                int (*comparator)(const void*, const void*)) {
+    LOG_RELEASE_ASSERT(list_len(entities));
+
+    Entity** entities_p =
+            (Entity**)malloc(sizeof(Entity*) * list_len(entities));
+    if (!entities_p) {
+        return NULL;
+    }
+
+    size_t index = 0;
+    list_for_each(EntityPtr, entities, var) {
+        entities_p[index++] = list_var_value(var);
+    }
+
+    qsort(entities_p, list_len(entities), sizeof(Entity*), comparator);
+
+    return entities_p;
 }

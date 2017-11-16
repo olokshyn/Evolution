@@ -6,7 +6,8 @@
 
 #include "gtest/gtest.h"
 
-extern "C" {
+extern "C"
+{
 #include "Common.h"
 #include "Entity/Entity.h"
 #include "Species/Species.h"
@@ -18,108 +19,109 @@ extern "C" {
 
 using namespace std;
 
-namespace {
+namespace
+{
     const size_t chr_size = 10;
 }
 
-TEST(ClusterTest, Creation) {
-    Cluster::SetVectorLength(chr_size);
+TEST(ClusterTest, Creation)
+{
+    Cluster::set_chr_size(chr_size);
 
     Species* species = MockCreateSpecies(10, chr_size);
-    ASSERT_NE((void*)0, species);
-    ASSERT_NO_THROW(Cluster cluster(species));
+    ASSERT_NE(nullptr, species);
+    Cluster cluster(species);
     DestroySpecies(species);
 
     Entity* entity = MockCreateEntity(chr_size);
-    ASSERT_NE((void*)0, entity);
+    ASSERT_NE(nullptr, entity);
     ASSERT_NO_THROW(Cluster(entity));
     DestroyEntity(entity);
 
-    ASSERT_NO_THROW(Cluster(cluster));
+    ASSERT_NO_THROW(Cluster(std::move(cluster)));
 }
 
-TEST(ClusterTest, CopyConstructor) {
-    Cluster::SetVectorLength(chr_size);
+TEST(ClusterTest, CopyConstructor)
+{
+    Cluster::set_chr_size(chr_size);
 
     Entity* entity = MockCreateEntity(chr_size);
-    ASSERT_NE((void*)0, entity);
+    ASSERT_NE(nullptr, entity);
     Cluster cluster(entity);
     DestroyEntity(entity);
 
-    Cluster cluster2(cluster);
+    Cluster cluster2(std::move(cluster));
 
-    Species* sp1 = cluster.Release();
-    Species* sp2 = cluster2.Release();
+    Species* sp = cluster2.release();
+    ASSERT_NE(nullptr, sp);
 
-    ASSERT_NE(sp1, sp2);
-    ASSERT_NE(sp1->entitiesList->head->value, sp2->entitiesList->head->value);
-
-    DestroySpecies(sp1);
-    DestroySpecies(sp2);
+    DestroySpecies(sp);
 }
 
-TEST(ClusterTest, Add) {
-    Cluster::SetVectorLength(chr_size);
+TEST(ClusterTest, Add)
+{
+    Cluster::set_chr_size(chr_size);
 
     Cluster cluster;
 
     {
         Entity* entity = MockCreateEntity(chr_size);
-        ASSERT_NE((void*)0, entity);
+        ASSERT_NE(nullptr, entity);
         Cluster cluster2(entity);
         DestroyEntity(entity);
-        cluster.Add(cluster2);
-        ASSERT_EQ((size_t)0, cluster2.GetSize());
+        cluster.add(cluster2);
+        ASSERT_EQ(static_cast<size_t>(0), cluster2.size());
     }
 
-    ASSERT_EQ((size_t)1, cluster.GetSize());
+    ASSERT_EQ(static_cast<size_t>(1), cluster.size());
 
-    ASSERT_NO_THROW(Cluster(cluster));
+    ASSERT_NO_THROW(Cluster(std::move(cluster)));
 }
 
-TEST(ClusterTest, Vector) {
-    Cluster::SetVectorLength(chr_size);
+TEST(ClusterTest, Vector)
+{
+    Cluster::set_chr_size(chr_size);
 
     vector<Cluster> vec;
-
-    Entity* entity;
-    Species* species;
 
     {
         vector<Cluster> vec2;
 
-        entity = MockCreateEntity(chr_size);
-        ASSERT_NE((void*)0, entity);
-        vec2.push_back(Cluster(entity));
+        Entity* entity = MockCreateEntity(chr_size);
+        ASSERT_NE(nullptr, entity);
+        vec2.emplace_back(entity);
         DestroyEntity(entity);
 
-        species = MockCreateSpecies(10, chr_size);
-        ASSERT_NE((void*)0, species);
-        vec2.push_back(Cluster(species));
+        Species* species = MockCreateSpecies(10, chr_size);
+        ASSERT_NE(nullptr, species);
+        vec2.emplace_back(species);
         DestroySpecies(species);
 
-        vec = move(vec2);
-        ASSERT_EQ((size_t)0, vec2.size());
+        vec = std::move(vec2);
+        ASSERT_EQ(static_cast<size_t>(0), vec2.size());
     }
 
-    ASSERT_EQ((size_t)1, vec[0].GetSize());
-    ASSERT_EQ((size_t)10, vec[1].GetSize());
+    ASSERT_EQ(static_cast<size_t>(1), vec[0].size());
+    ASSERT_EQ(static_cast<size_t>(10), vec[1].size());
 }
 
-TEST(ClusterTest, GetNormSum) {
+TEST(ClusterTest, NormSum)
+{
     Species* sp1 = MockCreateSpecies(15, chr_size);
-    ASSERT_NE((void*)0, sp1);
+    ASSERT_NE(nullptr, sp1);
     Species* sp2 = MockCreateSpecies(20, chr_size);
-    ASSERT_NE((void*)0, sp2);
+    ASSERT_NE(nullptr, sp2);
 
     Cluster cl1(sp1);
     Cluster cl2(sp2);
 
     double norm = 0.0;
-    FOR_EACH_IN_SPECIES_N(sp1, it1) {
-        FOR_EACH_IN_SPECIES_N(sp2, it2) {
-            norm += EuclidMeasure(ENTITIES_IT_P_N(it1)->chr,
-                                  ENTITIES_IT_P_N(it2)->chr,
+    list_for_each(EntityPtr, sp1->entities, var1)
+    {
+        list_for_each(EntityPtr, sp2->entities, var2)
+        {
+            norm += EuclidMeasure(list_var_value(var1)->chr,
+                                  list_var_value(var2)->chr,
                                   chr_size);
         }
     }
@@ -127,5 +129,5 @@ TEST(ClusterTest, GetNormSum) {
     DestroySpecies(sp1);
     DestroySpecies(sp2);
 
-    ASSERT_EQ(norm, cl1.GetNormSum(cl2));
+    ASSERT_EQ(norm, cl1.norm_sum(cl2));
 }

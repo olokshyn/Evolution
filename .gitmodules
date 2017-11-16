@@ -1,0 +1,3 @@
+[submodule "EvolutionLib/3rdParty/CList"]
+	path = EvolutionLib/3rdParty/CList
+	url = git@github.com:olokshyn/CList.git

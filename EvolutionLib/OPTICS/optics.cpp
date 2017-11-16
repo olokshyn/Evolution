@@ -5,6 +5,7 @@
 #include <vector>
 #include <list>
 #include <memory>
+#include <type_traits>
 #include <iostream>
 #include <stdexcept>
 
@@ -44,14 +45,15 @@ namespace
         return ecopy;
     };
 
-    std::vector<OpticsObject> extract_optics_objects(SpeciesList* species,
-                                                     Species* new_entities)
+    std::vector<OpticsObject> extract_optics_objects(
+            LIST_TYPE(SpeciesPtr) population,
+            LIST_TYPE(EntityPtr) new_entities)
     {
         size_t entities_count = new_entities
-                                ? new_entities->entitiesList->length : 0;
-        FOR_EACH_IN_SPECIES_LIST(species)
+                                ? list_len(new_entities) : 0;
+        list_for_each(SpeciesPtr, population, var)
         {
-            entities_count += SPECIES_LIST_IT_P->entitiesList->length;
+            entities_count += list_len(list_var_value(var)->entities);
         }
 
         std::vector<OpticsObject> objects;
@@ -60,18 +62,18 @@ namespace
         size_t index = 0;
         if (new_entities)
         {
-            FOR_EACH_IN_SPECIES(new_entities)
+            list_for_each(EntityPtr, new_entities, var)
             {
-                objects.emplace_back(index, ENTITIES_IT_P);
-                ++index;
+                objects.emplace_back(index++, list_var_value(var));
             }
         }
-        FOR_EACH_IN_SPECIES_LIST(species)
+        list_for_each(SpeciesPtr, population, species_var)
         {
-            FOR_EACH_IN_SPECIES(SPECIES_LIST_IT_P)
+            list_for_each(EntityPtr,
+                          list_var_value(species_var)->entities,
+                          entity_var)
             {
-                objects.emplace_back(index, ENTITIES_IT_P);
-                ++index;
+                objects.emplace_back(index++, list_var_value(entity_var));
             }
         }
         return objects;
@@ -96,7 +98,7 @@ namespace
                 entity->chr[chr_i] = points[i][chr_i];
             }
             entity->fitness = 0.0;
-            entity->old = 0;
+            entity->old = false;
             objects.emplace_back(i, entity.get());
             entities.emplace_back(std::move(entity));
         }
@@ -160,13 +162,15 @@ namespace
         return cluster_ordering;
     }
 
-    SpeciesList* extract_clusters(
+    LIST_TYPE(SpeciesPtr) extract_clusters(
             size_t chr_size,
             const std::vector<OpticsObject>& cluster_ordering, double eps,
             std::vector<size_t>* cluster_labels = nullptr)
     {
-        std::unique_ptr<SpeciesList, decltype(&destroyListPointer)>
-                clusters(CreateSpeciesList(), &destroyListPointer);
+        std::unique_ptr<
+                std::remove_pointer<LIST_TYPE(SpeciesPtr)>::type,
+                decltype(&DestroyPopulation)>
+                clusters(list_create(SpeciesPtr), &DestroyPopulation);
         if (!clusters)
         {
             throw std::bad_alloc();
@@ -187,10 +191,12 @@ namespace
                     if (current_cluster)
                     {
                         current_cluster->initial_size =
-                                current_cluster->entitiesList->length;
-                        if (!pushBack(clusters.get(), current_cluster.get()))
+                                list_len(current_cluster->entities);
+                        if (!list_push_back(SpeciesPtr,
+                                            clusters.get(),
+                                            current_cluster.get()))
                         {
-                            throw std::runtime_error("pushBack failed");
+                            throw std::runtime_error("list_push_back failed");
                         }
                         current_cluster.release();
                     }
@@ -202,10 +208,11 @@ namespace
                     ++current_cluster_id;
 
                     auto new_entity = copy_entity(obj.entity, chr_size);
-                    if (!pushBack(current_cluster->entitiesList,
-                                  new_entity.get()))
+                    if (!list_push_back(EntityPtr,
+                                        current_cluster->entities,
+                                        new_entity.get()))
                     {
-                        throw std::runtime_error("pushBack failed");
+                        throw std::runtime_error("list_push_back failed");
                     }
                     new_entity.release();
                     if (cluster_labels)
@@ -223,8 +230,9 @@ namespace
                 if (current_cluster)
                 {
                     auto new_entity = copy_entity(obj.entity, chr_size);
-                    if (!pushBack(current_cluster->entitiesList,
-                                  new_entity.get()))
+                    if (!list_push_back(EntityPtr,
+                                        current_cluster->entities,
+                                        new_entity.get()))
                     {
                         throw std::runtime_error("pushBack failed");
                     }
@@ -243,8 +251,10 @@ namespace
         if (current_cluster)
         {
             current_cluster->initial_size =
-                    current_cluster->entitiesList->length;
-            if (!pushBack(clusters.get(), current_cluster.get()))
+                    list_len(current_cluster->entities);
+            if (!list_push_back(SpeciesPtr,
+                                clusters.get(),
+                                current_cluster.get()))
             {
                 throw std::runtime_error("pushBack failed");
             }
@@ -254,13 +264,14 @@ namespace
     }
 }
 
-SpeciesList* OPTICSClustering(World* world, Species* new_entities,
-                              double eps, size_t min_pts)
+LIST_TYPE(SpeciesPtr) OPTICSClustering(World* world,
+                                       LIST_TYPE(EntityPtr) new_entities,
+                                       double eps, size_t min_pts)
 {
     try
     {
         std::vector<OpticsObject> objects =
-                extract_optics_objects(&world->species, new_entities);
+                extract_optics_objects(world->population, new_entities);
         auto cluster_ordering = optics(std::move(objects),
                                        world->chr_size, eps, min_pts);
         return extract_clusters(world->chr_size, cluster_ordering, eps);
@@ -285,9 +296,11 @@ std::vector<size_t> optics_clustering(
     auto cluster_ordering = optics(std::move(objects), chr_size, eps, min_pts);
 
     std::vector<size_t> cluster_labels(points.size(), 0);
-    std::unique_ptr<SpeciesList, decltype(&DestroySpeciesList)> species_list(
+    std::unique_ptr<std::remove_pointer<LIST_TYPE(SpeciesPtr)>::type,
+            decltype(&DestroyPopulation)>
+            species_list(
             extract_clusters(chr_size, cluster_ordering, eps, &cluster_labels),
-            &DestroySpeciesList);
+            &DestroyPopulation);
     if (!species_list)
     {
         throw std::runtime_error("Failed to extract clusters");

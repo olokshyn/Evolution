@@ -5,15 +5,25 @@
 #ifndef EVOLUTION_ENTITY_H
 #define EVOLUTION_ENTITY_H
 
-#include "List/List.h"
+#include <stdbool.h>
+
+#include "3rdParty/CList/list.h"
 
 typedef struct entity {
     double* chr;
     double fitness;
-    char old;
-} Entity;
+    bool old;
+} Entity, *EntityPtr;
 
-typedef List EntitiesList;
+#ifndef LIST_DEFINED_ENTITYPTR
+DEFINE_LIST(EntityPtr)
+#define LIST_DEFINED_ENTITYPTR
+#endif
+
+#ifndef LIST_DEFINED_DOUBLE
+DEFINE_LIST(double)
+#define LIST_DEFINED_DOUBLE
+#endif
 
 int EntityAscendingComparator(const void* a, const void* b);
 
@@ -23,30 +33,15 @@ Entity* CreateEntity(size_t chr_size);
 
 void DestroyEntity(Entity* entity);
 
-Entity* CopyEntity(Entity* entity, size_t chr_size);
+Entity* CopyEntity(const Entity* entity, size_t chr_size);
 
-EntitiesList* CreateEntitiesList();
+void DestroyEntitiesList(LIST_TYPE(EntityPtr) entities);
 
-static inline void DestroyEntitiesList(EntitiesList* entities) {
-    destroyListPointer(entities);
-}
+void SetEntitiesStatus(LIST_TYPE(EntityPtr) entities, bool old);
 
-void MarkAllAsNew(EntitiesList* entities);
+LIST_TYPE(double) NormalizeEntitiesFitnesses(LIST_TYPE(EntityPtr) entities);
 
-void MarkAllAsOld(EntitiesList* entities);
-
-List* NormalizeEntitiesFitnesses(EntitiesList* entities);
-
-#define FOR_EACH_IN_ENTITIES_N(LIST_P, LIST_IT) \
-    FOR_EACH_IN_LIST_N(LIST_P, LIST_IT)
-
-#define FOR_EACH_IN_ENTITIES(LIST_P) \
-    FOR_EACH_IN_ENTITIES_N(LIST_P, entities_it)
-
-#define ENTITIES_IT_P_N(LIST_IT) \
-    LIST_IT_VALUE_P_N(LIST_IT, Entity)
-
-#define ENTITIES_IT_P \
-    ENTITIES_IT_P_N(entities_it)
+Entity** SortedEntitiesPointers(LIST_TYPE(EntityPtr) entities,
+                                int (*comparator)(const void*, const void*));
 
 #endif //EVOLUTION_ENTITY_H

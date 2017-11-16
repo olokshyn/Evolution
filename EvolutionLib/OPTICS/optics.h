@@ -12,8 +12,9 @@ extern "C" {
 #include "GeneticAlgorithm/GAFwd.h"
 #include "Species/Species.h"
 
-SpeciesList* OPTICSClustering(World* world, Species* new_entities,
-                              double eps, size_t min_pts);
+LIST_TYPE(SpeciesPtr) OPTICSClustering(World* world,
+                                       LIST_TYPE(EntityPtr) new_entities,
+                                       double eps, size_t min_pts);
 
 #ifdef __cplusplus
 };

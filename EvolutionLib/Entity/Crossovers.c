@@ -7,8 +7,8 @@
 #include "CrossoverLib.h"
 #include "Logging/Logging.h"
 
-void OnePointCrossover(Entity* parent1,
-                       Entity* parent2,
+void OnePointCrossover(const Entity* parent1,
+                       const Entity* parent2,
                        Entity* child1,
                        Entity* child2,
                        const Objective* obj,
@@ -35,8 +35,8 @@ void OnePointCrossover(Entity* parent1,
     child2->old = 0;
 }
 
-void DHXCrossover(Entity* parent1,
-                  Entity* parent2,
+void DHXCrossover(const Entity* parent1,
+                  const Entity* parent2,
                   Entity* child1,
                   Entity* child2,
                   const Objective* obj,

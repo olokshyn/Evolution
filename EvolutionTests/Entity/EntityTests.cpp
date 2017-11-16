@@ -4,7 +4,8 @@
 
 #include "gtest/gtest.h"
 
-extern "C" {
+extern "C"
+{
 #include "Entity/Entity.h"
 #include "Functions/TestFunctions.h"
 }
@@ -13,23 +14,26 @@ extern "C" {
 
 using namespace std;
 
-namespace {
+namespace
+{
     const size_t chr_size = 200;
     const size_t entities_count = 1000;
     Objective* obj = &RastriginFuncObjective;
 }
 
-TEST(EntityTest, Creation) {
+TEST(EntityTest, Creation)
+{
     Entity* entity = CreateEntity(chr_size);
-    ASSERT_NE((void*)0, entity);
+    ASSERT_NE(nullptr, entity);
     DestroyEntity(entity);
 }
 
-TEST(EntityTest, Copy) {
+TEST(EntityTest, Copy)
+{
     Entity* en1 = CreateEntity(chr_size);
-    ASSERT_NE((void*)0, en1);
+    ASSERT_NE(nullptr, en1);
     Entity* en2 = CopyEntity(en1, chr_size);
-    ASSERT_NE((void*)0, en2);
+    ASSERT_NE(nullptr, en2);
 
     ASSERT_NE(en1, en2);
     ASSERT_NE(en1->chr, en2->chr);
@@ -38,59 +42,66 @@ TEST(EntityTest, Copy) {
     DestroyEntity(en2);
 }
 
-TEST(EntityTest, EntityList) {
-    EntitiesList* en_list = CreateEntitiesList();
-    ASSERT_NE((void*)0, en_list);
+TEST(EntityTest, EntityList)
+{
+    LIST_TYPE(EntityPtr) entities = list_create(EntityPtr);
+    ASSERT_NE(nullptr, entities);
 
-    for (size_t i = 0; i < entities_count; ++i) {
+    for (size_t i = 0; i != entities_count; ++i)
+    {
         Entity* temp = CreateEntity(chr_size);
-        ASSERT_NE((void*)0, temp);
-        ASSERT_EQ(1, pushBack(en_list, temp));
+        ASSERT_NE(nullptr, temp);
+        ASSERT_TRUE(list_push_back(EntityPtr, entities, temp));
     }
 
-    MarkAllAsNew(en_list);
+    SetEntitiesStatus(entities, false);
 
     size_t i = 0;
-    FOR_EACH_IN_ENTITIES(en_list) {
-        ASSERT_EQ(0, ENTITIES_IT_P->old);
+    list_for_each(EntityPtr, entities, var)
+    {
+        ASSERT_FALSE(list_var_value(var)->old);
         ++i;
     }
     ASSERT_EQ(entities_count, i);
 
-    MarkAllAsOld(en_list);
+    SetEntitiesStatus(entities, true);
 
-    FOR_EACH_IN_ENTITIES(en_list) {
-        ASSERT_EQ(1, ENTITIES_IT_P->old);
+    list_for_each(EntityPtr, entities, var)
+    {
+        ASSERT_TRUE(list_var_value(var)->old);
     }
 
-    DestroyEntitiesList(en_list);
+    DestroyEntitiesList(entities);
 }
 
-TEST(EntityTest, NormalizeEntitiesFitnesses) {
-    EntitiesList* en_list = CreateEntitiesList();
-    ASSERT_NE((void*)0, en_list);
+TEST(EntityTest, NormalizeEntitiesFitnesses)
+{
+    LIST_TYPE(EntityPtr) entities = list_create(EntityPtr);
+    ASSERT_NE(nullptr, entities);
 
-    for (size_t i = 0; i < entities_count; ++i) {
+    for (size_t i = 0; i != entities_count; ++i)
+    {
         Entity* temp = MockCreateEntity(chr_size, obj);
-        ASSERT_NE((void*)0, temp);
-        ASSERT_EQ(1, pushBack(en_list, temp));
+        ASSERT_NE(nullptr, temp);
+        ASSERT_TRUE(list_push_back(EntityPtr, entities, temp));
     }
 
-    List* fitness_list = NormalizeEntitiesFitnesses(en_list);
-    ASSERT_NE((void*)0, fitness_list);
-    ASSERT_EQ(en_list->length, fitness_list->length);
+    LIST_TYPE(double) fitnesses = NormalizeEntitiesFitnesses(entities);
+    ASSERT_NE(nullptr, fitnesses);
+    ASSERT_EQ(list_len(entities), list_len(fitnesses));
 
     size_t i = 0;
     double sum = 0.0;
-    FOR_EACH_IN_LIST(fitness_list) {
+    list_for_each(double, fitnesses, var)
+    {
         ++i;
-        sum += LIST_IT_VALUE(double);
+        sum += list_var_value(var);
 
-        ASSERT_LE(0.1, LIST_IT_VALUE(double));
-        ASSERT_GE(0.9, LIST_IT_VALUE(double));
+        ASSERT_LE(0.1, list_var_value(var));
+        ASSERT_GE(0.9, list_var_value(var));
     }
-    ASSERT_EQ(en_list->length, i);
+    ASSERT_EQ(list_len(entities), i);
 
-    destroyListPointer(fitness_list);
-    DestroyEntitiesList(en_list);
+    list_destroy(double, fitnesses);
+    DestroyEntitiesList(entities);
 }

@@ -4,6 +4,8 @@
 
 #include "World.h"
 
+#include <stdbool.h>
+
 #include "GAParameters.h"
 #include "GAOperators.h"
 
@@ -11,12 +13,18 @@
 #include "Logging/Logging.h"
 #include "Common.h"
 
+static bool InitPopulation(World* world);
+
 World* CreateWorld(const GAParameters* parameters,
                    const GAOperators* operators) {
-    LOG_FUNC_START("CreateWorld");
+    LOG_FUNC_START;
 
     if (!parameters) {
         Log(ERROR, "Cannot create world with NULL parameters");
+        return NULL;
+    }
+    if (!operators) {
+        Log(ERROR, "Cannot create world with NULL operators");
         return NULL;
     }
 
@@ -25,98 +33,108 @@ World* CreateWorld(const GAParameters* parameters,
         return NULL;
     }
 
-    World* world = NULL;
-    Species* new_species = NULL;
-    Entity* new_entity = NULL;
-
-    world = (World*)malloc(sizeof(World));
+    World* world = (World*)malloc(sizeof(World));
     if (!world) {
-        Log(ERROR, "Failed to allocate World object");
-        goto error_CreateWorld;
+        goto error;
     }
 
-    InitSpeciesList(&world->species);
-    world->world_size = parameters->initial_world_size;
-    world->chr_size = parameters->chromosome_size;
-    world->parameters = NULL;
-    world->operators = NULL;
+    world->population = list_create(SpeciesPtr);
+    if (!world->population) {
+        goto destroy_world;
+    }
 
+    world->size = parameters->initial_world_size;
+    world->chr_size = parameters->chromosome_size;
     if (parameters->objective.max_args_count > 0) {
         world->chr_size = MIN(parameters->chromosome_size,
                               parameters->objective.max_args_count);
     }
 
-    GAParameters* params_copy = (GAParameters*)malloc(sizeof(GAParameters));
-    if (!params_copy) {
-        Log(ERROR, "Failed to allocate GAParameters");
-        goto error_CreateWorld;
+    world->parameters = (GAParameters*)malloc(sizeof(GAParameters));
+    if (!world->parameters) {
+        goto destroy_population;
     }
-    *params_copy = *parameters;
-    world->parameters = params_copy;
-    params_copy = NULL;
+    *world->parameters = *parameters;
 
-
-    GAOperators* ops_copy = (GAOperators*)malloc(sizeof(GAOperators));
-    if (!ops_copy) {
-        Log(ERROR, "Failed to allocate GAOperators");
-        goto error_CreateWorld;
+    world->operators = (GAOperators*)malloc(sizeof(GAOperators));
+    if (!world->operators) {
+        goto destroy_parameters;
     }
-    *ops_copy = *operators;
-    world->operators = ops_copy;
-    ops_copy = NULL;
+    *world->operators = *operators;
 
-    new_species = CreateSpecies(world->world_size);
-    if (!new_species) {
-        Log(ERROR, "Failed to allocate new species");
-        goto error_CreateWorld;
+    if (!InitPopulation(world)) {
+        goto destroy_operators;
     }
 
-    for (size_t i = 0; i != world->world_size; ++i) {
-        new_entity = CreateEntity(world->chr_size);
-        if (!new_entity) {
-            goto error_CreateWorld;
-        }
-        for (size_t j = 0; j != world->chr_size; ++j) {
-            new_entity->chr[j] =
-                    getRand(world->parameters->objective.min,
-                            world->parameters->objective.max);
-        }
-        new_entity->fitness =
-                world->parameters->objective.func(new_entity->chr,
-                                                  (int)world->chr_size);
-        new_entity->old = 1;
-        if (!pushBack(new_species->entitiesList, new_entity)) {
-            goto error_CreateWorld;
-        }
-        new_entity = NULL;
-    }
-    if (!pushBack(&world->species, new_species)) {
-        goto error_CreateWorld;
-    }
-    new_species = NULL;
-
-    LOG_FUNC_END("CreateWorld");
+    LOG_FUNC_END;
 
     return world;
 
-    error_CreateWorld:
+destroy_operators:
+    free(world->operators);
+destroy_parameters:
+    free(world->parameters);
+destroy_population:
+    DestroyPopulation(world->population);
+destroy_world:
+    free(world);
+error:
     ReleaseDeathManager();
-    ClearWorld(&world);
-    DestroySpecies(new_species);
-    DestroyEntity(new_entity);
     return NULL;
 }
 
-void ClearWorld(World** world) {
+void DestroyWorld(World* world) {
     if (!world) {
         return;
     }
-    if (*world) {
-        destroyList(&(*world)->species);
-        free((void*)(*world)->parameters);
-        free((void*)(*world)->operators);
-        free(*world);
-        *world = NULL;
-    }
+    free(world->operators);
+    free(world->parameters);
+    DestroyPopulation(world->population);
+    free(world);
     ReleaseDeathManager();
+}
+
+static bool InitPopulation(World* world) {
+    if (!world || !world->population) {
+        return false;
+    }
+
+    Species* species = CreateSpecies(world->size);
+    if (!species) {
+        return false;
+    }
+
+    Entity* entity = NULL;
+    for (size_t i = 0; i != world->size; ++i) {
+        entity = CreateEntity(world->chr_size);
+        if (!entity) {
+            goto destroy_species;
+        }
+
+        for (size_t j = 0; j != world->chr_size; ++j) {
+            entity->chr[j] =
+                    getRand(world->parameters->objective.min,
+                            world->parameters->objective.max);
+        }
+        entity->fitness =
+                world->parameters->objective.func(entity->chr,
+                                                  (int)world->chr_size);
+        entity->old = true;
+
+        if (!list_push_back(EntityPtr, species->entities, entity)) {
+            goto destroy_entity;
+        }
+        entity = NULL;
+    }
+    if (!list_push_back(SpeciesPtr, world->population, species)) {
+        goto destroy_species;
+    }
+
+    return true;
+
+destroy_entity:
+    DestroyEntity(entity);
+destroy_species:
+    DestroySpecies(species);
+    return false;
 }

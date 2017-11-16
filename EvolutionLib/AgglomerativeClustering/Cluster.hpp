@@ -5,39 +5,42 @@
 #ifndef EVOLUTION_CLUSTER_H
 #define EVOLUTION_CLUSTER_H
 
-extern "C" {
-#include "List/List.h"
+extern "C"
+{
 #include "Species/Species.h"
 };
 
-#include <new>
+#include <memory>
 
-class Cluster {
+class Cluster
+{
+public:
+    static void set_chr_size(size_t chr_size);
 
 public:
-    static void SetVectorLength(size_t vector_length);
-
     Cluster();
-    explicit Cluster(Species* species);
-    explicit Cluster(Entity* entity);
-    explicit Cluster(const Cluster& other);
+    explicit Cluster(const Species* species);
+    explicit Cluster(const Entity* entity);
 
-    ~Cluster();
+    Cluster(Cluster&& other) noexcept;
 
-    void Add(Cluster& other);
-    size_t GetSize() const;
-    Species* Release();
+    void add(Cluster& other);
+    Species* release();
+    size_t size() const;
 
-    double GetNormSum(const Cluster& other) const;
-    double GetDistance(const Cluster& other) const;
+    double norm_sum(const Cluster& other) const;
+    double distance(const Cluster& other) const;
 
 private:
-    Species* species;
+    static std::unique_ptr<Entity, decltype(&DestroyEntity)> copy_entity(
+            const Entity* entity);
+    static double measure(const Entity* entity1, const Entity* entity2);
 
-    static size_t vector_length;
+private:
+    static size_t s_chr_size;
 
-    static void* entityCopier(void* value);
-    static double measure(Entity* entity1, Entity* entity2);
+private:
+    std::unique_ptr<Species, decltype(&DestroySpecies)> m_species;
 };
 
 #endif //EVOLUTION_CLUSTER_H

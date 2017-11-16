@@ -16,8 +16,8 @@ static FILE* fitness_file = NULL;
 
 static const char* const LogLevelsNames[5] = {
         [NOT_SET] = "NOT_SET",
-        [INFO] = "INFO",
         [DEBUG] = "DEBUG",
+        [INFO] = "INFO",
         [WARNING] = "WARNING",
         [ERROR] = "ERROR"
 };
@@ -75,6 +75,12 @@ void Log(LogLevel log_level, const char* format, ...) {
             switch (*temp) {
                 case 'd':
                     fprintf(log_file, p, va_arg(ap, int));
+                    break;
+                case 'u':
+                    fprintf(log_file, p, va_arg(ap, unsigned int));
+                    break;
+                case 'z':
+                    fprintf(log_file, p, va_arg(ap, size_t));
                     break;
                 case 'f':
                     fprintf(log_file, p, va_arg(ap, double));

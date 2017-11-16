@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.3)
 project(EvolutionLib)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -std=c++11")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unused-function -Werror")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function -Werror -std=c++11")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -72,7 +72,6 @@ set(OPTICS_SOURCE_FILES
         OPTICS/OpticsObjectsManager.h)
 
 set(EVOLUTION_LIB_SOURCE_FILES
-        ${AGGLOMERATIVE_CLUSTERING_SOURCE_FILES}
         ${DEATH_MANAGER_SOURCE_FILES}
         ${ENTITY_SOURCE_FILES}
         ${FUNCTIONS_SOURCE_FILES}
@@ -81,6 +80,7 @@ set(EVOLUTION_LIB_SOURCE_FILES
         ${LOGGING_SOURCE_FILES}
         ${SPECIES_SOURCE_FILES}
         ${WISHART_SOURCE_FILES}
+        ${AGGLOMERATIVE_CLUSTERING_SOURCE_FILES}
         ${OPTICS_SOURCE_FILES}
         Common.c
         Common.h)

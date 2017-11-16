@@ -9,17 +9,15 @@
 extern "C" {
 #endif
 
-#include <stdlib.h>
-#include <math.h>
-
+#include "GeneticAlgorithm/World.h"
 #include "Species/Species.h"
 
 #define MAX_CLUSTER_COUNT 3
 
-SpeciesList* AgglomerativeClustering(SpeciesList* clusters,
-                                     EntitiesList* entities,
-                                     size_t vector_length,
-                                     double h);
+LIST_TYPE(SpeciesPtr) AgglomerativeClustering(World* world,
+                                              LIST_TYPE(EntityPtr) new_entities,
+                                              double eps,
+                                              size_t min_pts);
 
 #ifdef __cplusplus
 }

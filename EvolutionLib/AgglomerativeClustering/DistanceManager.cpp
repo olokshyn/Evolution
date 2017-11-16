@@ -18,9 +18,9 @@ DistanceManager::DistanceManager(const std::vector<Cluster>& clusters)
                 distances[j][i] =
                 new_distances[i][j] =
                 new_distances[j][i] =
-                        clusters[i].GetNormSum(clusters[j]);
+                        clusters[i].norm_sum(clusters[j]);
             }
-            sizes[i] = new_sizes[i] = clusters[i].GetSize();
+            sizes[i] = new_sizes[i] = clusters[i].size();
         }
 }
 

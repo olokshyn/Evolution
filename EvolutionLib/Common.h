@@ -5,7 +5,12 @@
 #ifndef EVOLUTION_COMMON_H
 #define EVOLUTION_COMMON_H
 
-#include "List/List.h"
+#include "3rdParty/CList/list.h"
+
+#ifndef LIST_DEFINED_DOUBLE
+DEFINE_LIST(double)
+#define LIST_DEFINED_DOUBLE
+#endif
 
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
@@ -35,9 +40,9 @@ typedef struct objective {
 double getRand(double min, double max);
 int doWithProbability(double prob);
 int selectRandom(int rangeLow, int rangeHigh);
-void Normalize(List* numbers);
-void Normalize2(List* numbers);
-void Scale(List* numbers, double a, double b);
+void Normalize(LIST_TYPE(double) numbers);
+void Scale(LIST_TYPE(double) numbers, double a, double b);
+void ScaleSumToOne(LIST_TYPE(double) numbers);
 double EuclidMeasure(double* x, double* y, size_t size);
 
 #endif //EVOLUTION_COMMON_H

@@ -6,7 +6,8 @@
 
 #include <utility>
 
-extern "C" {
+extern "C"
+{
 #include "Entity/CrossoverLib.h"
 #include "Entity/Crossovers.h"
 #include "Functions/TestFunctions.h"
@@ -16,7 +17,8 @@ extern "C" {
 
 using namespace std;
 
-namespace {
+namespace
+{
     const double accuracy = 1e-10;
     const double a = -0.2;
     const double b = 1.0;
@@ -26,14 +28,17 @@ namespace {
     Objective* obj = &RastriginFuncObjective;
 }
 
-TEST(CrossoverLibTest, dcF) {
-    for (size_t chr_numb = 0; chr_numb < chr_size; ++chr_numb) {
+TEST(CrossoverLibTest, dcF)
+{
+    for (size_t chr_numb = 0; chr_numb < chr_size; ++chr_numb)
+    {
         double c1 = getRand(a, b);
         double c2 = getRand(a, b);
 
         double Ft1 = dcF(1, max_generations_count,
                          c1, c2, a, b);
-        for (size_t gen_numb = 1; gen_numb < max_generations_count; ++gen_numb) {
+        for (size_t gen_numb = 1; gen_numb < max_generations_count; ++gen_numb)
+        {
             double Ft = Ft1;
             Ft1 = dcF(gen_numb + 1, max_generations_count,
                       c1, c2, a, b);
@@ -44,14 +49,17 @@ TEST(CrossoverLibTest, dcF) {
     }
 }
 
-TEST(CrossoverLibTest, dcS) {
-    for (size_t chr_numb = 0; chr_numb < chr_size; ++chr_numb) {
+TEST(CrossoverLibTest, dcS)
+{
+    for (size_t chr_numb = 0; chr_numb < chr_size; ++chr_numb)
+    {
         double c1 = getRand(a, b);
         double c2 = getRand(a, b);
 
         double St1 = dcS(1, max_generations_count,
                          c1, c2, a, b);
-        for (size_t gen_numb = 1; gen_numb < max_generations_count; ++gen_numb) {
+        for (size_t gen_numb = 1; gen_numb < max_generations_count; ++gen_numb)
+        {
             double St = St1;
             St1 = dcS(gen_numb + 1, max_generations_count,
                       c1, c2, a, b);
@@ -62,14 +70,17 @@ TEST(CrossoverLibTest, dcS) {
     }
 }
 
-TEST(CrossoverLibTest, dcMplus) {
-    for (size_t chr_numb = 0; chr_numb < chr_size; ++chr_numb) {
+TEST(CrossoverLibTest, dcMplus)
+{
+    for (size_t chr_numb = 0; chr_numb < chr_size; ++chr_numb)
+    {
         double c1 = getRand(a, b);
         double c2 = getRand(a, b);
 
         double Mpt1 = dcMplus(1, max_generations_count,
                               c1, c2, a, b);
-        for (size_t gen_numb = 1; gen_numb < max_generations_count; ++gen_numb) {
+        for (size_t gen_numb = 1; gen_numb < max_generations_count; ++gen_numb)
+        {
             double Mpt = Mpt1;
             Mpt1 = dcMplus(gen_numb + 1, max_generations_count,
                            c1, c2, a, b);
@@ -81,14 +92,17 @@ TEST(CrossoverLibTest, dcMplus) {
     }
 }
 
-TEST(CrossoverLibTest, dcMminus) {
-    for (size_t chr_numb = 0; chr_numb < chr_size; ++chr_numb) {
+TEST(CrossoverLibTest, dcMminus)
+{
+    for (size_t chr_numb = 0; chr_numb < chr_size; ++chr_numb)
+    {
         double c1 = getRand(a, b);
         double c2 = getRand(a, b);
 
         double Mmt1 = dcMminus(1, max_generations_count,
                                c1, c2, a, b);
-        for (size_t gen_numb = 1; gen_numb < max_generations_count; ++gen_numb) {
+        for (size_t gen_numb = 1; gen_numb < max_generations_count; ++gen_numb)
+        {
             double Mmt = Mmt1;
             Mmt1 = dcMminus(gen_numb + 1, max_generations_count,
                             c1, c2, a, b);
@@ -100,25 +114,29 @@ TEST(CrossoverLibTest, dcMminus) {
     }
 }
 
-TEST(CrossoverLibTest, dbcM) {
+TEST(CrossoverLibTest, dbcM)
+{
     const size_t crossovers_count = 3;
     for (size_t crossovers_numb = 0;
             crossovers_numb < crossovers_count;
-            ++crossovers_numb) {
+            ++crossovers_numb)
+    {
         Entity* en1 = CreateEntity(chr_size);
-        ASSERT_NE((void*)0, en1);
+        ASSERT_NE(nullptr, en1);
         Entity* en2 = CreateEntity(chr_size);
-        ASSERT_NE((void*)0, en2);
+        ASSERT_NE(nullptr, en2);
         double min = -1;
         double max = 0;
-        for (size_t i = 0; i < chr_size; ++i) {
+        for (size_t i = 0; i < chr_size; ++i)
+        {
             en1->chr[i] = getRand(min, max);
             en2->chr[i] = getRand(min, max);
         }
         double fitness1 = getRand(0, 1);
         double fitness2 = getRand(0, 1);
 
-        for (size_t i = 0; i < chr_size; ++i) {
+        for (size_t i = 0; i < chr_size; ++i)
+        {
             double Mt1 = dbcM(1, max_generations_count,
                               en1->chr[i],
                               en2->chr[i],
@@ -127,7 +145,8 @@ TEST(CrossoverLibTest, dbcM) {
             ASSERT_FLOAT_EQ((en1->chr[i] + en2->chr[i]) / 2, Mt1);
             for (size_t gen_numb = 1;
                     gen_numb < max_generations_count;
-                    ++gen_numb) {
+                    ++gen_numb)
+            {
                 double Mt = Mt1;
                 Mt1 = dbcM(gen_numb + 1, max_generations_count,
                            en1->chr[i],
@@ -135,11 +154,13 @@ TEST(CrossoverLibTest, dbcM) {
                            fitness1, fitness2,
                            min, max);
                 if ((fitness1 >= fitness2 && en1->chr[i] <= en2->chr[i])
-                        || (fitness1 < fitness2 && en1->chr[i] >= en2->chr[i])) {
+                        || (fitness1 < fitness2 && en1->chr[i] >= en2->chr[i]))
+                {
                     ASSERT_GE((float)Mt, (float)Mt1);
 
                 }
-                else {
+                else
+                {
                     ASSERT_LE((float)Mt, (float)Mt1);
                 }
             }
@@ -154,30 +175,34 @@ TEST(CrossoverLibTest, dbcM) {
     }
 }
 
-TEST(CrossoverTest, OnePointCrossover) {
-    List* en_list = CreateEntitiesList();
-    ASSERT_NE((void*)0, en_list);
+TEST(CrossoverTest, OnePointCrossover)
+{
+    LIST_TYPE(EntityPtr) entities = list_create(EntityPtr);
+    ASSERT_NE(nullptr, entities);
 
-    for (size_t i = 0; i < individuals_size; ++i) {
+    for (size_t i = 0; i < individuals_size; ++i)
+    {
         Entity* temp = MockCreateEntity(chr_size, obj);
-        ASSERT_NE((void*)0, temp);
-        ASSERT_EQ(1, pushBack(en_list, temp));
+        ASSERT_NE(nullptr, temp);
+        ASSERT_TRUE(list_push_back(EntityPtr, entities, temp));
     }
 
     Entity* child1 = MockCreateEntity(chr_size, obj);
-    ASSERT_NE((void*)0, child1);
+    ASSERT_NE(nullptr, child1);
     Entity* child2 = MockCreateEntity(chr_size, obj);
-    ASSERT_NE((void*)0, child2);
+    ASSERT_NE(nullptr, child2);
 
-    FOR_EACH_IN_LIST_N(en_list, it1) {
-        FOR_EACH_IN_LIST_N(en_list, it2) {
-            if (LIST_IT_VALUE_P_N(it1, Entity)
-                == LIST_IT_VALUE_P_N(it2, Entity)) {
+    list_for_each(EntityPtr, entities, var1)
+    {
+        list_for_each(EntityPtr, entities, var2)
+        {
+            if (list_var_eq(var1, var2))
+            {
                 continue;
             }
 
-            Entity* parent1 = LIST_IT_VALUE_P_N(it1, Entity);
-            Entity* parent2 = LIST_IT_VALUE_P_N(it2, Entity);
+            Entity* parent1 = list_var_value(var1);
+            Entity* parent2 = list_var_value(var2);
             OnePointCrossover(parent1,
                               parent2,
                               child1,
@@ -188,20 +213,24 @@ TEST(CrossoverTest, OnePointCrossover) {
             size_t crossover_point = (chr_size % 2 == 0) ?
                                      (chr_size / 2) :
                                      (chr_size / 2 + 1);
-            for (size_t i = 0; i < crossover_point; ++i) {
+            for (size_t i = 0; i < crossover_point; ++i)
+            {
                 ASSERT_EQ(parent1->chr[i], child1->chr[i]);
             }
-            for (size_t i = crossover_point; i < chr_size; ++i) {
+            for (size_t i = crossover_point; i < chr_size; ++i)
+            {
                 ASSERT_EQ(parent2->chr[i], child1->chr[i]);
             }
             ASSERT_FLOAT_EQ(obj->func(child1->chr, static_cast<int>(chr_size)),
                             child1->fitness);
             ASSERT_EQ(0, child1->old);
 
-            for (size_t i = 0; i < crossover_point; ++i) {
+            for (size_t i = 0; i < crossover_point; ++i)
+            {
                 ASSERT_EQ(parent2->chr[i], child2->chr[i]);
             }
-            for (size_t i = crossover_point; i < chr_size; ++i) {
+            for (size_t i = crossover_point; i < chr_size; ++i)
+            {
                 ASSERT_EQ(parent1->chr[i], child2->chr[i]);
             }
             ASSERT_FLOAT_EQ(obj->func(child2->chr, static_cast<int>(chr_size)),
@@ -209,54 +238,56 @@ TEST(CrossoverTest, OnePointCrossover) {
             ASSERT_EQ(0, child2->old);
         }
     }
-
-    DestroyEntity(child1);
     DestroyEntity(child2);
-    destroyListPointer(en_list);
+    DestroyEntity(child1);
+    DestroyEntitiesList(entities);
 }
 
-TEST(CrossoverTest, DHXCrossover) {
+TEST(CrossoverTest, DHXCrossover)
+{
     Species* sp = MockCreateSpecies(individuals_size,
                                     chr_size,
                                     obj);
-    ASSERT_NE((void*)0, sp);
+    ASSERT_NE(nullptr, sp);
     Entity* child1t = MockCreateEntity(chr_size, obj);
-    ASSERT_NE((void*)0, child1t);
+    ASSERT_NE(nullptr, child1t);
     Entity* child2t = MockCreateEntity(chr_size, obj);
-    ASSERT_NE((void*)0, child2t);
+    ASSERT_NE(nullptr, child2t);
     Entity* child1t1 = MockCreateEntity(chr_size, obj);
-    ASSERT_NE((void*)0, child1t1);
+    ASSERT_NE(nullptr, child1t1);
     Entity* child2t1 = MockCreateEntity(chr_size, obj);
-    ASSERT_NE((void*)0, child2t1);
+    ASSERT_NE(nullptr, child2t1);
 
-    int* crossed = (int*)calloc(SPECIES_LENGTH(sp), sizeof(int));
-    ASSERT_NE((void*)0, crossed);
+    int* crossed = (int*)calloc(list_len(sp->entities), sizeof(int));
+    ASSERT_NE(nullptr, crossed);
 
-    List* fitness_list = NormalizeEntitiesFitnesses(sp->entitiesList);
-    ASSERT_NE((void*)0, fitness_list);
+    LIST_TYPE(double) fitnesses = NormalizeEntitiesFitnesses(sp->entities);
+    ASSERT_NE(nullptr, fitnesses);
 
     size_t i = 0;
-    for (ListIterator it1 = begin(sp->entitiesList),
-                 ft_it1 = begin(fitness_list);
-            !isIteratorExhausted(it1) && !isIteratorExhausted(ft_it1);
-            next(&it1), next(&ft_it1), ++i) {
-        if (crossed[i]) {
+    LIST_ITER_TYPE(EntityPtr) it1 = list_begin(EntityPtr, sp->entities);
+    LIST_ITER_TYPE(double) ft_it1 = list_begin(double, fitnesses);
+    for (; list_iter_valid(it1) && list_iter_valid(ft_it1);
+            list_next(EntityPtr, it1), list_next(double, ft_it1), ++i)
+    {
+        if (crossed[i])
+        {
             continue;
         }
         size_t j = 0;
-        for (ListIterator it2 = begin(sp->entitiesList),
-                     ft_it2 = begin(fitness_list);
-                !isIteratorExhausted(it2)
-                    && !isIteratorExhausted(ft_it2)
-                    && !crossed[i];
-                next(&it2), next(&ft_it2), ++j) {
-            if (it1.current == it2.current || crossed[j]) {
+        LIST_ITER_TYPE(EntityPtr) it2 = list_begin(EntityPtr, sp->entities);
+        LIST_ITER_TYPE(double) ft_it2 = list_begin(double, fitnesses);
+        for (; list_iter_valid(it2) && list_iter_valid(ft_it2) && !crossed[i];
+                list_next(EntityPtr, it2), list_next(double, ft_it2), ++j)
+        {
+            if (list_iter_eq(it1, it2) || crossed[j])
+            {
                 continue;
             }
-            Entity* parent1 = (Entity*)it1.current->value;
-            Entity* parent2 = (Entity*)it2.current->value;
-            double fitness1 = *(double*)ft_it1.current->value;
-            double fitness2 = *(double*)ft_it2.current->value;
+            Entity* parent1 = list_iter_value(it1);
+            Entity* parent2 = list_iter_value(it2);
+            double fitness1 = list_iter_value(ft_it1);
+            double fitness2 = list_iter_value(ft_it2);
 
             DHXCrossover(parent1, parent2,
                          child1t1, child2t1,
@@ -266,7 +297,8 @@ TEST(CrossoverTest, DHXCrossover) {
                          1, max_generations_count);
             for (size_t gen_numb = 1;
                     gen_numb < max_generations_count;
-                    ++gen_numb) {
+                    ++gen_numb)
+            {
                 swap(child1t, child1t1);
                 swap(child2t, child2t1);
                 DHXCrossover(parent1, parent2,
@@ -276,7 +308,8 @@ TEST(CrossoverTest, DHXCrossover) {
                              chr_size,
                              gen_numb + 1, max_generations_count);
 
-                if (fitness1 >= fitness2) {
+                if (fitness1 >= fitness2)
+                {
                     ASSERT_LE((float)EuclidMeasure(child1t1->chr,
                                                    parent1->chr,
                                                    chr_size),
@@ -290,7 +323,8 @@ TEST(CrossoverTest, DHXCrossover) {
                                                    parent1->chr,
                                                    chr_size));
                 }
-                else {
+                else
+                {
                     ASSERT_LE((float)EuclidMeasure(child1t1->chr,
                                                    parent2->chr,
                                                    chr_size),
@@ -309,7 +343,8 @@ TEST(CrossoverTest, DHXCrossover) {
             double parents_dist = EuclidMeasure(parent1->chr,
                                                 parent2->chr,
                                                 chr_size);
-            if (fitness1 >= fitness2) {
+            if (fitness1 >= fitness2)
+            {
                 ASSERT_NEAR(0.0,
                             EuclidMeasure(child1t1->chr,
                                           parent1->chr,
@@ -321,7 +356,8 @@ TEST(CrossoverTest, DHXCrossover) {
                                           chr_size) / parents_dist,
                             accuracy);
             }
-            else {
+            else
+            {
                 ASSERT_NEAR(0.0,
                             EuclidMeasure(child1t1->chr,
                                           parent2->chr,
@@ -345,11 +381,12 @@ TEST(CrossoverTest, DHXCrossover) {
         }
     }
 
-    DestroySpecies(sp);
-    DestroyEntity(child1t);
-    DestroyEntity(child2t);
-    DestroyEntity(child1t1);
-    DestroyEntity(child2t1);
+    list_destroy(double, fitnesses);
     free(crossed);
-    destroyListPointer(fitness_list);
+    DestroyEntity(child2t1);
+    DestroyEntity(child1t1);
+    DestroyEntity(child2t);
+    DestroyEntity(child1t);
+    DestroySpecies(sp);
+
 }

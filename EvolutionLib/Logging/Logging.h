@@ -5,8 +5,8 @@
 #ifndef EVOLUTION_LOGGING_H
 #define EVOLUTION_LOGGING_H
 
-#define LOG_FUNC_START(func) Log(INFO, func ": start")
-#define LOG_FUNC_END(func) Log(INFO, func ": success")
+#define LOG_FUNC_START Log(DEBUG, "%s: start", __func__)
+#define LOG_FUNC_END Log(DEBUG, "%s: success", __func__)
 
 #ifndef NDEBUG
     #include <assert.h>
@@ -18,7 +18,7 @@
 #include <signal.h>
 #define LOG_RELEASE_ASSERT(cond) if (!(cond)) { Log(ERROR, "Assertion error: %s : %s : %d", __FILE__, __func__, __LINE__); raise(SIGABRT); }
 
-typedef enum {NOT_SET, INFO, DEBUG, WARNING, ERROR} LogLevel;
+typedef enum {NOT_SET, DEBUG, INFO, WARNING, ERROR} LogLevel;
 
 int InitLogging(const char* log_filename, LogLevel log_level);
 

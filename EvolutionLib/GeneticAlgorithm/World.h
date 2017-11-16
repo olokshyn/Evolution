@@ -11,17 +11,17 @@
 #include "Species/Species.h"
 
 typedef struct world {
-    SpeciesList species;
-    size_t world_size;
+    LIST_TYPE(SpeciesPtr) population;
+    size_t size;
     size_t chr_size;
-    const GAParameters* parameters;
-    const GAOperators* operators;
+    GAParameters* parameters;
+    GAOperators* operators;
 } World;
 
 
 World* CreateWorld(const GAParameters* parameters,
                    const GAOperators* operators);
 
-void ClearWorld(World** world);
+void DestroyWorld(World* world);
 
 #endif //EVOLUTION_WORLD_H

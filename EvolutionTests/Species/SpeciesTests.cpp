@@ -4,7 +4,8 @@
 
 #include "gtest/gtest.h"
 
-extern "C" {
+extern "C"
+{
 #include "Species/Species.h"
 }
 
@@ -12,41 +13,46 @@ extern "C" {
 
 using namespace std;
 
-namespace {
+namespace
+{
     const size_t initial_size = 1000;
     const size_t entities_count = 1000;
     const size_t chr_size = 1000;
     const size_t species_count = 4;
 }
 
-TEST(SpeciesTest, Creation) {
+TEST(SpeciesTest, Creation)
+{
     Species* sp = CreateSpecies(initial_size);
-    ASSERT_NE((void*)0, sp);
-    ASSERT_EQ((size_t)0, SPECIES_LENGTH(sp));
+    ASSERT_NE(nullptr, sp);
+    ASSERT_EQ(static_cast<size_t>(0), list_len(sp->entities));
     ASSERT_EQ(initial_size, sp->initial_size);
-    ASSERT_EQ((size_t)0, sp->died);
+    ASSERT_EQ(static_cast<size_t>(0), sp->died);
 
     size_t i = 0;
-    FOR_EACH_IN_SPECIES(sp) {
+    list_for_each(EntityPtr, sp->entities, var)
+    {
         ++i;
     }
-    ASSERT_EQ((size_t)0, i);
+    ASSERT_EQ(static_cast<size_t>(0), i);
 
     DestroySpecies(sp);
 }
 
-TEST(SpeciesTest, GetMidFitness) {
+TEST(SpeciesTest, GetMidFitness)
+{
     Species* sp = MockCreateSpecies(entities_count, chr_size);
-    ASSERT_NE((void*)0, sp);
-    ASSERT_EQ(entities_count, SPECIES_LENGTH(sp));
+    ASSERT_NE(nullptr, sp);
+    ASSERT_EQ(entities_count, list_len(sp->entities));
 
     size_t i = 0;
     double fitness = 0.0;
-    FOR_EACH_IN_SPECIES(sp) {
-        fitness += ENTITIES_IT_P->fitness;
+    list_for_each(EntityPtr, sp->entities, var)
+    {
+        fitness += list_var_value(var)->fitness;
         ++i;
     }
-    fitness /= SPECIES_LENGTH(sp);
+    fitness /= list_len(sp->entities);
     ASSERT_EQ(entities_count, i);
 
     ASSERT_EQ(GetMidFitness(sp), fitness);
@@ -54,31 +60,32 @@ TEST(SpeciesTest, GetMidFitness) {
     DestroySpecies(sp);
 }
 
-TEST(SpeciesTest, NormalizeSpeciesFitnesses) {
-    SpeciesList* sp_list = CreateSpeciesList();
-    ASSERT_NE((void*)0, sp_list);
-    Species* sp = NULL;
-    for (size_t i = 0; i < species_count; ++i) {
-        sp = MockCreateSpecies(entities_count, chr_size);
-        ASSERT_NE((void*)0, sp);
-        ASSERT_EQ(1, pushBack(sp_list, sp));
+TEST(SpeciesTest, NormalizeSpeciesFitnesses)
+{
+    LIST_TYPE(SpeciesPtr) population = list_create(SpeciesPtr);
+    ASSERT_NE(nullptr, population);
+    for (size_t i = 0; i < species_count; ++i)
+    {
+        Species* sp = MockCreateSpecies(entities_count, chr_size);
+        ASSERT_NE(nullptr, sp);
+        ASSERT_TRUE(list_push_back(SpeciesPtr, population, sp));
     }
 
-    List* fitness_list = NormalizeSpeciesFitnesses(sp_list);
-    ASSERT_NE((void*)0, fitness_list);
-    ASSERT_EQ(species_count, fitness_list->length);
+    LIST_TYPE(double) fitnesses = NormalizePopulationFitnesses(population);
+    ASSERT_NE(nullptr, fitnesses);
+    ASSERT_EQ(species_count, list_len(fitnesses));
 
     size_t i = 0;
-    for (ListIterator sp_list_it = begin(sp_list),
-                 ft_it = begin(fitness_list);
-            !isIteratorExhausted(sp_list_it);
-            next(&sp_list_it), next(&ft_it)) {
-        EXPECT_LE(0.0, *(double*)ft_it.current->value);
-        EXPECT_GE(1.0, *(double*)ft_it.current->value);
-        ++i;
+    LIST_ITER_TYPE(SpeciesPtr) it = list_begin(SpeciesPtr, population);
+    LIST_ITER_TYPE(double) ft_it = list_begin(double, fitnesses);
+    for (; list_iter_valid(it);
+            list_next(SpeciesPtr, it), list_next(double, ft_it), ++i)
+    {
+        EXPECT_LE(0.1, list_iter_value(ft_it));
+        EXPECT_GE(0.9, list_iter_value(ft_it));
     }
     ASSERT_EQ(species_count, i);
 
-    DestroySpeciesList(sp_list);
-    destroyListPointer(fitness_list);
+    list_destroy(double, fitnesses);
+    DestroyPopulation(population);
 }

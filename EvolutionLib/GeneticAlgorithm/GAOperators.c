@@ -15,205 +15,151 @@
 #include "Logging/Logging.h"
 #include "Common.h"
 
-static int PerformSelectionInSpecies(World* world,
-                                     Species* species,
-                                     size_t alive_count);
+static bool CrossEntitiesWithProbability(World* world,
+                                         LIST_TYPE(EntityPtr) entities,
+                                         LIST_TYPE(EntityPtr) new_entities,
+                                         double probability,
+                                         size_t generation_number);
 
-static int PerformLimitedSelectionInSpecies(World* world,
-                                            Species* species,
-                                            double norm_fitness);
+static bool PerformSelectionInEntities(World* world,
+                                       LIST_TYPE(EntityPtr)* entities_ptr,
+                                       size_t alive_count,
+                                       size_t* entities_died);
 
-static double ScaleEps(World* world, Species* new_entities, double eps);
+static bool PerformLimitedSelectionInSpecies(World* world,
+                                             Species* species,
+                                             double norm_fitness);
 
-int GAO_UniformMutation(World* world, size_t generation_number) {
-    FOR_EACH_IN_SPECIES_LIST(&world->species) {
-        FOR_EACH_IN_SPECIES(SPECIES_LIST_IT_P) {
+static double ScaleEps(World* world,
+                       LIST_TYPE(EntityPtr) new_entities,
+                       double eps);
+
+bool GAO_UniformMutation(World* world, size_t generation_number) {
+    if (!world->population) {
+        return false;
+    }
+    list_for_each(SpeciesPtr, world->population, species_var) {
+        list_for_each(EntityPtr,
+                      list_var_value(species_var)->entities,
+                      entity_var) {
             if (doWithProbability(world->parameters->mutation_probability)) {
                 size_t i = (size_t)selectRandom(0, (int)world->chr_size - 1);
-                ENTITIES_IT_P->chr[i] = getRand(world->parameters->objective.min,
-                                                world->parameters->objective.max);
-                ENTITIES_IT_P->fitness =
-                        world->parameters->objective.func(ENTITIES_IT_P->chr,
-                                                          (int)world->chr_size);
+                list_var_value(entity_var)->chr[i] =
+                        getRand(world->parameters->objective.min,
+                                world->parameters->objective.max);
+                list_var_value(entity_var)->fitness =
+                        world->parameters->objective.func(
+                                list_var_value(entity_var)->chr,
+                                (int)world->chr_size);
             }
         }
     }
-    return 1;
+    return true;
 }
 
-int GAO_NonUniformMutation(World* world, size_t generation_number) {
-    FOR_EACH_IN_SPECIES_LIST(&world->species) {
-        FOR_EACH_IN_SPECIES(SPECIES_LIST_IT_P) {
+bool GAO_NonUniformMutation(World* world, size_t generation_number) {
+    if (!world->population) {
+        return false;
+    }
+    list_for_each(SpeciesPtr, world->population, species_var) {
+        list_for_each(EntityPtr,
+                      list_var_value(species_var)->entities,
+                      entity_var) {
             if (doWithProbability(world->parameters->mutation_probability)) {
                 size_t i = (size_t)selectRandom(0, (int)world->chr_size - 1);
                 if (doWithProbability(0.5)) {
-                    ENTITIES_IT_P->chr[i] +=
-                            NonUniformMutationDelta(generation_number,
+                    list_var_value(entity_var)->chr[i] +=
+                            NonUniformMutationDelta(
+                                    generation_number,
                                     world->parameters->objective.max
-                                            - ENTITIES_IT_P->chr[i],
+                                    - list_var_value(entity_var)->chr[i],
                                     world->parameters);
                 }
                 else {
-                    ENTITIES_IT_P->chr[i] -=
-                            NonUniformMutationDelta(generation_number,
-                                     ENTITIES_IT_P->chr[i]
-                                             - world->parameters->objective.min,
-                                     world->parameters);
+                    list_var_value(entity_var)->chr[i] -=
+                            NonUniformMutationDelta(
+                                    generation_number,
+                                    list_var_value(entity_var)->chr[i]
+                                    - world->parameters->objective.min,
+                                    world->parameters);
                 }
             }
         }
     }
-    return 1;
+    return true;
 }
 
-Species* GAO_UniformCrossover(World* world, size_t generation_number) {
-    LOG_FUNC_START("GAO_UniformCrossover");
+LIST_TYPE(EntityPtr) GAO_UniformCrossover(World* world,
+                                          size_t generation_number) {
+    LOG_FUNC_START;
 
-    Species* new_species = NULL;
-    short* crossed_parents = NULL;
-    List* en_ft_list = NULL;
-    Entity* new_entity1 = NULL;
-    Entity* new_entity2 = NULL;
-
-    new_species = CreateSpecies(0);
-    if (!new_species) {
-        goto error_GAO_UniformCrossover;
+    LIST_TYPE(EntityPtr) new_entities = list_create(EntityPtr);
+    if (!new_entities) {
+        return NULL;
     }
 
-    // TODO: add %zu modifier to Log and use it instead of %d
-    Log(DEBUG, "Perform crossover in %d species", (int)world->species.length);
+    Log(DEBUG, "Perform crossover in %zu species", list_len(world->population));
 
-    FOR_EACH_IN_SPECIES_LIST(&world->species) {
-        Species* species = SPECIES_LIST_IT_P;
-        Log(INFO, "Crossing %d entities", (int)SPECIES_LENGTH(species));
-        if (SPECIES_LENGTH(species) <= 1) {
-            Log(DEBUG, "One or less entities in species");
-            continue;
+    list_for_each(SpeciesPtr, world->population, species_var) {
+        if (!CrossEntitiesWithProbability(
+                world,
+                list_var_value(species_var)->entities,
+                new_entities,
+                world->parameters->crossover_probability,
+                generation_number)) {
+            goto destroy_new_entities;
         }
-
-        crossed_parents = (short*)calloc(SPECIES_LENGTH(species),
-                                         sizeof(short));
-        if (!crossed_parents) {
-            goto error_GAO_UniformCrossover;
-        }
-
-        en_ft_list = NormalizeEntitiesFitnesses(species->entitiesList);
-        if (!en_ft_list) {
-            goto error_GAO_UniformCrossover;
-        }
-
-        size_t i = 0;
-        for (ListIterator it1 = begin(species->entitiesList),
-                     ft_it1 = begin(en_ft_list);
-                     !isIteratorExhausted(it1);
-                     next(&it1), next(&ft_it1), ++i) {
-            if (crossed_parents[i]) {
-                continue;
-            }
-            size_t j = 0;
-            for (ListIterator it2 = begin(species->entitiesList),
-                         ft_it2 = begin(en_ft_list);
-                         !isIteratorExhausted(it2) && !crossed_parents[i];
-                         next(&it2), next(&ft_it2), ++j) {
-                if (it1.current == it2.current
-                            || crossed_parents[j]
-                            || !doWithProbability(
-                                world->parameters->crossover_probability)) {
-                    continue;
-                }
-                LOG_ASSERT(!crossed_parents[i] && !crossed_parents[j]);
-
-                new_entity1 = CreateEntity(world->chr_size);
-                if (!new_entity1) {
-                    goto error_GAO_UniformCrossover;
-                }
-                new_entity2 = CreateEntity(world->chr_size);
-                if (!new_entity2) {
-                    goto error_GAO_UniformCrossover;
-                }
-                DHXCrossover((Entity*)it1.current->value,
-                             (Entity*)it2.current->value,
-                             new_entity1,
-                             new_entity2,
-                             &world->parameters->objective,
-                             *((double*)ft_it1.current->value),
-                             *((double*)ft_it2.current->value),
-                             world->chr_size,
-                             generation_number,
-                             world->parameters->max_generations_count);
-                if (!pushBack(new_species->entitiesList, new_entity1)) {
-                    goto error_GAO_UniformCrossover;
-                }
-                new_entity1 = NULL;
-                if (!pushBack(new_species->entitiesList, new_entity2)) {
-                    goto error_GAO_UniformCrossover;
-                }
-                new_entity2 = NULL;
-
-                crossed_parents[i] = 1;
-                crossed_parents[j] = 1;
-            }
-        }
-        free(crossed_parents);
-        crossed_parents = NULL;
-        destroyListPointer(en_ft_list);
-        en_ft_list = NULL;
     }
 
-    Log(DEBUG, "New entities count: %d", (int)SPECIES_LENGTH(new_species));
+    Log(DEBUG, "New entities count: %zu", list_len(new_entities));
+    LOG_FUNC_END;
 
-    LOG_FUNC_END("GAO_UniformCrossover");
+    return new_entities;
 
-    return new_species;
-
-error_GAO_UniformCrossover:
-    DestroySpecies(new_species);
-    free(crossed_parents);
-    destroyListPointer(en_ft_list);
-    DestroyEntity(new_entity1);
-    DestroyEntity(new_entity2);
+destroy_new_entities:
+    DestroyEntitiesList(new_entities);
     return NULL;
 }
 
-Species* GAO_FitnessCrossover(World* world, size_t generation_number) {
-    LOG_FUNC_START("GAO_FitnessCrossover");
+LIST_TYPE(EntityPtr) GAO_FitnessCrossover(World* world,
+                                          size_t generation_number) {
+    LOG_FUNC_START;
 
-    Species* new_species = NULL;
-    List* fitness_list = NULL;
-    List* en_ft_list = NULL;
-    Entity* new_entity1 = NULL;
-    Entity* new_entity2 = NULL;
-    short* crossed_parents = NULL;
-
-    new_species = CreateSpecies(0);
-    if (!new_species) {
-        goto error_PerformCrossover;
+    LIST_TYPE(EntityPtr) new_entities = list_create(EntityPtr);
+    if (!new_entities) {
+        return NULL;
     }
 
-    fitness_list = NormalizeSpeciesFitnesses(&world->species);
-    if (!fitness_list) {
-        goto error_PerformCrossover;
+    LIST_TYPE(double) fitnesses = NormalizePopulationFitnesses(world->population);
+    if (!fitnesses) {
+        goto destroy_new_entities;
     }
 
-    // TODO: add %zu modifier to Log and use it instead of %d
-    Log(DEBUG, "Perform crossover in %d species", (int)world->species.length);
+    LOG_ASSERT(list_len(new_entities) == list_len(fitnesses));
 
-    for (ListIterator speciesIt = begin(&world->species),
-                 fitnessIt = begin(fitness_list);
-             !isIteratorExhausted(speciesIt);
-             next(&speciesIt), next(&fitnessIt)) {
-        Species* species = (Species*)speciesIt.current->value;
-        Log(INFO, "Crossing %d entities", (int)SPECIES_LENGTH(species));
-        if (SPECIES_LENGTH(species) <= 1) {
+    Log(DEBUG, "Perform crossover in %zu species", list_len(world->population));
+
+    LIST_ITER_TYPE(SpeciesPtr) species_iter =
+            list_begin(SpeciesPtr, world->population);
+    LIST_ITER_TYPE(double) fitness_iter = list_begin(double, fitnesses);
+
+    for (; list_iter_valid(species_iter);
+            list_next(SpeciesPtr, species_iter),
+                    list_next(double, fitness_iter)) {
+
+        LIST_TYPE(EntityPtr) entities = list_iter_value(species_iter)->entities;
+
+        Log(DEBUG, "Crossing %zu entities", list_len(entities));
+        if (list_len(entities) <= 1) {
             Log(DEBUG, "One or less entities in species");
             continue;
         }
 
-        double crossover_prob = *(double*)fitnessIt.current->value;
-        if (world->species.length == 1) {
+        double crossover_prob = list_iter_value(fitness_iter);
+        if (list_len(world->population) == 1) {
             crossover_prob = CROSSOVER_FIRST_TIME_PROB;
         }
-        else if (SPECIES_LENGTH(species) <= CROSSOVER_EXTINCTION_BIAS) {
+        else if (list_len(entities) <= CROSSOVER_EXTINCTION_BIAS) {
             crossover_prob = 1.0;
         }
         else {
@@ -222,289 +168,339 @@ Species* GAO_FitnessCrossover(World* world, size_t generation_number) {
                                  CROSSOVER_MIN_PROB);
         }
 
-        crossed_parents = (short*)calloc(SPECIES_LENGTH(species),
-                                         sizeof(short));
-        if (!crossed_parents) {
-            goto error_PerformCrossover;
+        if (!CrossEntitiesWithProbability(
+                world,
+                entities,
+                new_entities,
+                crossover_prob,
+                generation_number)) {
+            goto destroy_fitnesses;
         }
-
-        en_ft_list = NormalizeEntitiesFitnesses(species->entitiesList);
-        if (!en_ft_list) {
-            goto error_PerformCrossover;
-        }
-
-        size_t i = 0;
-        for (ListIterator it1 = begin(species->entitiesList),
-                     ft_it1 = begin(en_ft_list);
-             !isIteratorExhausted(it1);
-             next(&it1), next(&ft_it1), ++i) {
-            if (crossed_parents[i]) {
-                continue;
-            }
-            size_t j = 0;
-            for (ListIterator it2 = begin(species->entitiesList),
-                         ft_it2 = begin(en_ft_list);
-                 !isIteratorExhausted(it2) && !crossed_parents[i];
-                 next(&it2), next(&ft_it2), ++j) {
-                if (it1.current == it2.current
-                        || crossed_parents[j]
-                        || !doWithProbability(crossover_prob)) {
-                    continue;
-                }
-                new_entity1 = CreateEntity(world->chr_size);
-                if (!new_entity1) {
-                    goto error_PerformCrossover;
-                }
-                new_entity2 = CreateEntity(world->chr_size);
-                if (!new_entity2) {
-                    goto error_PerformCrossover;
-                }
-                DHXCrossover((Entity*)it1.current->value,
-                             (Entity*)it2.current->value,
-                             new_entity1,
-                             new_entity2,
-                             &world->parameters->objective,
-                             *((double*)ft_it1.current->value),
-                             *((double*)ft_it2.current->value),
-                             world->chr_size,
-                             generation_number,
-                             world->parameters->max_generations_count);
-                if (!pushBack(new_species->entitiesList, new_entity1)) {
-                    goto error_PerformCrossover;
-                }
-                new_entity1 = NULL;
-                if (!pushBack(new_species->entitiesList, new_entity2)) {
-                    goto error_PerformCrossover;
-                }
-                new_entity2 = NULL;
-                LOG_ASSERT(!crossed_parents[i] && !crossed_parents[j]);
-                crossed_parents[i] = 1;
-                crossed_parents[j] = 1;
-            }
-        }
-        free(crossed_parents);
-        crossed_parents = NULL;
-        destroyListPointer(en_ft_list);
-        en_ft_list = NULL;
     }
 
-    destroyListPointer(fitness_list);
+    list_destroy(double, fitnesses);
 
-    Log(DEBUG, "New entities count: %d", (int)SPECIES_LENGTH(new_species));
+    Log(DEBUG, "New entities count: %zu", list_len(new_entities));
+    LOG_FUNC_END;
 
-    LOG_FUNC_END("GAO_FitnessCrossover");
+    return new_entities;
 
-    return new_species;
-
-error_PerformCrossover:
-    DestroySpecies(new_species);
-    destroyListPointer(fitness_list);
-    destroyListPointer(en_ft_list);
-    DestroyEntity(new_entity1);
-    DestroyEntity(new_entity2);
-    free(crossed_parents);
+destroy_fitnesses:
+    list_destroy(double, fitnesses);
+destroy_new_entities:
+    DestroyEntitiesList(new_entities);
     return NULL;
 }
 
-SpeciesList* GAO_Clustering(World* world, Species* new_species,
-                            double eps, size_t min_pts) {
-    SpeciesList* clustered_species = OPTICSClustering(
-            world, new_species,
-            ScaleEps(world, new_species, world->parameters->eps),
-            world->parameters->min_pts);
-    if (!clustered_species) {
-        goto error_PerformClustering;
-    }
-    return clustered_species;
-
-error_PerformClustering:
-    return NULL;
+LIST_TYPE(SpeciesPtr) GAO_Clustering(World* world,
+                                     LIST_TYPE(EntityPtr) new_entities,
+                                     double eps,
+                                     size_t min_pts) {
+    return OPTICSClustering(world, new_entities,
+                            ScaleEps(world, new_entities, eps), min_pts);
 }
 
-int GAO_ChildrenSelection(World* world, Species* new_species) {
-    return PerformSelectionInSpecies(world, new_species, world->world_size);
+bool GAO_ChildrenSelection(World* world, LIST_TYPE(EntityPtr)* new_entities) {
+    return PerformSelectionInEntities(world, new_entities, world->size, NULL);
 }
 
-int GAO_SpeciesLinksSelection(World* world) {
-    LOG_FUNC_START("GAO_SpeciesLinksSelection");
+bool GAO_SpeciesLinksSelection(World* world) {
+    LOG_FUNC_START;
 
-    Log(DEBUG, "Old world size: %d", (int)world->world_size);
+    Log(DEBUG, "Old world size: %zu", world->size);
 
-    SpeciesList* clustered_species = &world->species;
-
-    List* fitness_list = NormalizeSpeciesFitnesses(clustered_species);
-    if (!fitness_list) {
-        goto error_PerformSelection;
+    LIST_TYPE(double) fitnesses = NormalizePopulationFitnesses(world->population);
+    if (!fitnesses) {
+        return false;
     }
 
-    if (!CountSpeciesLinks(fitness_list)) {
-        goto error_PerformSelection;
+    if (!CountSpeciesLinks(fitnesses)) {
+        goto destroy_fitnesses;
     }
+
+    LOG_RELEASE_ASSERT(list_len(world->population) == list_len(fitnesses));
 
     size_t new_world_size = 0;
-
-    Log(INFO, "Before selection in clustered_species");
-    for (ListIterator it_cl = begin(clustered_species),
-                it_ft = begin(fitness_list);
-                !isIteratorExhausted(it_cl);
-                next(&it_cl), next(&it_ft)) {
-        PerformLimitedSelectionInSpecies(world,
-                                         (Species*)(it_cl.current->value),
-                                         *((double*)it_ft.current->value));
-        new_world_size += SPECIES_LENGTH(it_cl.current->value);
+    LIST_ITER_TYPE(SpeciesPtr) species_iter =
+            list_begin(SpeciesPtr, world->population);
+    LIST_ITER_TYPE(double) fitness_iter = list_begin(double, fitnesses);
+    for (; list_iter_valid(species_iter);
+            list_next(SpeciesPtr, species_iter),
+                    list_next(double, fitness_iter)) {
+        if (!PerformLimitedSelectionInSpecies(
+                world,
+                list_iter_value(species_iter),
+                list_iter_value(fitness_iter))) {
+            goto destroy_fitnesses;
+        }
+        new_world_size += list_len(list_iter_value(species_iter)->entities);
     }
-    Log(INFO, "After selection in clustered_species");
 
-    Log(DEBUG, "New world size: %d", (int)new_world_size);
-    world->world_size = new_world_size;
+    Log(DEBUG, "New world size: %zu", new_world_size);
+    world->size = new_world_size;
 
-    for (ListIterator it = begin(clustered_species);
-         !isIteratorExhausted(it);
+    for (species_iter = list_begin(SpeciesPtr, world->population);
+            list_iter_valid(species_iter);
             ) {
-        if (SPECIES_LENGTH(it.current->value) == 0) {
-            ListIterator temp_it = it;
-            next(&it);
-            removeFromList(temp_it);
+        if (!list_len(list_iter_value(species_iter)->entities)) {
+            LIST_ITER_TYPE(SpeciesPtr) temp = species_iter;
+            list_next(SpeciesPtr, species_iter);
+            list_remove(SpeciesPtr, temp);
         }
         else {
-            next(&it);
+            list_next(SpeciesPtr, species_iter);
         }
     }
 
-    destroyListPointer(fitness_list);
+    list_destroy(double, fitnesses);
 
-    LOG_ASSERT(world->world_size != 0);
+    LOG_ASSERT(world->size != 0);
+    LOG_FUNC_END;
 
-    LOG_FUNC_END("GAO_SpeciesLinksSelection");
+    return true;
 
-    return 1;
-
-error_PerformSelection:
-    destroyListPointer(fitness_list);
-    return 0;
+destroy_fitnesses:
+    list_destroy(double, fitnesses);
+    return false;
 }
 
-int GAO_LinearRankingSelection(World* world) {
-
-    List* fitness_list = NormalizeSpeciesFitnesses(&world->species);
-    if (!fitness_list) {
-        goto error_GAO_LinearRankingSelection;
+bool GAO_LinearRankingSelection(World* world) {
+    LIST_TYPE(double) fitnesses = NormalizePopulationFitnesses(world->population);
+    if (!fitnesses) {
+        return false;
     }
+    ScaleSumToOne(fitnesses);
+
+    LOG_RELEASE_ASSERT(list_len(world->population) == list_len(fitnesses));
 
     size_t new_world_size = 0;
-    for (ListIterator sp_it = begin(&world->species),
-                 ft_it = begin(fitness_list);
-            !isIteratorExhausted(sp_it);
-            next(&sp_it), next(&ft_it)) {
-        Species* species = (Species*)sp_it.current->value;
+    LIST_ITER_TYPE(SpeciesPtr) species_iter =
+            list_begin(SpeciesPtr, world->population);
+    LIST_ITER_TYPE(double) fitness_iter = list_begin(double, fitnesses);
+    for (; list_iter_valid(species_iter);
+            list_next(SpeciesPtr, species_iter),
+                    list_next(double, fitness_iter)) {
         size_t alive_count = (size_t)round(world->parameters->initial_world_size
-                                           * *(double*)ft_it.current->value);
+                                           * list_iter_value(fitness_iter));
         if (!alive_count) {
-            ++alive_count;
+            alive_count = 1;
         }
-        if (!LinearRankingSelection(world, species, alive_count)) {
-            goto error_GAO_LinearRankingSelection;
+        if (!LinearRankingSelection(world,
+                                    list_iter_value(species_iter),
+                                    alive_count)) {
+            goto destroy_fitnesses;
         }
-        new_world_size += SPECIES_LENGTH(species);
+        new_world_size += list_len(list_iter_value(species_iter)->entities);
     }
-    world->world_size = new_world_size;
+    world->size = new_world_size;
 
-    for (ListIterator it = begin(&world->species);
-            !isIteratorExhausted(it);
+    for (species_iter = list_begin(SpeciesPtr, world->population);
+            list_iter_valid(species_iter);
             ) {
-        if (SPECIES_LENGTH(it.current->value) == 0) {
-            ListIterator temp_it = it;
-            next(&it);
-            removeFromList(temp_it);
+        if (!list_len(list_iter_value(species_iter)->entities)) {
+            LIST_ITER_TYPE(SpeciesPtr) temp = species_iter;
+            list_next(SpeciesPtr, species_iter);
+
+            DestroySpecies(list_iter_value(temp));
+            list_remove(SpeciesPtr, temp);
         }
         else {
-            next(&it);
+            list_next(SpeciesPtr, species_iter);
         }
     }
 
-    destroyListPointer(fitness_list);
-    return 1;
+    list_destroy(double, fitnesses);
 
-error_GAO_LinearRankingSelection:
-    destroyListPointer(fitness_list);
-    return 0;
+    LOG_ASSERT(world->size != 0);
+    LOG_FUNC_END;
+
+    return true;
+
+destroy_fitnesses:
+    list_destroy(double, fitnesses);
+    return false;
 }
 
 // Static methods section -----------
 
-static int PerformSelectionInSpecies(World* world,
-                                     Species* species,
-                                     size_t alive_count) {
-    if (alive_count >= SPECIES_LENGTH(species)) {
-        return 1;
-    }
-    Entity** entities_p = NULL;
-    EntitiesList* sorted_new_entities = NULL;
-    Entity* new_entity = NULL;
+static bool CrossEntitiesWithProbability(World* world,
+                                         LIST_TYPE(EntityPtr) entities,
+                                         LIST_TYPE(EntityPtr) new_entities,
+                                         double probability,
+                                         size_t generation_number) {
+    LOG_ASSERT(entities);
+    LOG_ASSERT(new_entities);
 
-    entities_p = (Entity**)malloc(sizeof(Entity*) * SPECIES_LENGTH(species));
+    Log(DEBUG, "Crossing %zu entities", list_len(entities));
+    if (list_len(entities) <= 1) {
+        Log(DEBUG, "One or less entities in species");
+        return true;
+    }
+
+    bool* crossed_parents = (bool*)calloc(list_len(entities), sizeof(bool));
+    if (!crossed_parents) {
+        return false;
+    }
+
+    LIST_TYPE(double) entities_fitnesses = NormalizeEntitiesFitnesses(entities);
+    if (!entities_fitnesses) {
+        goto destroy_crossed_parents;
+    }
+
+    LOG_RELEASE_ASSERT(list_len(entities) == list_len(entities_fitnesses));
+
+    Entity* child1 = NULL;
+    Entity* child2 = NULL;
+
+    size_t i = 0;
+    LIST_ITER_TYPE(EntityPtr) iter_i = list_begin(EntityPtr, entities);
+    LIST_ITER_TYPE(double) ft_iter_i = list_begin(double, entities_fitnesses);
+    for (; list_iter_valid(iter_i);
+            list_next(EntityPtr, iter_i), list_next(double, ft_iter_i), ++i) {
+        if (crossed_parents[i]) {
+            continue;
+        }
+        size_t j = 0;
+        LIST_ITER_TYPE(EntityPtr) iter_j = list_begin(EntityPtr, entities);
+        LIST_ITER_TYPE(double) ft_iter_j =
+                list_begin(double, entities_fitnesses);
+        for (; list_iter_valid(iter_j) && !crossed_parents[i];
+                list_next(EntityPtr, iter_j),
+                        list_next(double, ft_iter_j),
+                        ++j) {
+            if (list_iter_eq(iter_i, iter_j)
+                || crossed_parents[j]
+                || !doWithProbability(probability)) {
+
+                continue;
+            }
+            LOG_RELEASE_ASSERT(!crossed_parents[i] && !crossed_parents[j]);
+
+            child1 = CreateEntity(world->chr_size);
+            if (!child1) {
+                goto destroy_entities_fitnesses;
+            }
+
+            child2 = CreateEntity(world->chr_size);
+            if (!child2) {
+                goto destroy_child1;
+            }
+
+            DHXCrossover(list_iter_value(iter_i),
+                         list_iter_value(iter_j),
+                         child1,
+                         child2,
+                         &world->parameters->objective,
+                         list_iter_value(ft_iter_i),
+                         list_iter_value(ft_iter_j),
+                         world->chr_size,
+                         generation_number,
+                         world->parameters->max_generations_count);
+            if (!list_push_back(EntityPtr, new_entities, child2)) {
+                goto destroy_child2;
+            }
+            child2 = NULL;
+            if (!list_push_back(EntityPtr, new_entities, child1)) {
+                goto destroy_child1;
+            }
+            child1 = NULL;
+
+            crossed_parents[i] = true;
+            crossed_parents[j] = true;
+        }
+    }
+
+    list_destroy(double, entities_fitnesses);
+    free(crossed_parents);
+
+    return true;
+
+destroy_child2:
+    DestroyEntity(child2);
+destroy_child1:
+    DestroyEntity(child1);
+destroy_entities_fitnesses:
+    list_destroy(double, entities_fitnesses);
+destroy_crossed_parents:
+    free(crossed_parents);
+    return false;
+}
+
+static bool PerformSelectionInEntities(
+        World* world,
+        LIST_TYPE(EntityPtr)* entities_ptr,
+        size_t alive_count,
+        size_t* entities_died) {
+    LOG_RELEASE_ASSERT(entities_ptr);
+    LIST_TYPE(EntityPtr) entities = *entities_ptr;
+
+    if (alive_count >= list_len(entities)) {
+        return true;
+    }
+    LOG_RELEASE_ASSERT(list_len(entities) > 1);
+
+    Entity** entities_p =
+            SortedEntitiesPointers(entities, EntityDescendingComparator);
     if (!entities_p) {
-        goto error_PerformSelectionInSpecies;
+        return false;
     }
-    size_t index = 0;
-    FOR_EACH_IN_SPECIES(species) {
-        entities_p[index++] = ENTITIES_IT_P;
-    }
-    qsort(entities_p,
-          SPECIES_LENGTH(species),
-          sizeof(Entity*),
-          EntityDescendingComparator);
 
-    sorted_new_entities = CreateEntitiesList();
+    LIST_TYPE(EntityPtr) sorted_new_entities = list_create(EntityPtr);
     if (!sorted_new_entities) {
-        goto error_PerformSelectionInSpecies;
+        goto destroy_entities_p;
     }
-    for (size_t i = 0; i < alive_count; ++i) {
+
+    Entity* new_entity = NULL;
+    for (size_t i = 0; i != alive_count; ++i) {
         new_entity = CopyEntity(entities_p[i], world->chr_size);
         if (!new_entity) {
-            goto error_PerformSelectionInSpecies;
+            goto destroy_sorted_new_entities;
         }
-        if (!pushBack(sorted_new_entities, new_entity)) {
-            goto error_PerformSelectionInSpecies;
+        if (!list_push_back(EntityPtr, sorted_new_entities, new_entity)) {
+            goto destroy_entity;
         }
         new_entity = NULL;
     }
 
-    for (size_t i = alive_count; i < SPECIES_LENGTH(species); ++i) {
-        LOG_ASSERT(entities_p[i]->old == 0 || entities_p[i]->old == 1);
-        species->died += entities_p[i]->old;
+    if (entities_died) {
+        for (size_t i = alive_count; i < list_len(entities); ++i) {
+            *entities_died += entities_p[i]->old;
+        }
     }
 
-    destroyListPointer(species->entitiesList);
-    species->entitiesList = sorted_new_entities;
-    sorted_new_entities = NULL;
+    DestroyEntitiesList(entities);
+    *entities_ptr = sorted_new_entities;
     free(entities_p);
-    entities_p = NULL;
 
-    return 1;
+    return true;
 
-error_PerformSelectionInSpecies:
-    free(entities_p);
-    destroyListPointer(sorted_new_entities);
+destroy_entity:
     DestroyEntity(new_entity);
-    return 0;
+destroy_sorted_new_entities:
+    DestroyEntitiesList(sorted_new_entities);
+destroy_entities_p:
+    free(entities_p);
+    return false;
 }
 
-static int PerformLimitedSelectionInSpecies(World* world,
-                                            Species* species,
-                                            double norm_fitness) {
+static bool PerformLimitedSelectionInSpecies(World* world,
+                                             Species* species,
+                                             double norm_fitness) {
     double selection_part = MAX(norm_fitness, SELECTION_MIN);
     selection_part = MIN(selection_part, SELECTION_MAX);
 
     size_t species_size = (size_t)round(world->parameters->initial_world_size
                                         * selection_part);
-    species_size = MIN(species_size, SPECIES_LENGTH(species));
+    species_size = MIN(species_size, list_len(species->entities));
     species_size = MAX(species_size, CROSSOVER_EXTINCTION_BIAS);
-    return PerformSelectionInSpecies(world, species, species_size);
+    return PerformSelectionInEntities(
+            world, &species->entities, species_size, &species->died);
 }
 
-static double ScaleEps(World* world, Species* new_entities, double eps) {
-    size_t entities_size = world->world_size + new_entities->entitiesList->length;
+static double ScaleEps(World* world,
+                       LIST_TYPE(EntityPtr) new_entities,
+                       double eps) {
+    size_t entities_size = world->size + list_len(new_entities);
     if (!entities_size) {
         Log(WARNING, "%s: There are no entities", __FUNCTION__);
         return 0.0;
@@ -517,16 +513,19 @@ static double ScaleEps(World* world, Species* new_entities, double eps) {
     }
 
     size_t next_index = 0;
-    FOR_EACH_IN_SPECIES_LIST(&world->species) {
-        FOR_EACH_IN_SPECIES(SPECIES_LIST_IT_P) {
+    list_for_each(SpeciesPtr, world->population, species_var) {
+        list_for_each(EntityPtr,
+                      list_var_value(species_var)->entities,
+                      entity_var) {
             LOG_ASSERT(next_index < entities_size);
-            entities[next_index++] = ENTITIES_IT_P;
+            entities[next_index++] = list_var_value(entity_var);
         }
     }
-    FOR_EACH_IN_SPECIES(new_entities) {
+    list_for_each(EntityPtr, new_entities, var) {
         LOG_ASSERT(next_index < entities_size);
-        entities[next_index++] = ENTITIES_IT_P;
+        entities[next_index++] = list_var_value(var);
     }
+    LOG_RELEASE_ASSERT(entities_size == next_index);
 
     double min_distance = -1.0;
     double max_distance = 0.0;
