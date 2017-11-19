@@ -11,6 +11,7 @@
 #include <unordered_set>
 #include <utility>
 #include <memory>
+#include <type_traits>
 
 static double random_func(double* x, int n)
 {
@@ -65,6 +66,36 @@ Entity* MockCreateEntity(size_t chr_size, const Objective* obj)
 
     return new_entity.release();
 
+}
+
+LIST_TYPE(EntityPtr) MockCreateEntities(size_t number,
+                                        size_t chr_size,
+                                        const Objective* obj)
+{
+    std::unique_ptr<
+            std::remove_pointer<LIST_TYPE(EntityPtr)>::type,
+            decltype(&DestroyEntitiesList)>
+            entities(list_create(EntityPtr), &DestroyEntitiesList);
+    if (!entities)
+    {
+        return nullptr;
+    }
+
+    for (size_t i = 0; i != number; ++i)
+    {
+        std::unique_ptr<Entity, decltype(&DestroyEntity)>
+                entity(MockCreateEntity(chr_size, obj), &DestroyEntity);
+        if (!entity)
+        {
+            return nullptr;
+        }
+        if (!list_push_back(EntityPtr, entities.get(), entity.get()))
+        {
+            return nullptr;
+        }
+        entity.release();
+    }
+    return entities.release();
 }
 
 Species* MockCreateSpecies(size_t size, size_t chr_size, const Objective* obj)

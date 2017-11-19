@@ -8,7 +8,7 @@
 #include "GAOperators.h"
 
 #include "Logging/Logging.h"
-#include "DeathManager/DeathManager.h"
+#include "Journal/Journal.h"
 
 static int last_error = 0;
 
@@ -21,13 +21,16 @@ static int GetLastError();
 static int ResetLastError();
 
 GAResult RunEvolution(const GAParameters* parameters,
-                      const GAOperators* operators) {
+                      const GAOperators* operators,
+                      const Journal* journal) {
+    LOG_FUNC_START;
+
     GAResult result = { 0 };
 
-    World* world = CreateWorld(parameters, operators);
+    World* world = CreateWorld(parameters, operators, journal);
     if (!world) {
         Log(ERROR, "Error creating world");
-        return result;
+        goto error;
     }
 
     clock_t begin, end;
@@ -81,20 +84,24 @@ GAResult RunEvolution(const GAParameters* parameters,
 
 exit:
     DestroyWorld(world);
+    LOG_FUNC_SUCCESS;
     return result;
 
 destroy_world:
     DestroyWorld(world);
+error:
     result.error = true;
+    LOG_FUNC_ERROR;
     return result;
 }
 
 // Static methods section -----------
 
 double Iteration(World* world, size_t generation_number) {
-    ResetLastError();
+    LOG_FUNC_START;
 
-    IterationStart();
+    ResetLastError();
+    RecordIterationStart(world->journal, world->population);
 
     if (world->operators->mutation) {
         if (!world->operators->mutation(world, generation_number)) {
@@ -109,11 +116,15 @@ double Iteration(World* world, size_t generation_number) {
         if (!new_entities) {
             goto error;
         }
+        RecordCrossover(world->journal, world->population, new_entities);
 
         if (world->operators->children_selection) {
             if (!world->operators->children_selection(world, &new_entities)) {
                 goto destroy_new_entities;
             }
+            RecordChildrenSelection(world->journal,
+                                    world->population,
+                                    new_entities);
         }
 
         if (world->operators->clustering) {
@@ -124,6 +135,9 @@ double Iteration(World* world, size_t generation_number) {
             if (!clustered_species) {
                 goto destroy_new_entities;
             }
+            RecordClustering(world->journal,
+                             world->population,
+                             clustered_species);
 
             if (!ClearPopulation(world->population)) {
                 goto destroy_clustered_species;
@@ -150,21 +164,21 @@ double Iteration(World* world, size_t generation_number) {
         }
 
         if (world->operators->selection && world->size) {
+            RecordBeforeSelection(world->journal,
+                                  world->population, world->size);
             if (!world->operators->selection(world)) {
                 goto error;
             }
+            RecordSelection(world->journal, world->population, world->size);
         }
     }
 
-    Log(INFO, "World size: %zu", world->size);
-
     CountDiedSpecies(world);
-
-    IterationEnd();
+    RecordIterationEnd(world->journal, world->population);
 
     double max_fitness = GetMaxFitness(world);
-    Log(INFO, "Iteration: max fitness: %.3f", max_fitness);
     LogMaxFitness(max_fitness);
+    LOG_FUNC_SUCCESS;
     return max_fitness;
 
 destroy_clustered_species:
@@ -173,6 +187,7 @@ destroy_new_entities:
     DestroyEntitiesList(new_entities);
 error:
     SetError(1);
+    LOG_FUNC_ERROR;
     return 0.0;
 }
 
@@ -198,10 +213,10 @@ static void CountDiedSpecies(World* world) {
         Species* species = list_var_value(species_var);
         LOG_RELEASE_ASSERT(species->initial_size != 0);
         if (species->died / (double)species->initial_size > EXTINCTION_BIAS) {
+            RecordSpeciesDeath(world->journal, species->initial_size);
             species->died = 0;
             species->initial_size = list_len(species->entities);
             SetEntitiesStatus(species->entities, true);
-            RegisterDeath();
         }
     }
 }

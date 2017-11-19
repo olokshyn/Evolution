@@ -7,6 +7,7 @@
 
 extern "C"
 {
+#include "GeneticAlgorithm/GAFwd.h"
 #include "Species/Species.h"
 };
 
@@ -16,6 +17,7 @@ class Cluster
 {
 public:
     static void set_chr_size(size_t chr_size);
+    static void set_journal(Journal* journal);
 
 public:
     Cluster();
@@ -38,6 +40,7 @@ private:
 
 private:
     static size_t s_chr_size;
+    static Journal* s_journal;
 
 private:
     std::unique_ptr<Species, decltype(&DestroySpecies)> m_species;

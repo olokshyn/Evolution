@@ -74,6 +74,53 @@ TEST(EntityTest, EntityList)
     DestroyEntitiesList(entities);
 }
 
+TEST(EntityTest, GetFitnesses)
+{
+    LIST_TYPE(EntityPtr) entities = MockCreateEntities(entities_count, chr_size);
+    ASSERT_NE(nullptr, entities);
+    ASSERT_EQ(entities_count, list_len(entities));
+
+    size_t i = 0;
+    double _mid_fitness = 0.0;
+    double _min_fitness = list_first(entities)->fitness;
+    double _max_fitness = list_first(entities)->fitness;
+    list_for_each(EntityPtr, entities, var)
+    {
+        _mid_fitness += list_var_value(var)->fitness;
+        if (list_var_value(var)->fitness < _min_fitness) {
+            _min_fitness = list_var_value(var)->fitness;
+        }
+        if (list_var_value(var)->fitness > _max_fitness) {
+            _max_fitness = list_var_value(var)->fitness;
+        }
+        ++i;
+    }
+    _mid_fitness /= list_len(entities);
+    ASSERT_EQ(entities_count, i);
+
+    double mid_fitness;
+    double min_fitness;
+    double max_fitness;
+    GetFitnesses(entities, &mid_fitness, &min_fitness, &max_fitness);
+    ASSERT_DOUBLE_EQ(_mid_fitness, mid_fitness);
+    ASSERT_DOUBLE_EQ(_min_fitness, min_fitness);
+    ASSERT_DOUBLE_EQ(_max_fitness, max_fitness);
+
+    mid_fitness = 0.0;
+    GetFitnesses(entities, &mid_fitness, NULL, NULL);
+    ASSERT_DOUBLE_EQ(_mid_fitness, mid_fitness);
+
+    min_fitness = 0.0;
+    GetFitnesses(entities, NULL, &min_fitness, NULL);
+    ASSERT_DOUBLE_EQ(_min_fitness, min_fitness);
+
+    max_fitness = 0.0;
+    GetFitnesses(entities, NULL, NULL, &max_fitness);
+    ASSERT_DOUBLE_EQ(_max_fitness, max_fitness);
+
+    DestroyEntitiesList(entities);
+}
+
 TEST(EntityTest, NormalizeEntitiesFitnesses)
 {
     LIST_TYPE(EntityPtr) entities = list_create(EntityPtr);

@@ -26,6 +26,10 @@ const size_t g_FCPS_max_min_pts = 3;
 Entity* MockCreateEntity(size_t chr_size,
                          const Objective* obj = &random_objective);
 
+LIST_TYPE(EntityPtr) MockCreateEntities(size_t number,
+                                        size_t chr_size,
+                                        const Objective* obj = &random_objective);
+
 Species* MockCreateSpecies(size_t size, size_t chr_size,
                            const Objective* obj = &random_objective);
 

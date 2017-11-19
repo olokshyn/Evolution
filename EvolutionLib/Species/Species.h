@@ -35,8 +35,6 @@ bool ClearPopulation(LIST_TYPE(SpeciesPtr) population);
 
 void DestroyPopulation(LIST_TYPE(SpeciesPtr) population);
 
-double GetMidFitness(Species* species);
-
 LIST_TYPE(double) NormalizePopulationFitnesses(
         LIST_TYPE(SpeciesPtr) population);
 

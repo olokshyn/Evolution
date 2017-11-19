@@ -8,5 +8,6 @@
 typedef struct world World;
 typedef struct ga_parameters GAParameters;
 typedef struct ga_operators GAOperators;
+typedef struct journal Journal;
 
 #endif //EVOLUTION_GAFWD_H

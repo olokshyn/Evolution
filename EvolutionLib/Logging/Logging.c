@@ -104,6 +104,7 @@ void Log(LogLevel log_level, const char* format, ...) {
 }
 
 void LogMaxFitness(double fitness) {
+    Log(INFO, "Iteration: max fitness: %.3f", fitness);
     fprintf(fitness_file, "%.3f\n", fitness);
     fflush(fitness_file);
 }

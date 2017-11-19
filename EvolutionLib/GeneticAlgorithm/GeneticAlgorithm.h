@@ -15,6 +15,7 @@ typedef struct ga_result {
 } GAResult;
 
 GAResult RunEvolution(const GAParameters* parameters,
-                      const GAOperators* operators);
+                      const GAOperators* operators,
+                      const Journal* journal);
 
 #endif

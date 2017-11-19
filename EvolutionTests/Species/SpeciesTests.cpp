@@ -39,27 +39,6 @@ TEST(SpeciesTest, Creation)
     DestroySpecies(sp);
 }
 
-TEST(SpeciesTest, GetMidFitness)
-{
-    Species* sp = MockCreateSpecies(entities_count, chr_size);
-    ASSERT_NE(nullptr, sp);
-    ASSERT_EQ(entities_count, list_len(sp->entities));
-
-    size_t i = 0;
-    double fitness = 0.0;
-    list_for_each(EntityPtr, sp->entities, var)
-    {
-        fitness += list_var_value(var)->fitness;
-        ++i;
-    }
-    fitness /= list_len(sp->entities);
-    ASSERT_EQ(entities_count, i);
-
-    ASSERT_EQ(GetMidFitness(sp), fitness);
-
-    DestroySpecies(sp);
-}
-
 TEST(SpeciesTest, NormalizeSpeciesFitnesses)
 {
     LIST_TYPE(SpeciesPtr) population = list_create(SpeciesPtr);

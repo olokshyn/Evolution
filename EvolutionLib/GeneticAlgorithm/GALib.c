@@ -13,13 +13,15 @@
 
 
 bool CountSpeciesLinks(LIST_TYPE(double) fitnesses) {
+    LOG_FUNC_START;
+
     if (DOUBLE_EQ(SPECIES_LINK_PROBABILITY, 0.0)) {
-        return true;
+        goto exit;
     }
 
     bool* counted = (bool*)calloc(list_len(fitnesses), sizeof(bool));
     if (!counted) {
-        return false;
+        goto error;
     }
 
     size_t i = 0;
@@ -48,7 +50,13 @@ bool CountSpeciesLinks(LIST_TYPE(double) fitnesses) {
     }
     free(counted);
     Normalize(fitnesses);
+exit:
+    LOG_FUNC_SUCCESS;
     return true;
+
+error:
+    LOG_FUNC_ERROR;
+    return false;
 }
 
 double NonUniformMutationDelta(size_t t, double y,
@@ -62,8 +70,12 @@ double NonUniformMutationDelta(size_t t, double y,
 bool LinearRankingSelection(World* world,
                             Species* species,
                             size_t alive_count) {
+    LOG_FUNC_START;
+
     if (alive_count >= list_len(species->entities)) {
-        return true;
+        Log(DEBUG, "There are less entities %zu that should left alive %zu",
+            list_len(species->entities), alive_count);
+        goto exit;
     }
     LOG_RELEASE_ASSERT(list_len(species->entities) > 1);
 
@@ -77,7 +89,7 @@ bool LinearRankingSelection(World* world,
     double* selection_probs = (double*)calloc(list_len(species->entities),
                                               sizeof(double));
     if (!selection_probs) {
-        return false;
+        goto error;
     }
 
     size_t index = 0;
@@ -151,7 +163,8 @@ bool LinearRankingSelection(World* world,
     sorted_new_entities = NULL;
     free(entities_p);
     free(selection_probs);
-
+exit:
+    LOG_FUNC_SUCCESS;
     return true;
 
 destroy_new_entity:
@@ -162,6 +175,7 @@ destroy_sorted_new_entities:
     DestroyEntitiesList(sorted_new_entities);
 destroy_selection_probs:
     free(selection_probs);
-
+error:
+    LOG_FUNC_ERROR;
     return false;
 }

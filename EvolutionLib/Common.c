@@ -39,16 +39,17 @@ void Normalize(LIST_TYPE(double) numbers) {
 }
 
 void Scale(LIST_TYPE(double) numbers, double a, double b) {
+    LOG_FUNC_START;
     LOG_RELEASE_ASSERT(numbers);
 
     if (list_len(numbers) == 0) {
         Log(WARNING, "%s: cannot scale empty list", __func__);
-        return;
+        goto error;
     }
     if (list_len(numbers) == 1) {
         Log(WARNING, "%s: scaling list of one element", __func__);
         list_first(numbers) = b;
-        return;
+        goto exit;
     }
 
     LIST_ITER_TYPE(double) iter = list_begin(double, numbers);
@@ -80,6 +81,13 @@ void Scale(LIST_TYPE(double) numbers, double a, double b) {
             list_var_value(var) = b;
         }
     }
+
+exit:
+    LOG_FUNC_SUCCESS;
+    return;
+
+error:
+    LOG_FUNC_ERROR;
 }
 
 void ScaleSumToOne(LIST_TYPE(double) numbers) {

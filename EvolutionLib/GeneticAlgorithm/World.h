@@ -16,11 +16,13 @@ typedef struct world {
     size_t chr_size;
     GAParameters* parameters;
     GAOperators* operators;
+    Journal* journal;
 } World;
 
 
 World* CreateWorld(const GAParameters* parameters,
-                   const GAOperators* operators);
+                   const GAOperators* operators,
+                   const Journal* journal);
 
 void DestroyWorld(World* world);
 

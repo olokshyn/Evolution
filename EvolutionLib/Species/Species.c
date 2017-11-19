@@ -52,19 +52,6 @@ void DestroyPopulation(LIST_TYPE(SpeciesPtr) population) {
     list_destroy(SpeciesPtr, population);
 }
 
-double GetMidFitness(Species* species) {
-    LOG_RELEASE_ASSERT(species);
-    LOG_RELEASE_ASSERT(species->entities);
-    // Species must not be empty
-    LOG_RELEASE_ASSERT(list_len(species->entities));
-
-    double fitness = 0.0;
-    list_for_each(EntityPtr, species->entities, var) {
-        fitness += list_var_value(var)->fitness;
-    }
-    return fitness / list_len(species->entities);
-}
-
 LIST_TYPE(double) NormalizePopulationFitnesses(
         LIST_TYPE(SpeciesPtr) population) {
     LIST_TYPE(double) fitnesses = list_create(double);
@@ -73,8 +60,10 @@ LIST_TYPE(double) NormalizePopulationFitnesses(
     }
 
     list_for_each(SpeciesPtr, population, var) {
-        if (!list_push_back(double, fitnesses,
-                            GetMidFitness(list_var_value(var)))) {
+        double mid_fitness;
+        GetFitnesses(list_var_value(var)->entities,
+                     &mid_fitness, NULL, NULL);
+        if (!list_push_back(double, fitnesses, mid_fitness)) {
             goto destroy_fitnesses;
         }
     }

@@ -9,14 +9,20 @@
 extern "C"
 {
 #include "Logging/Logging.h"
-#include "DeathManager/DeathManager.h"
+#include "Journal/Journal.h"
 }
 
 size_t Cluster::s_chr_size = 0;
+Journal* Cluster::s_journal = nullptr;
 
 void Cluster::set_chr_size(size_t chr_size)
 {
     Cluster::s_chr_size = chr_size;
+}
+
+void Cluster::set_journal(Journal* journal)
+{
+    Cluster::s_journal = journal;
 }
 
 Cluster::Cluster()
@@ -74,7 +80,7 @@ void Cluster::add(Cluster& other)
     LOG_ASSERT(other.m_species);
     if (other.m_species->initial_size != 0)
     {
-        RegisterDeath();
+        RecordSpeciesDeath(s_journal, other.m_species->initial_size);
     }
     SetEntitiesStatus(other.m_species->entities, false);
     if (!list_move(EntityPtr, other.m_species->entities, m_species->entities))

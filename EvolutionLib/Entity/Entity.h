@@ -39,6 +39,11 @@ void DestroyEntitiesList(LIST_TYPE(EntityPtr) entities);
 
 void SetEntitiesStatus(LIST_TYPE(EntityPtr) entities, bool old);
 
+void GetFitnesses(LIST_TYPE(EntityPtr) entities,
+                  double* mid_fitness,
+                  double* min_fitness,
+                  double* max_fitness);
+
 LIST_TYPE(double) NormalizeEntitiesFitnesses(LIST_TYPE(EntityPtr) entities);
 
 Entity** SortedEntitiesPointers(LIST_TYPE(EntityPtr) entities,

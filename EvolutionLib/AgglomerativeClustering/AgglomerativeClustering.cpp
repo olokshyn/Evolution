@@ -39,6 +39,7 @@ LIST_TYPE(SpeciesPtr) AgglomerativeClustering(World* world,
     {
         LOG_ASSERT(eps >= 0.0);
         Cluster::set_chr_size(world->chr_size);
+        Cluster::set_journal(world->journal);
         size_t layer_size = list_len(world->population);
         if (new_entities)
         {
@@ -58,9 +59,9 @@ LIST_TYPE(SpeciesPtr) AgglomerativeClustering(World* world,
             }
         }
 
-        Log(INFO, "Before distance manager");
+        Log(DEBUG, "Before distance manager");
         DistanceManager distManager(current_layer);
-        Log(INFO, "After distance manager");
+        Log(DEBUG, "After distance manager");
 
         double max_distance = 0.0;
         while (layer_size > MAX_CLUSTER_COUNT
@@ -72,7 +73,7 @@ LIST_TYPE(SpeciesPtr) AgglomerativeClustering(World* world,
             vector<Cluster> next_layer;
             next_layer.reserve(layer_size / 2 + 1);
 
-            Log(INFO, "Before layer loop");
+            Log(DEBUG, "Before layer loop");
             for (size_t i = 0; i < layer_size; ++i)
             {
                 if (IsInVector(mergedClusters, i))
@@ -108,19 +109,19 @@ LIST_TYPE(SpeciesPtr) AgglomerativeClustering(World* world,
                     max_distance = min_distance;
                 }
             }
-            Log(INFO, "After layer loop");
+            Log(DEBUG, "After layer loop");
             distManager.CommitMerges();
-            Log(INFO, "After merging");
+            Log(DEBUG, "After merging");
             current_layer = move(next_layer);
             layer_size = current_layer.size();
         }
 
-        LOG_FUNC_END;
+        LOG_FUNC_SUCCESS;
         return ConvertToPopulation(current_layer);
     }
     catch (const std::bad_alloc&)
     {
-        Log(ERROR, "AgglomerativeClustering allocation error");
+        LOG_FUNC_ERROR;
         return nullptr;
     }
 }

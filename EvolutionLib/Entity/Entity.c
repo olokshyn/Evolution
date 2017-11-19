@@ -90,6 +90,38 @@ void SetEntitiesStatus(LIST_TYPE(EntityPtr) entities, bool old) {
     }
 }
 
+void GetFitnesses(LIST_TYPE(EntityPtr) entities,
+                  double* mid_fitness,
+                  double* min_fitness,
+                  double* max_fitness) {
+    LOG_RELEASE_ASSERT(entities);
+    // Entities list must not be empty
+    LOG_RELEASE_ASSERT(list_len(entities));
+
+    double _mid_fitness = 0.0;
+    double _min_fitness = list_first(entities)->fitness;
+    double _max_fitness = list_first(entities)->fitness;
+    list_for_each(EntityPtr, entities, var) {
+        _mid_fitness += list_var_value(var)->fitness;
+        if (list_var_value(var)->fitness < _min_fitness) {
+            _min_fitness = list_var_value(var)->fitness;
+        }
+        else if (list_var_value(var)->fitness > _max_fitness) {
+            _max_fitness = list_var_value(var)->fitness;
+        }
+    }
+
+    if (mid_fitness) {
+        *mid_fitness = _mid_fitness / list_len(entities);
+    }
+    if (min_fitness) {
+        *min_fitness = _min_fitness;
+    }
+    if (max_fitness) {
+        *max_fitness = _max_fitness;
+    }
+}
+
 LIST_TYPE(double) NormalizeEntitiesFitnesses(LIST_TYPE(EntityPtr) entities) {
     LOG_RELEASE_ASSERT(entities);
 

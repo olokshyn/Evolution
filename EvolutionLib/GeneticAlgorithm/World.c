@@ -9,28 +9,24 @@
 #include "GAParameters.h"
 #include "GAOperators.h"
 
-#include "DeathManager/DeathManager.h"
 #include "Logging/Logging.h"
+#include "Journal/Journal.h"
 #include "Common.h"
 
 static bool InitPopulation(World* world);
 
 World* CreateWorld(const GAParameters* parameters,
-                   const GAOperators* operators) {
+                   const GAOperators* operators,
+                   const Journal* journal) {
     LOG_FUNC_START;
 
     if (!parameters) {
         Log(ERROR, "Cannot create world with NULL parameters");
-        return NULL;
+        goto error;
     }
     if (!operators) {
         Log(ERROR, "Cannot create world with NULL operators");
-        return NULL;
-    }
-
-    if (!InitDeathManager("death.log")) {
-        Log(ERROR, "Failed to init death manager");
-        return NULL;
+        goto error;
     }
 
     World* world = (World*)malloc(sizeof(World));
@@ -62,14 +58,26 @@ World* CreateWorld(const GAParameters* parameters,
     }
     *world->operators = *operators;
 
-    if (!InitPopulation(world)) {
-        goto destroy_operators;
+    if (journal) {
+        world->journal = (Journal*)malloc(sizeof(Journal));
+        if (!world->journal) {
+            goto destroy_operators;
+        }
+        *world->journal = *journal;
+    }
+    else {
+        world->journal = NULL;
     }
 
-    LOG_FUNC_END;
+    if (!InitPopulation(world)) {
+        goto destroy_journal;
+    }
 
+    LOG_FUNC_SUCCESS;
     return world;
 
+destroy_journal:
+    free(world->journal);
 destroy_operators:
     free(world->operators);
 destroy_parameters:
@@ -79,7 +87,7 @@ destroy_population:
 destroy_world:
     free(world);
 error:
-    ReleaseDeathManager();
+    LOG_FUNC_ERROR;
     return NULL;
 }
 
@@ -87,21 +95,23 @@ void DestroyWorld(World* world) {
     if (!world) {
         return;
     }
+    free(world->journal);
     free(world->operators);
     free(world->parameters);
     DestroyPopulation(world->population);
     free(world);
-    ReleaseDeathManager();
 }
 
 static bool InitPopulation(World* world) {
+    LOG_FUNC_START;
+
     if (!world || !world->population) {
-        return false;
+        goto error;
     }
 
     Species* species = CreateSpecies(world->size);
     if (!species) {
-        return false;
+        goto error;
     }
 
     Entity* entity = NULL;
@@ -130,11 +140,14 @@ static bool InitPopulation(World* world) {
         goto destroy_species;
     }
 
+    LOG_FUNC_SUCCESS;
     return true;
 
 destroy_entity:
     DestroyEntity(entity);
 destroy_species:
     DestroySpecies(species);
+error:
+    LOG_FUNC_ERROR;
     return false;
 }

@@ -49,7 +49,7 @@ void RunForOneAvg(GAParameters* parameters,
             fprintf(report_file, "Test number %zu\n", test_number + 1);
         }
 
-        GAResult result = RunEvolution(parameters, operators);
+        GAResult result = RunEvolution(parameters, operators, NULL);
 
         if (result.error) {
             printf("Error occurred\n");

@@ -35,8 +35,10 @@ static double ScaleEps(World* world,
                        double eps);
 
 bool GAO_UniformMutation(World* world, size_t generation_number) {
+    LOG_FUNC_START;
+
     if (!world->population) {
-        return false;
+        goto error;
     }
     list_for_each(SpeciesPtr, world->population, species_var) {
         list_for_each(EntityPtr,
@@ -54,12 +56,19 @@ bool GAO_UniformMutation(World* world, size_t generation_number) {
             }
         }
     }
+    LOG_FUNC_SUCCESS;
     return true;
+
+error:
+    LOG_FUNC_ERROR;
+    return false;
 }
 
 bool GAO_NonUniformMutation(World* world, size_t generation_number) {
+    LOG_FUNC_START;
+
     if (!world->population) {
-        return false;
+        goto error;
     }
     list_for_each(SpeciesPtr, world->population, species_var) {
         list_for_each(EntityPtr,
@@ -86,7 +95,12 @@ bool GAO_NonUniformMutation(World* world, size_t generation_number) {
             }
         }
     }
+    LOG_FUNC_SUCCESS;
     return true;
+
+error:
+    LOG_FUNC_ERROR;
+    return false;
 }
 
 LIST_TYPE(EntityPtr) GAO_UniformCrossover(World* world,
@@ -95,7 +109,7 @@ LIST_TYPE(EntityPtr) GAO_UniformCrossover(World* world,
 
     LIST_TYPE(EntityPtr) new_entities = list_create(EntityPtr);
     if (!new_entities) {
-        return NULL;
+        goto error;
     }
 
     Log(DEBUG, "Perform crossover in %zu species", list_len(world->population));
@@ -112,12 +126,13 @@ LIST_TYPE(EntityPtr) GAO_UniformCrossover(World* world,
     }
 
     Log(DEBUG, "New entities count: %zu", list_len(new_entities));
-    LOG_FUNC_END;
-
+    LOG_FUNC_SUCCESS;
     return new_entities;
 
 destroy_new_entities:
     DestroyEntitiesList(new_entities);
+error:
+    LOG_FUNC_ERROR;
     return NULL;
 }
 
@@ -127,7 +142,7 @@ LIST_TYPE(EntityPtr) GAO_FitnessCrossover(World* world,
 
     LIST_TYPE(EntityPtr) new_entities = list_create(EntityPtr);
     if (!new_entities) {
-        return NULL;
+        goto error;
     }
 
     LIST_TYPE(double) fitnesses = NormalizePopulationFitnesses(world->population);
@@ -181,14 +196,15 @@ LIST_TYPE(EntityPtr) GAO_FitnessCrossover(World* world,
     list_destroy(double, fitnesses);
 
     Log(DEBUG, "New entities count: %zu", list_len(new_entities));
-    LOG_FUNC_END;
-
+    LOG_FUNC_SUCCESS;
     return new_entities;
 
 destroy_fitnesses:
     list_destroy(double, fitnesses);
 destroy_new_entities:
     DestroyEntitiesList(new_entities);
+error:
+    LOG_FUNC_ERROR;
     return NULL;
 }
 
@@ -211,7 +227,7 @@ bool GAO_SpeciesLinksSelection(World* world) {
 
     LIST_TYPE(double) fitnesses = NormalizePopulationFitnesses(world->population);
     if (!fitnesses) {
-        return false;
+        goto error;
     }
 
     if (!CountSpeciesLinks(fitnesses)) {
@@ -255,19 +271,22 @@ bool GAO_SpeciesLinksSelection(World* world) {
     list_destroy(double, fitnesses);
 
     LOG_ASSERT(world->size != 0);
-    LOG_FUNC_END;
-
+    LOG_FUNC_SUCCESS;
     return true;
 
 destroy_fitnesses:
     list_destroy(double, fitnesses);
+error:
+    LOG_FUNC_ERROR;
     return false;
 }
 
 bool GAO_LinearRankingSelection(World* world) {
+    LOG_FUNC_START;
+
     LIST_TYPE(double) fitnesses = NormalizePopulationFitnesses(world->population);
     if (!fitnesses) {
-        return false;
+        goto error;
     }
     ScaleSumToOne(fitnesses);
 
@@ -312,12 +331,13 @@ bool GAO_LinearRankingSelection(World* world) {
     list_destroy(double, fitnesses);
 
     LOG_ASSERT(world->size != 0);
-    LOG_FUNC_END;
-
+    LOG_FUNC_SUCCESS;
     return true;
 
 destroy_fitnesses:
     list_destroy(double, fitnesses);
+error:
+    LOG_FUNC_ERROR;
     return false;
 }
 
@@ -328,18 +348,19 @@ static bool CrossEntitiesWithProbability(World* world,
                                          LIST_TYPE(EntityPtr) new_entities,
                                          double probability,
                                          size_t generation_number) {
+    LOG_FUNC_START;
     LOG_ASSERT(entities);
     LOG_ASSERT(new_entities);
 
     Log(DEBUG, "Crossing %zu entities", list_len(entities));
     if (list_len(entities) <= 1) {
         Log(DEBUG, "One or less entities in species");
-        return true;
+        goto exit;
     }
 
     bool* crossed_parents = (bool*)calloc(list_len(entities), sizeof(bool));
     if (!crossed_parents) {
-        return false;
+        goto error;
     }
 
     LIST_TYPE(double) entities_fitnesses = NormalizeEntitiesFitnesses(entities);
@@ -412,7 +433,8 @@ static bool CrossEntitiesWithProbability(World* world,
 
     list_destroy(double, entities_fitnesses);
     free(crossed_parents);
-
+exit:
+    LOG_FUNC_SUCCESS;
     return true;
 
 destroy_child2:
@@ -423,6 +445,8 @@ destroy_entities_fitnesses:
     list_destroy(double, entities_fitnesses);
 destroy_crossed_parents:
     free(crossed_parents);
+error:
+    LOG_FUNC_ERROR;
     return false;
 }
 
@@ -431,18 +455,22 @@ static bool PerformSelectionInEntities(
         LIST_TYPE(EntityPtr)* entities_ptr,
         size_t alive_count,
         size_t* entities_died) {
+    LOG_FUNC_START;
     LOG_RELEASE_ASSERT(entities_ptr);
+
     LIST_TYPE(EntityPtr) entities = *entities_ptr;
 
     if (alive_count >= list_len(entities)) {
-        return true;
+        Log(DEBUG, "There are less entities %zu that should left alive %zu",
+            list_len(entities), alive_count);
+        goto exit;
     }
     LOG_RELEASE_ASSERT(list_len(entities) > 1);
 
     Entity** entities_p =
             SortedEntitiesPointers(entities, EntityDescendingComparator);
     if (!entities_p) {
-        return false;
+        goto error;
     }
 
     LIST_TYPE(EntityPtr) sorted_new_entities = list_create(EntityPtr);
@@ -472,6 +500,8 @@ static bool PerformSelectionInEntities(
     *entities_ptr = sorted_new_entities;
     free(entities_p);
 
+exit:
+    LOG_FUNC_SUCCESS;
     return true;
 
 destroy_entity:
@@ -480,6 +510,8 @@ destroy_sorted_new_entities:
     DestroyEntitiesList(sorted_new_entities);
 destroy_entities_p:
     free(entities_p);
+error:
+    LOG_FUNC_ERROR;
     return false;
 }
 
@@ -500,16 +532,18 @@ static bool PerformLimitedSelectionInSpecies(World* world,
 static double ScaleEps(World* world,
                        LIST_TYPE(EntityPtr) new_entities,
                        double eps) {
+    LOG_FUNC_START;
+
     size_t entities_size = world->size + list_len(new_entities);
     if (!entities_size) {
         Log(WARNING, "%s: There are no entities", __FUNCTION__);
-        return 0.0;
+        goto error;
     }
 
     const Entity* * entities = calloc(entities_size, sizeof(Entity*));
     if (!entities) {
         Log(ERROR, "%s: Failed to allocate entities", __FUNCTION__);
-        return 0.0;
+        goto error;
     }
 
     size_t next_index = 0;
@@ -573,5 +607,11 @@ static double ScaleEps(World* world,
                                            + large_distances);
     // [0.5 eps, 1.5 eps]
     eps = MAX(MIN(eps / 2.0 * (1.0 + scaling_multiplier), 0.95), 0.05);
+
+    LOG_FUNC_SUCCESS;
     return min_distance + (max_distance - min_distance) * eps;
+
+error:
+    LOG_FUNC_ERROR;
+    return 0.0;
 }
