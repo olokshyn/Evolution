@@ -341,6 +341,26 @@ error:
     return false;
 }
 
+const GAOperators HerreraOperators = {
+        .mutation = GAO_NonUniformMutation,
+        .crossover = GAO_UniformCrossover,
+        .selection = GAO_LinearRankingSelection
+};
+
+const GAOperators HerreraWithClusteringOperators = {
+        .mutation = GAO_NonUniformMutation,
+        .crossover = GAO_UniformCrossover,
+        .clustering = GAO_Clustering,
+        .selection = GAO_LinearRankingSelection
+};
+
+const GAOperators LokshynOperators = {
+        .mutation = GAO_NonUniformMutation,
+        .crossover = GAO_UniformCrossover,
+        .clustering = GAO_Clustering,
+        .selection = GAO_SpeciesLinksSelection
+};
+
 // Static methods section -----------
 
 static bool CrossEntitiesWithProbability(World* world,

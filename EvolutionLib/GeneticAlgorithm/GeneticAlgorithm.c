@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <time.h>
+#include <float.h>
 
 #include "World.h"
 #include "GAParameters.h"
@@ -10,7 +11,7 @@
 #include "Logging/Logging.h"
 #include "Journal/Journal.h"
 
-static int last_error = 0;
+_Thread_local int last_error = 0;
 
 static double Iteration(World* world, size_t generation_number);
 static double GetMaxFitness(World* world);
@@ -36,6 +37,17 @@ GAResult RunEvolution(const GAParameters* parameters,
     clock_t begin, end;
     double time_spent = 0.0;
 
+    /*
+     * NOTE: sometimes the fitness of this randomly-generated entities
+     * is the best one we can achieve during the whole epoch.
+     *
+     * In this case the GA is absolutely useless, because
+     * random picking gives betters results.
+     *
+     * In this case GUI will show different max fitness,
+     * because GUI does not take into accout the max fitness
+     * of the randomly-generated entities.
+     */
     double max_fitness = GetMaxFitness(world);
     double prev_max_fitness = 0.0;
 
@@ -101,7 +113,7 @@ double Iteration(World* world, size_t generation_number) {
     LOG_FUNC_START;
 
     ResetLastError();
-    RecordIterationStart(world->journal, world->population);
+    RecordIterationStart(world->journal, world->population, generation_number);
 
     if (world->operators->mutation) {
         if (!world->operators->mutation(world, generation_number)) {
@@ -192,20 +204,19 @@ error:
 }
 
 double GetMaxFitness(World* world) {
-    Entity* max_fitness_entity = NULL;
+    double max_fitness = -DBL_MAX;
     list_for_each(SpeciesPtr, world->population, species_var) {
         list_for_each(EntityPtr,
                       list_var_value(species_var)->entities,
                       entity_var) {
-            if (!max_fitness_entity
-                || list_var_value(entity_var)->fitness
-                   > max_fitness_entity->fitness) {
+            if (list_var_value(entity_var)->fitness
+                > max_fitness) {
 
-                max_fitness_entity = list_var_value(entity_var);
+                max_fitness = list_var_value(entity_var)->fitness;
             }
         }
     }
-    return max_fitness_entity ? max_fitness_entity->fitness : 0.0;
+    return max_fitness;
 }
 
 static void CountDiedSpecies(World* world) {

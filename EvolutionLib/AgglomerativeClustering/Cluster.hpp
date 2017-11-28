@@ -39,8 +39,8 @@ private:
     static double measure(const Entity* entity1, const Entity* entity2);
 
 private:
-    static size_t s_chr_size;
-    static Journal* s_journal;
+    static thread_local size_t s_chr_size;
+    static thread_local Journal* s_journal;
 
 private:
     std::unique_ptr<Species, decltype(&DestroySpecies)> m_species;

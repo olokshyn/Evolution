@@ -27,8 +27,7 @@ set(EVOLUTION_TESTS_SOURCE_FILES
         TestsCommon.cpp
         TestsCommon.h)
 add_executable(EvolutionTests ${EVOLUTION_TESTS_SOURCE_FILES})
-target_link_libraries(EvolutionTests gtest_main)
-target_link_libraries(EvolutionTests EvolutionLib)
+target_link_libraries(EvolutionTests gtest_main EvolutionLib)
 
 add_custom_command(
         TARGET EvolutionTests
@@ -38,7 +37,7 @@ add_custom_command(
         ${CMAKE_CURRENT_BINARY_DIR}/data
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Wishart/data)
 
-#add_custom_command(
-#        TARGET EvolutionTests
-#        POST_BUILD
-#        COMMAND EvolutionTests)
+add_custom_command(
+        TARGET EvolutionTests
+        POST_BUILD
+        COMMAND EvolutionTests --gtest_filter=-*FCPS*)

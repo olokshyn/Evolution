@@ -12,8 +12,8 @@ extern "C"
 #include "Journal/Journal.h"
 }
 
-size_t Cluster::s_chr_size = 0;
-Journal* Cluster::s_journal = nullptr;
+thread_local size_t Cluster::s_chr_size = 0;
+thread_local Journal* Cluster::s_journal = nullptr;
 
 void Cluster::set_chr_size(size_t chr_size)
 {

@@ -10,9 +10,9 @@
 #include <string.h>
 #include <ctype.h>
 
-static LogLevel current_log_level = INFO;
-static FILE* log_file = NULL;
-static FILE* fitness_file = NULL;
+static _Thread_local LogLevel current_log_level = INFO;
+static _Thread_local FILE* log_file = NULL;
+static _Thread_local FILE* fitness_file = NULL;
 
 static const char* const LogLevelsNames[5] = {
         [NOT_SET] = "NOT_SET",
@@ -22,23 +22,27 @@ static const char* const LogLevelsNames[5] = {
         [ERROR] = "ERROR"
 };
 
-int InitLogging(const char* log_filename, LogLevel log_level) {
+bool InitLogging(const char* log_filename, LogLevel log_level) {
     if (!log_file) {
         ReleaseLogging();
     }
     log_file = fopen(log_filename, "w");
     if (!log_file) {
-        return 0;
+        goto error;
     }
     fitness_file = fopen("fitness.log", "w");
     if (!fitness_file) {
-        fclose(log_file);
-        return 0;
+        goto destroy_log_file;
     }
     if (log_level != NOT_SET) {
         current_log_level = log_level;
     }
-    return 1;
+    return true;
+
+destroy_log_file:
+    fclose(log_file);
+error:
+    return false;
 }
 
 void ReleaseLogging() {

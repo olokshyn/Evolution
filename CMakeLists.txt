@@ -15,7 +15,7 @@ set(SOURCE_FILES
 add_executable(Evolution ${SOURCE_FILES})
 target_link_libraries(Evolution EvolutionLib)
 
-#add_dependencies(Evolution EvolutionTests)
+add_dependencies(Evolution EvolutionTests)
 
 #set(THREADS_PREFER_PTHREAD_FLAG ON)
 #find_package(EvolutionLib/Threads REQUIRED)

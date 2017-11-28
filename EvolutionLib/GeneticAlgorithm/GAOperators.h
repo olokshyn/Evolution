@@ -42,32 +42,27 @@ bool GAO_SpeciesLinksSelection(World* world);
 
 bool GAO_LinearRankingSelection(World* world);
 
-#define DEFAULT_GA_OPERATORS { \
-    .mutation = GAO_UniformMutation, \
-    .crossover = GAO_FitnessCrossover, \
-    .clustering = GAO_Clustering, \
-    .children_selection = GAO_ChildrenSelection, \
-    .selection = GAO_SpeciesLinksSelection \
-}
+extern const GAOperators HerreraOperators;
 
-#define HERRERA_GA_OPERATORS { \
-    .mutation = GAO_NonUniformMutation, \
-    .crossover = GAO_UniformCrossover, \
-    .selection = GAO_LinearRankingSelection \
-}
+extern const GAOperators HerreraWithClusteringOperators;
 
-#define HERRERA_WITH_CLUSTERING_GA_OPERATORS { \
-    .mutation = GAO_NonUniformMutation, \
-    .crossover = GAO_UniformCrossover, \
-    .clustering = GAO_Clustering, \
-    .selection = GAO_LinearRankingSelection \
-}
+extern const GAOperators LokshynOperators;
 
-#define LOKSHYN_GA_OPERATORS { \
-    .mutation = GAO_NonUniformMutation, \
-    .crossover = GAO_UniformCrossover, \
-    .clustering = GAO_Clustering, \
-    .selection = GAO_SpeciesLinksSelection \
-}
+static const char* const OperatorsNames[] = {
+        "Herrera",
+        "Herrera with clustering",
+        "Lokshyn"
+};
+
+static const GAOperators* const Operators[] = {
+        &HerreraOperators,
+        &HerreraWithClusteringOperators,
+        &LokshynOperators
+};
+
+static_assert(sizeof(OperatorsNames) / sizeof(OperatorsNames[0])
+              == sizeof(Operators) / sizeof(Operators[0]),
+              "Operators names are ill-formed");
+static const size_t Operators_count = sizeof(Operators) / sizeof(Operators[0]);
 
 #endif //EVOLUTION_GAOPERATORS_H

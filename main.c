@@ -36,7 +36,7 @@ const char* failure_template = ANSI_COLOR_RED "FAILURE" ANSI_COLOR_RESET
 "\t avg time spent on a step: %.5f\n";
 
 void RunForOneAvg(GAParameters* parameters,
-                  GAOperators* operators,
+                  const GAOperators* operators,
                   size_t tests_count,
                   FILE* report_file) {
     double avg_optimum = 0.0;
@@ -96,52 +96,17 @@ void RunForOneAvg(GAParameters* parameters,
 }
 
 void RunForAllFunctions(GAParameters* parameters,
-                        GAOperators* operators,
+                        const GAOperators* operators,
                         size_t tests_count) {
-    const char* functionNames[] = {
-            "De Jong`s F1 function",
-            "De Jong`s F2 function",
-            "De Jong`s F3 function",
-            "De Jong`s F4 function",
-            "De Jong`s F5 function",
-            "Rastrigin`s function",
-            "Schwefel`s function",
-            "Griewangk`s function",
-            "Stretched V sine wave function",
-            "Ackley`s function",
-            "EggHolder function",
-            "Pathological test function"
-    };
-
-    Objective objectiveFunctions[] = {
-            DeJongF1Objective,
-            DeJongF2Objective,
-            DeJongF3Objective,
-            DeJongF4Objective,
-            DeJongF5Objective,
-            RastriginFuncObjective,
-            SchwefelFuncObjective,
-            GriewangkFuncObjective,
-            StretchedVSineWaveFuncObjective,
-            AckleyFuncObjective,
-            EggHolderFuncObjective,
-            PathologicalFuncObjective
-    };
-
-    LOG_ASSERT(sizeof(functionNames) / sizeof(char*)
-               == sizeof(objectiveFunctions) / sizeof(Objective));
-
-    size_t functionsCount = sizeof(functionNames) / sizeof(char*);
-
     FILE* report_file = fopen("RunReport.log", "w");
     if (!report_file) {
         printf("Failed to open RunReport.log\n");
         return;
     }
 
-    for (size_t i = 0; i != functionsCount; ++i) {
-        printf("%s\n", functionNames[i]);
-        parameters->objective = objectiveFunctions[i];
+    for (size_t i = 0; i != Objectives_count; ++i) {
+        printf("%s\n", ObjectivesNames[i]);
+        parameters->objective = *Objectives[i];
 
         RunForOneAvg(parameters, operators, tests_count, report_file);
     }
@@ -216,25 +181,9 @@ int main(int argc, char* argv[]) {
             .stable_value_eps = 1e-5,
     };
 
-    GAOperators operators[] = {
-            HERRERA_GA_OPERATORS,
-            HERRERA_WITH_CLUSTERING_GA_OPERATORS,
-            LOKSHYN_GA_OPERATORS
-    };
-
-    const char* operators_names[] = {
-            "Herrera GA",
-            "Herrera with clustering GA",
-            "Lokshyn GA"
-    };
-
-    LOG_ASSERT(sizeof(operators) / sizeof(operators[0])
-               == sizeof(operators_names) / sizeof(operators_names[0]));
-    size_t operators_count = sizeof(operators) / sizeof(operators[0]);
-
-    for (size_t i = 0; i != operators_count; ++i) {
-        printf("\n---Operators: %s ---\n", operators_names[i]);
-        RunForAllFunctions(&parameters, &operators[i], 15);
+    for (size_t i = 0; i != Operators_count; ++i) {
+        printf("\n---Operators: %s ---\n", OperatorsNames[i]);
+        RunForAllFunctions(&parameters, Operators[i], 15);
     }
 
     ReleaseLogging();

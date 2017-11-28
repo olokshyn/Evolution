@@ -27,9 +27,11 @@
     raise(SIGABRT); \
 }
 
+#include <stdbool.h>
+
 typedef enum {NOT_SET, DEBUG, INFO, WARNING, ERROR} LogLevel;
 
-int InitLogging(const char* log_filename, LogLevel log_level);
+bool InitLogging(const char* log_filename, LogLevel log_level);
 
 void ReleaseLogging();
 

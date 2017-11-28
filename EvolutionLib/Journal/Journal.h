@@ -8,26 +8,37 @@
 #include "Species/Species.h"
 
 typedef struct journal {
-    void (*iteration_start)(LIST_TYPE(SpeciesPtr) population);
-    void (*iteration_end)(LIST_TYPE(SpeciesPtr) population,
+    void* data;
+    void (*iteration_start)(void* data,
+                            LIST_TYPE(SpeciesPtr) population,
+                            size_t generation_number);
+    void (*iteration_end)(void* data,
+                          LIST_TYPE(SpeciesPtr) population,
                           size_t species_died_on_iteration);
 
-    void (*crossover)(LIST_TYPE(SpeciesPtr) population,
+    void (*crossover)(void* data,
+                      LIST_TYPE(SpeciesPtr) population,
                       LIST_TYPE(EntityPtr) new_entities);
-    void (*children_selection)(LIST_TYPE(SpeciesPtr) population,
+    void (*children_selection)(void* data,
+                               LIST_TYPE(SpeciesPtr) population,
                                LIST_TYPE(EntityPtr) new_entities);
-    void (*clustering)(LIST_TYPE(SpeciesPtr) population,
+    void (*clustering)(void* data,
+                       LIST_TYPE(SpeciesPtr) population,
                        LIST_TYPE(SpeciesPtr) new_population);
-    void (*before_selection)(LIST_TYPE(SpeciesPtr) population,
+    void (*before_selection)(void* data,
+                             LIST_TYPE(SpeciesPtr) population,
                              size_t world_size);
-    void (*selection)(LIST_TYPE(SpeciesPtr) population,
+    void (*selection)(void* data,
+                      LIST_TYPE(SpeciesPtr) population,
                       size_t world_size);
 
-    void (*species_death)(size_t initial_size);
+    void (*species_death)(void* data,
+                          size_t initial_size);
 } Journal;
 
 void RecordIterationStart(Journal* journal,
-                          LIST_TYPE(SpeciesPtr) population);
+                          LIST_TYPE(SpeciesPtr) population,
+                          size_t generation_number);
 
 void RecordIterationEnd(Journal* journal,
                         LIST_TYPE(SpeciesPtr) population);

@@ -31,6 +31,42 @@ extern Objective RanaFuncObjective;
 
 extern Objective PathologicalFuncObjective;
 
+
+static const char* const ObjectivesNames[] = {
+        "De Jong F1",
+        "De Jong F2",
+        "De Jong F3",
+        "De Jong F4",
+        "De Jong F5",
+        "Rastrigin",
+        "Schwefel",
+        "Griewangk",
+        "Stretched V Sine Wave",
+        "Ackley",
+        "Egg Holder",
+        "Pathological"
+};
+
+static const Objective* const Objectives[] = {
+        &DeJongF1Objective,
+        &DeJongF2Objective,
+        &DeJongF3Objective,
+        &DeJongF4Objective,
+        &DeJongF5Objective,
+        &RastriginFuncObjective,
+        &SchwefelFuncObjective,
+        &GriewangkFuncObjective,
+        &StretchedVSineWaveFuncObjective,
+        &AckleyFuncObjective,
+        &EggHolderFuncObjective,
+        &PathologicalFuncObjective
+};
+
+static_assert(sizeof(ObjectivesNames) / sizeof(ObjectivesNames[0])
+              == sizeof(Objectives) / sizeof(Objectives[0]),
+              "Objectives names are ill-formed");
+static const size_t Objectives_count = sizeof(Objectives) / sizeof(Objectives[0]);
+
 double DeJongF1(double* args, int args_size);  // De Jong`s F1 function, [-5.12, 5.12], max - 0, inversed
 
 double DeJongF2(double* args, int args_size);  // De Jong`s F2 function, [-2.048, 2.048], max - 0, inversed
