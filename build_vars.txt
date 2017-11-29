@@ -1,0 +1,1 @@
+-DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/Qt/5.9/gcc_64

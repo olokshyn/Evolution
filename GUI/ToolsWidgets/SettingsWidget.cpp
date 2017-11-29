@@ -89,7 +89,7 @@ SettingsWidget::SettingsWidget(QWidget* parent)
             .eps =
             settings.value("eps", 0.09).toDouble(),
 
-            // .objective
+            .objective = {},
 
             .max_generations_count =
             settings.value("max_generations_count", 500).toULongLong(),

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 project(EvolutionLib)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wno-unused-function -Wno-format-security -Werror")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unused-function -Wno-format-security -Werror")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-unused-function -Werror")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

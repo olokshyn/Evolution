@@ -9,13 +9,14 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Charts REQUIRED)
+find_package (Threads)
 
 include_directories(EvolutionLib)
 add_subdirectory(EvolutionLib)
-add_subdirectory(EvolutionTests)
+# add_subdirectory(EvolutionTests)
 
 add_executable(${PROJECT_NAME}
-        resources/resources.qrc
+        Resources/resources.qrc
         main.cpp
         IterationInfo.h
         MainWindow/MainWindow.cpp
@@ -31,7 +32,7 @@ add_executable(${PROJECT_NAME}
         Utils/Utils.cpp
         Utils/Utils.h)
 
-target_link_libraries(${PROJECT_NAME} EvolutionLib)
+target_link_libraries(${PROJECT_NAME} EvolutionLib ${CMAKE_THREAD_LIBS_INIT})
 qt5_use_modules(${PROJECT_NAME} Widgets Charts)
 
-add_dependencies(${PROJECT_NAME} EvolutionTests)
+# add_dependencies(${PROJECT_NAME} EvolutionTests)
