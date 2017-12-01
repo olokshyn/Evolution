@@ -71,6 +71,16 @@ error:
     return NULL;
 }
 
+bool ClearEntitiesList(LIST_TYPE(EntityPtr) entities) {
+    if (!entities) {
+        return true;
+    }
+    list_for_each(EntityPtr, entities, var) {
+        DestroyEntity(list_var_value(var));
+    }
+    return list_clear(EntityPtr, entities);
+}
+
 void DestroyEntitiesList(LIST_TYPE(EntityPtr) entities) {
     if (!entities) {
         return;

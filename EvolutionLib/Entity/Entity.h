@@ -35,6 +35,8 @@ void DestroyEntity(Entity* entity);
 
 Entity* CopyEntity(const Entity* entity, size_t chr_size);
 
+bool ClearEntitiesList(LIST_TYPE(EntityPtr) entities);
+
 void DestroyEntitiesList(LIST_TYPE(EntityPtr) entities);
 
 void SetEntitiesStatus(LIST_TYPE(EntityPtr) entities, bool old);

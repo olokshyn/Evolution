@@ -42,6 +42,8 @@ bool GAO_SpeciesLinksSelection(World* world);
 
 bool GAO_LinearRankingSelection(World* world);
 
+bool GAO_ElitistsSelection(World* world);
+
 extern const GAOperators HerreraOperators;
 
 extern const GAOperators HerreraWithClusteringOperators;
