@@ -10,7 +10,6 @@
 
 #include <QLabel>
 #include <QPushButton>
-#include <QList>
 #include <QGridLayout>
 #include <QBoxLayout>
 #include <QChart>
@@ -72,7 +71,7 @@ namespace
         chart->addSeries(series);
         chart->legend()->hide();
         chart->createDefaultAxes();
-        chart->axisX()->setRange(0, static_cast<quint64>(2 * world_size));
+        chart->axisX()->setRange(0, static_cast<quint64>(1.1 * world_size));
         chart->axisY()->setRange(min_value, max_value);
         auto chartView = new QChartView(chart, parent);
         chartView->setRenderHint(QPainter::Antialiasing);
@@ -121,7 +120,7 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
           m_fitness_series(new QLineSeries(this)),
 
           m_max_fitness_series(new QLineSeries(this)),
-          // TODO: is it safe to do so?
+        // TODO: is it safe to do so?
           m_max_fitness(-std::numeric_limits<double>::max()),
 
           m_settings_widget(settings.parameters(),
@@ -129,6 +128,7 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
 
           m_worker(new EvolutionWorker(settings.parameters(),
                                        settings.operators(),
+                                       settings.ui_settings().iterations_buffer_size,
                                        name))
 {
     m_world_size_series->setName("World size");
@@ -145,8 +145,8 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
     connect(m_show_info_btn, &QPushButton::clicked,
             this, &EvolutionWidget::show_info);
 
-    connect(m_worker.get(), &EvolutionWorker::iteration_completed,
-            this, &EvolutionWidget::plot_iteration,
+    connect(m_worker.get(), &EvolutionWorker::iterations_done,
+            this, &EvolutionWidget::plot_iterations,
             Qt::QueuedConnection);
     connect(m_worker.get(), &EvolutionWorker::optimum_reached,
             this, &EvolutionWidget::optimum_reached,
@@ -231,39 +231,70 @@ void EvolutionWidget::show_info()
     m_settings_widget.show();
 }
 
-void EvolutionWidget::plot_iteration(const IterationInfo& info)
+void EvolutionWidget::plot_iterations(const QList<IterationInfo>& infos)
 {
-    m_generation_number_lbl->setText(QString::number(info.generation_number));
-    if (!info.fitnesses.empty())
+    if (infos.empty())
     {
-        double max_fitness = *std::max_element(info.fitnesses.cbegin(),
-                                               info.fitnesses.cend());
-        if (max_fitness > m_max_fitness)
-        {
-            m_max_fitness = max_fitness;
-            m_max_fitness_lbl->setText(QString::number(m_max_fitness));
-        }
-        m_max_fitness_series->append(info.generation_number, max_fitness);
+        return;
     }
 
-    m_world_size_series->append(info.generation_number, info.world_size);
-    m_species_count_series->append(info.generation_number, info.species.size());
-    m_new_entities_series->append(info.generation_number, info.new_entities_count);
-    m_entities_died_series->append(info.generation_number, info.entities_died);
-    m_species_died_series->append(info.generation_number, info.species_died);
+    struct {
+        QList<QPointF> world_size;
+        QList<QPointF> species_count;
+        QList<QPointF> new_entities;
+        QList<QPointF> entities_died;
+        QList<QPointF> species_died;
+        QList<QPointF> max_fitness;
+    } infos_data;
+    for (const auto& info : infos)
+    {
+        infos_data.world_size.append(
+                QPointF(info.generation_number, info.world_size));
+        infos_data.species_count.append(
+                QPointF(info.generation_number, info.species.size()));
+        infos_data.new_entities.append(
+                QPointF(info.generation_number, info.new_entities_count));
+        infos_data.entities_died.append(
+                QPointF(info.generation_number, info.entities_died));
+        infos_data.species_died.append(
+                QPointF(info.generation_number, info.species_died));
+
+        if (!info.fitnesses.empty())
+        {
+            double max_fitness = *std::max_element(info.fitnesses.cbegin(),
+                                                   info.fitnesses.cend());
+            if (max_fitness > m_max_fitness)
+            {
+                m_max_fitness = max_fitness;
+            }
+            infos_data.max_fitness.append(
+                    QPointF(info.generation_number, max_fitness));
+        }
+    }
+    m_world_size_series->append(infos_data.world_size);
+    m_species_count_series->append(infos_data.species_count);
+    m_new_entities_series->append(infos_data.new_entities);
+    m_entities_died_series->append(infos_data.entities_died);
+    m_species_died_series->append(infos_data.species_died);
+    m_max_fitness_series->append(infos_data.max_fitness);
+
+    const auto& last_info = infos.last();
+
+    m_generation_number_lbl->setText(QString::number(last_info.generation_number));
+    m_max_fitness_lbl->setText(QString::number(m_max_fitness));
 
     QList<QPointF> points;
-    for (size_t i = 0; i != info.species.size(); ++i)
+    for (size_t i = 0; i != last_info.species.size(); ++i)
     {
-        points.append(QPointF(i, info.species[i]));
+        points.append(QPointF(i, last_info.species[i]));
     }
     m_species_series->clear();
     m_species_series->append(points);
 
     points.clear();
-    for (size_t i = 0; i != info.fitnesses.size(); ++i)
+    for (size_t i = 0; i != last_info.fitnesses.size(); ++i)
     {
-        points.append(QPointF(i, info.fitnesses[i]));
+        points.append(QPointF(i, last_info.fitnesses[i]));
     }
     m_fitness_series->clear();
     m_fitness_series->append(points);

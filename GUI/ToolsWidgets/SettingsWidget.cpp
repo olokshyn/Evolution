@@ -49,7 +49,8 @@ SettingsWidget::SettingsWidget(QWidget* parent)
         // ui settings
           m_min_fitness_edit(new QLineEdit(this)),
           m_max_fitness_edit(new QLineEdit(this)),
-          m_max_species_count_edit(new QLineEdit(this))
+          m_max_species_count_edit(new QLineEdit(this)),
+          m_iterations_buffer_size_edit(new QLineEdit(this))
 {
     QSettings settings;
 
@@ -112,7 +113,10 @@ SettingsWidget::SettingsWidget(QWidget* parent)
             settings.value("max_fitness", 0.0).toDouble(),
 
             .max_species_count =
-            settings.value("max_species_count", 50).toULongLong()
+            settings.value("max_species_count", 50).toULongLong(),
+
+            .iterations_buffer_size =
+            settings.value("iterations_buffer_size", 1).toULongLong()
     };
 
     init_widget();
@@ -152,7 +156,8 @@ SettingsWidget::SettingsWidget(const GAParameters& parameters,
         // ui settings
           m_min_fitness_edit(nullptr),
           m_max_fitness_edit(nullptr),
-          m_max_species_count_edit(nullptr)
+          m_max_species_count_edit(nullptr),
+          m_iterations_buffer_size_edit(nullptr)
 {
     for (size_t i = 0; i != Objectives_count; ++i)
     {
@@ -327,6 +332,9 @@ QGroupBox* SettingsWidget::create_ui_settings_box()
     layout->addWidget(new QLabel("Max species count", this), 2, 0);
     layout->addWidget(m_max_species_count_edit, 2, 1);
 
+    layout->addWidget(new QLabel("Iterations buffer size", this), 3, 0);
+    layout->addWidget(m_iterations_buffer_size_edit, 3, 1);
+
     return group_box;
 }
 
@@ -496,6 +504,8 @@ void SettingsWidget::save_ui_settings()
             m_max_fitness_edit->text().toDouble();
     m_ui_settings.max_species_count =
             m_max_species_count_edit->text().toULongLong();
+    m_ui_settings.iterations_buffer_size =
+            m_iterations_buffer_size_edit->text().toULongLong();
 
     QSettings settings;
 
@@ -508,6 +518,9 @@ void SettingsWidget::save_ui_settings()
     settings.setValue(
             "max_species_count",
             static_cast<qulonglong>(m_ui_settings.max_species_count));
+    settings.setValue(
+            "iterations_buffer_size",
+            static_cast<qulonglong>(m_ui_settings.iterations_buffer_size));
 
     settings.sync();
 }
@@ -520,6 +533,8 @@ void SettingsWidget::reset_ui_settings()
             QString::number(m_ui_settings.max_fitness));
     m_max_species_count_edit->setText(
             QString::number(m_ui_settings.max_species_count));
+    m_iterations_buffer_size_edit->setText(
+            QString::number(m_ui_settings.iterations_buffer_size));
 }
 
 void SettingsWidget::check_current_objective() const

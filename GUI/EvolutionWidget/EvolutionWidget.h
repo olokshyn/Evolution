@@ -12,6 +12,7 @@
 #include <QWidget>
 #include <QChartView>
 #include <QLineSeries>
+#include <QList>
 
 extern "C"
 {
@@ -43,7 +44,7 @@ public slots:
     void show_info();
 
 private slots:
-    void plot_iteration(const IterationInfo& info);
+    void plot_iterations(const QList<IterationInfo>& infos);
     void optimum_reached(double optimum);
 
 private:

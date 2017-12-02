@@ -23,6 +23,7 @@ namespace
 
 EvolutionWorker::EvolutionWorker(const GAParameters& parameters,
                                  const GAOperators& operators,
+                                 size_t buffer_size,
                                  std::string name,
                                  LogLevel log_level,
                                  QObject* parent)
@@ -32,6 +33,7 @@ EvolutionWorker::EvolutionWorker(const GAParameters& parameters,
           m_name(std::move(name)),
           m_log_level(log_level),
           m_world_size(0),
+          m_buffer_size(buffer_size),
           m_stop_evolution(false)
 {
     m_journal.data = this;
@@ -54,6 +56,7 @@ void EvolutionWorker::start_evolution()
     GAResult result = RunEvolution(&m_parameters,
                                    &m_operators,
                                    &m_journal);
+    flush_buffer();
     if (result.error)
     {
         throw std::runtime_error("Failed to run evolution");
@@ -163,7 +166,7 @@ void EvolutionWorker::iteration_end(
 
     m_info.species_died = species_died_on_iteration;
 
-    emit iteration_completed(m_info);
+    send_iteration(m_info);
 }
 
 void EvolutionWorker::crossover(
@@ -207,4 +210,23 @@ void EvolutionWorker::species_death(
         size_t initial_size)
 {
 
+}
+
+void EvolutionWorker::send_iteration(const IterationInfo& info)
+{
+    m_buffered_infos.push_back(info);
+    if (static_cast<size_t>(m_buffered_infos.size()) >= m_buffer_size)
+    {
+        emit iterations_done(m_buffered_infos);
+        m_buffered_infos.clear();
+    }
+}
+
+void EvolutionWorker::flush_buffer()
+{
+    if (!m_buffered_infos.empty())
+    {
+        emit iterations_done(m_buffered_infos);
+        m_buffered_infos.clear();
+    }
 }

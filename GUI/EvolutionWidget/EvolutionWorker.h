@@ -10,6 +10,7 @@
 #include <atomic>
 
 #include <QObject>
+#include <QList>
 
 extern "C"
 {
@@ -28,6 +29,7 @@ Q_OBJECT
 public:
     EvolutionWorker(const GAParameters& parameters,
                     const GAOperators& operators,
+                    size_t buffer_size,
                     std::string name,
                     LogLevel log_level = INFO,
                     QObject* parent = nullptr);
@@ -36,7 +38,7 @@ public:
     void stop_evolution();
 
 signals:
-    void iteration_completed(const IterationInfo& info);
+    void iterations_done(const QList<IterationInfo>& infos);
     void optimum_reached(double optimum);
 
 private:
@@ -91,6 +93,9 @@ private:
     void species_death(
             size_t initial_size);
 
+    void send_iteration(const IterationInfo& info);
+    void flush_buffer();
+
 private:
     const GAParameters m_parameters;
     const GAOperators m_operators;
@@ -101,6 +106,9 @@ private:
 
     IterationInfo m_info;
     size_t m_world_size;
+
+    QList<IterationInfo> m_buffered_infos;
+    size_t m_buffer_size;
 
     std::atomic<bool> m_stop_evolution;
 };

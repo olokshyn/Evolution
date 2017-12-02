@@ -27,6 +27,7 @@ public:
         double min_fitness;
         double max_fitness;
         size_t max_species_count;
+        size_t iterations_buffer_size;
     };
 
 public:
@@ -97,6 +98,7 @@ private:
     QLineEdit* m_min_fitness_edit;
     QLineEdit* m_max_fitness_edit;
     QLineEdit* m_max_species_count_edit;
+    QLineEdit* m_iterations_buffer_size_edit;
 };
 
 
