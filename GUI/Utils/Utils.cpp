@@ -4,6 +4,8 @@
 
 #include "Utils.h"
 
+#include <stdexcept>
+
 using namespace utils;
 
 LoggingGuard& LoggingGuard::singleton(const std::string& log_filename,
@@ -44,9 +46,4 @@ LoggingGuard::LoggingGuard(const std::string& log_filename,
         throw std::runtime_error("Failed to initialize logging");
     }
     m_owns = true;
-}
-
-stop_evolution_error::stop_evolution_error()
-        : std::logic_error("Evolution has been asked to stop")
-{
 }

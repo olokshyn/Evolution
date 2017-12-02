@@ -35,6 +35,8 @@ EvolutionWorker::EvolutionWorker(const GAParameters& parameters,
           m_stop_evolution(false)
 {
     m_journal.data = this;
+    m_journal.evolution_stop_requested = &EvolutionWorker::evolution_stop_requested;
+    m_journal.iteration_start = &EvolutionWorker::iteration_start;
     m_journal.iteration_start = &EvolutionWorker::iteration_start;
     m_journal.iteration_end = &EvolutionWorker::iteration_end;
     m_journal.crossover = &EvolutionWorker::crossover;
@@ -62,6 +64,11 @@ void EvolutionWorker::start_evolution()
 void EvolutionWorker::stop_evolution()
 {
     m_stop_evolution = true;
+}
+
+bool EvolutionWorker::evolution_stop_requested(void* data)
+{
+    return worker(data)->evolution_stop_requested();
 }
 
 void EvolutionWorker::iteration_start(void* data,
@@ -119,6 +126,11 @@ void EvolutionWorker::species_death(void* data,
     worker(data)->species_death(initial_size);
 }
 
+bool EvolutionWorker::evolution_stop_requested() const
+{
+    return m_stop_evolution;
+}
+
 void EvolutionWorker::iteration_start(
         LIST_TYPE(SpeciesPtr) population,
         size_t generation_number)
@@ -152,21 +164,6 @@ void EvolutionWorker::iteration_end(
     m_info.species_died = species_died_on_iteration;
 
     emit iteration_completed(m_info);
-
-    if (m_stop_evolution)
-    {
-        // FIXME: undefined behavior
-        /*
-         * Here the exception is thrown through C runtime
-         * and is caught in C++ runtime, causing LEAKS in C runtime.
-         * Such a throwing could also lead to an undefined behavior,
-         * if -fexceptions flag is not set for C code (and it is not).
-         *
-         * This solution has been applied as a fast-and-dirty way
-         * of terminating the evolution thread (not process!).
-         */
-        throw utils::stop_evolution_error();
-    }
 }
 
 void EvolutionWorker::crossover(

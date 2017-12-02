@@ -40,6 +40,7 @@ signals:
     void optimum_reached(double optimum);
 
 private:
+    static bool evolution_stop_requested(void* data);
     static void iteration_start(void* data,
                                 LIST_TYPE(SpeciesPtr) population,
                                 size_t generation_number);
@@ -65,6 +66,7 @@ private:
                               size_t initial_size);
 
 private:
+    bool evolution_stop_requested() const;
     void iteration_start(
             LIST_TYPE(SpeciesPtr) population,
             size_t generation_number);

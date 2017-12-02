@@ -6,7 +6,6 @@
 #define GUI_UTILS_H
 
 #include <string>
-#include <stdexcept>
 
 extern "C"
 {
@@ -33,12 +32,6 @@ namespace utils
 
     private:
         bool m_owns;
-    };
-
-    class stop_evolution_error : public std::logic_error
-    {
-    public:
-        stop_evolution_error();
     };
 }
 

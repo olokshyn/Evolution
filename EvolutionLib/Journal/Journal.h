@@ -9,6 +9,7 @@
 
 typedef struct journal {
     void* data;
+    bool (*evolution_stop_requested)(void* data);
     void (*iteration_start)(void* data,
                             LIST_TYPE(SpeciesPtr) population,
                             size_t generation_number);
@@ -35,6 +36,8 @@ typedef struct journal {
     void (*species_death)(void* data,
                           size_t initial_size);
 } Journal;
+
+bool EvolutionStopRequested(Journal* journal);
 
 void RecordIterationStart(Journal* journal,
                           LIST_TYPE(SpeciesPtr) population,

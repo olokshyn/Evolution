@@ -214,10 +214,6 @@ void EvolutionWidget::start_evolution()
         {
             m_worker->start_evolution();
         }
-        catch (const utils::stop_evolution_error& exc)
-        {
-            std::clog << exc.what() << std::endl;
-        }
         catch (const std::exception& exc)
         {
             std::cerr << "Exception: " << exc.what() << std::endl;

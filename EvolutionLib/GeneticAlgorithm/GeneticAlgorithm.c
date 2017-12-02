@@ -52,7 +52,10 @@ GAResult RunEvolution(const GAParameters* parameters,
     double prev_max_fitness = 0.0;
 
     size_t value_is_stable_count = 0;
-    for (size_t i = 0; i != parameters->max_generations_count; ++i) {
+    for (size_t i = 0;
+            i != parameters->max_generations_count
+            && !EvolutionStopRequested(world->journal);
+            ++i) {
         begin = clock();
 
         double cur_fitness = Iteration(world, i + 1);

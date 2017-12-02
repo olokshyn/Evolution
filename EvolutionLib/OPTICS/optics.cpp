@@ -165,7 +165,8 @@ namespace
     LIST_TYPE(SpeciesPtr) extract_clusters(
             size_t chr_size,
             const std::vector<OpticsObject>& cluster_ordering, double eps,
-            std::vector<size_t>* cluster_labels = nullptr)
+            std::vector<size_t>* cluster_labels = nullptr,
+            LIST_TYPE(EntityPtr) noise_entities = nullptr)
     {
         std::unique_ptr<
                 std::remove_pointer<LIST_TYPE(SpeciesPtr)>::type,
@@ -223,6 +224,17 @@ namespace
                 else
                 {
                     // Noise object
+                    if (noise_entities)
+                    {
+                        auto new_entity = copy_entity(obj.entity, chr_size);
+                        if (!list_push_back(EntityPtr,
+                                            noise_entities,
+                                            new_entity.get()))
+                        {
+                            throw std::runtime_error("list_push_back failed");
+                        }
+                        new_entity.release();
+                    }
                 }
             }
             else
@@ -245,6 +257,17 @@ namespace
                 else
                 {
                     // Noise object
+                    if (noise_entities)
+                    {
+                        auto new_entity = copy_entity(obj.entity, chr_size);
+                        if (!list_push_back(EntityPtr,
+                                            noise_entities,
+                                            new_entity.get()))
+                        {
+                            throw std::runtime_error("list_push_back failed");
+                        }
+                        new_entity.release();
+                    }
                 }
             }
         }
@@ -266,7 +289,8 @@ namespace
 
 LIST_TYPE(SpeciesPtr) OPTICSClustering(World* world,
                                        LIST_TYPE(EntityPtr) new_entities,
-                                       double eps, size_t min_pts)
+                                       double eps, size_t min_pts,
+                                       LIST_TYPE(EntityPtr) noise_entities)
 {
     try
     {
@@ -274,7 +298,8 @@ LIST_TYPE(SpeciesPtr) OPTICSClustering(World* world,
                 extract_optics_objects(world->population, new_entities);
         auto cluster_ordering = optics(std::move(objects),
                                        world->chr_size, eps, min_pts);
-        return extract_clusters(world->chr_size, cluster_ordering, eps);
+        return extract_clusters(world->chr_size, cluster_ordering, eps,
+                                nullptr, noise_entities);
     }
     catch (const std::exception& exc)
     {

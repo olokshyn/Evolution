@@ -14,7 +14,8 @@ extern "C" {
 
 LIST_TYPE(SpeciesPtr) OPTICSClustering(World* world,
                                        LIST_TYPE(EntityPtr) new_entities,
-                                       double eps, size_t min_pts);
+                                       double eps, size_t min_pts,
+                                       LIST_TYPE(EntityPtr) noise_entities);
 
 #ifdef __cplusplus
 };
