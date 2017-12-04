@@ -1,5 +1,8 @@
+project(EvolutionTests)
+
 add_subdirectory(googletest)
 
+include_directories(../EvolutionLib)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${gtest_SOURCE_DIR}/include)
 
@@ -26,11 +29,11 @@ set(EVOLUTION_TESTS_SOURCE_FILES
         ${OPTICS_TEST_SOURCE_FILES}
         TestsCommon.cpp
         TestsCommon.h)
-add_executable(EvolutionTests ${EVOLUTION_TESTS_SOURCE_FILES})
-target_link_libraries(EvolutionTests gtest_main EvolutionLib)
+add_executable(${PROJECT_NAME} ${EVOLUTION_TESTS_SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME} gtest_main EvolutionLib)
 
 add_custom_command(
-        TARGET EvolutionTests
+        TARGET ${PROJECT_NAME}
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/Wishart/data
@@ -38,6 +41,6 @@ add_custom_command(
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Wishart/data)
 
 add_custom_command(
-        TARGET EvolutionTests
+        TARGET ${PROJECT_NAME}
         POST_BUILD
-        COMMAND EvolutionTests --gtest_filter=-*FCPS*)
+        COMMAND ${PROJECT_NAME} --gtest_filter=-*FCPS*)

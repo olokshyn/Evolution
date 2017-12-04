@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
-
 project(GUI)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function -Werror -std=c++11")
@@ -9,11 +7,9 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Charts REQUIRED)
-find_package (Threads)
+find_package(Threads)
 
-include_directories(EvolutionLib)
-add_subdirectory(EvolutionLib)
-# add_subdirectory(EvolutionTests)
+include_directories(../EvolutionLib)
 
 add_executable(${PROJECT_NAME}
         Resources/resources.qrc
@@ -34,5 +30,3 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} EvolutionLib ${CMAKE_THREAD_LIBS_INIT})
 qt5_use_modules(${PROJECT_NAME} Widgets Charts)
-
-# add_dependencies(${PROJECT_NAME} EvolutionTests)

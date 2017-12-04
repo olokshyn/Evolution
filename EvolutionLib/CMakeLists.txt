@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.3)
 project(EvolutionLib)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unused-function -Wno-format-security -Werror")
@@ -85,4 +84,4 @@ set(EVOLUTION_LIB_SOURCE_FILES
         Common.c
         Common.h)
 
-add_library(EvolutionLib ${EVOLUTION_LIB_SOURCE_FILES})
+add_library(${PROJECT_NAME} ${EVOLUTION_LIB_SOURCE_FILES})
