@@ -35,10 +35,13 @@ bool CountSpeciesLinks(LIST_TYPE(double) fitnesses);
 
 // Selection
 
-bool FitnessBasedSelectionTemplate(World* world, bool (*selection)(World* world,
-                                                                   LIST_TYPE(EntityPtr)* entities_ptr,
-                                                                   size_t alive_count,
-                                                                   size_t* entities_died));
+bool FitnessBasedSelectionTemplate(
+        World* world,
+        bool (*selection)(World* world,
+                          LIST_TYPE(EntityPtr)* entities_ptr,
+                          size_t alive_count,
+                          size_t* entities_died),
+        bool (*adjust_fitnesses)(LIST_TYPE(double) fitnesses));
 
 bool LinearRankingSelection(World* world,
                             LIST_TYPE(EntityPtr)* entities_ptr,
@@ -49,10 +52,6 @@ bool PerformSelectionInEntities(World* world,
                                 LIST_TYPE(EntityPtr)* entities_ptr,
                                 size_t alive_count,
                                 size_t* entities_died);
-
-bool PerformLimitedSelectionInSpecies(World* world,
-                                      Species* species,
-                                      double norm_fitness);
 
 // Other
 

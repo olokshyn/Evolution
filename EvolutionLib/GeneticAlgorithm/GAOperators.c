@@ -235,72 +235,21 @@ bool GAO_ChildrenSelection(World* world, LIST_TYPE(EntityPtr)* new_entities) {
 }
 
 bool GAO_SpeciesLinksSelection(World* world) {
-    LOG_FUNC_START;
-
-    Log(DEBUG, "Old world size: %zu", world->size);
-
-    LIST_TYPE(double) fitnesses = NormalizePopulationFitnesses(world->population);
-    if (!fitnesses) {
-        goto error;
-    }
-
-    if (!CountSpeciesLinks(fitnesses)) {
-        goto destroy_fitnesses;
-    }
-
-    LOG_RELEASE_ASSERT(list_len(world->population) == list_len(fitnesses));
-
-    size_t new_world_size = 0;
-    LIST_ITER_TYPE(SpeciesPtr) species_iter =
-            list_begin(SpeciesPtr, world->population);
-    LIST_ITER_TYPE(double) fitness_iter = list_begin(double, fitnesses);
-    for (; list_iter_valid(species_iter);
-            list_next(SpeciesPtr, species_iter),
-                    list_next(double, fitness_iter)) {
-        if (!PerformLimitedSelectionInSpecies(
-                world,
-                list_iter_value(species_iter),
-                list_iter_value(fitness_iter))) {
-            goto destroy_fitnesses;
-        }
-        new_world_size += list_len(list_iter_value(species_iter)->entities);
-    }
-
-    Log(DEBUG, "New world size: %zu", new_world_size);
-    world->size = new_world_size;
-
-    for (species_iter = list_begin(SpeciesPtr, world->population);
-            list_iter_valid(species_iter);
-            ) {
-        if (!list_len(list_iter_value(species_iter)->entities)) {
-            LIST_ITER_TYPE(SpeciesPtr) temp = species_iter;
-            list_next(SpeciesPtr, species_iter);
-            list_remove(SpeciesPtr, temp);
-        }
-        else {
-            list_next(SpeciesPtr, species_iter);
-        }
-    }
-
-    list_destroy(double, fitnesses);
-
-    LOG_ASSERT(world->size != 0);
-    LOG_FUNC_SUCCESS;
-    return true;
-
-destroy_fitnesses:
-    list_destroy(double, fitnesses);
-error:
-    LOG_FUNC_ERROR;
-    return false;
+    return FitnessBasedSelectionTemplate(world,
+                                         PerformSelectionInEntities,
+                                         CountSpeciesLinks);
 }
 
 bool GAO_LinearRankingSelection(World* world) {
-    return FitnessBasedSelectionTemplate(world, LinearRankingSelection);
+    return FitnessBasedSelectionTemplate(world,
+                                         LinearRankingSelection,
+                                         NULL);
 }
 
 bool GAO_ElitistsSelection(World* world) {
-    return FitnessBasedSelectionTemplate(world, PerformSelectionInEntities);
+    return FitnessBasedSelectionTemplate(world,
+                                         PerformSelectionInEntities,
+                                         NULL);
 }
 
 const GAOperators HerreraOperators = {

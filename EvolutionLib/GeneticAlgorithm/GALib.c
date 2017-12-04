@@ -54,7 +54,7 @@ bool CrossEntitiesWithProbability(World* world,
     LIST_ITER_TYPE(EntityPtr) iter_i = list_begin(EntityPtr, entities);
     LIST_ITER_TYPE(double) ft_iter_i = list_begin(double, entities_fitnesses);
     for (; list_iter_valid(iter_i);
-           list_next(EntityPtr, iter_i), list_next(double, ft_iter_i), ++i) {
+            list_next(EntityPtr, iter_i), list_next(double, ft_iter_i), ++i) {
         if (crossed_parents[i]) {
             continue;
         }
@@ -63,9 +63,9 @@ bool CrossEntitiesWithProbability(World* world,
         LIST_ITER_TYPE(double) ft_iter_j =
                 list_begin(double, entities_fitnesses);
         for (; list_iter_valid(iter_j) && !crossed_parents[i];
-               list_next(EntityPtr, iter_j),
-                       list_next(double, ft_iter_j),
-                       ++j) {
+                list_next(EntityPtr, iter_j),
+                        list_next(double, ft_iter_j),
+                        ++j) {
             if (list_iter_eq(iter_i, iter_j)
                 || crossed_parents[j]
                 || !doWithProbability(probability)) {
@@ -151,8 +151,9 @@ bool CountSpeciesLinks(LIST_TYPE(double) fitnesses) {
                 list_iter_valid(iter_j) && !counted[i];
                 list_next(double, iter_j), ++j) {
             if (list_iter_eq(iter_i, iter_j)
-                    || counted[j]
-                    || !doWithProbability(SPECIES_LINK_PROBABILITY)) {
+                || counted[j]
+                || !doWithProbability(SPECIES_LINK_PROBABILITY)) {
+
                 continue;
             }
             list_iter_value(iter_i) +=
@@ -174,15 +175,22 @@ error:
     return false;
 }
 
-bool FitnessBasedSelectionTemplate(World* world, bool (*selection)(World* world,
-                                                                   LIST_TYPE(EntityPtr)* entities_ptr,
-                                                                   size_t alive_count,
-                                                                   size_t* entities_died)) {
+bool FitnessBasedSelectionTemplate(
+        World* world,
+        bool (*selection)(World* world,
+                          LIST_TYPE(EntityPtr)* entities_ptr,
+                          size_t alive_count,
+                          size_t* entities_died),
+        bool (*adjust_fitnesses)(LIST_TYPE(double) fitnesses)) {
+
     LOG_FUNC_START;
 
     LIST_TYPE(double) fitnesses = NormalizePopulationFitnesses(world->population);
     if (!fitnesses) {
         goto error;
+    }
+    if (adjust_fitnesses && !adjust_fitnesses(fitnesses)) {
+        goto destroy_fitnesses;
     }
     ScaleSumToOne(fitnesses);
 
@@ -193,8 +201,8 @@ bool FitnessBasedSelectionTemplate(World* world, bool (*selection)(World* world,
             list_begin(SpeciesPtr, world->population);
     LIST_ITER_TYPE(double) fitness_iter = list_begin(double, fitnesses);
     for (; list_iter_valid(species_iter);
-           list_next(SpeciesPtr, species_iter),
-                   list_next(double, fitness_iter)) {
+            list_next(SpeciesPtr, species_iter),
+                    list_next(double, fitness_iter)) {
         size_t alive_count = (size_t)round(world->parameters->initial_world_size
                                            * list_iter_value(fitness_iter));
         if (!selection(world,
@@ -208,7 +216,7 @@ bool FitnessBasedSelectionTemplate(World* world, bool (*selection)(World* world,
     world->size = new_world_size;
 
     for (species_iter = list_begin(SpeciesPtr, world->population);
-         list_iter_valid(species_iter);
+            list_iter_valid(species_iter);
             ) {
         if (!list_len(list_iter_value(species_iter)->entities)) {
             LIST_ITER_TYPE(SpeciesPtr) temp = species_iter;
@@ -434,20 +442,6 @@ destroy_entities_p:
 error:
     LOG_FUNC_ERROR;
     return false;
-}
-
-bool PerformLimitedSelectionInSpecies(World* world,
-                                      Species* species,
-                                      double norm_fitness) {
-    double selection_part = MAX(norm_fitness, SELECTION_MIN);
-    selection_part = MIN(selection_part, SELECTION_MAX);
-
-    size_t species_size = (size_t)round(world->parameters->initial_world_size
-                                        * selection_part);
-    species_size = MIN(species_size, list_len(species->entities));
-    species_size = MAX(species_size, CROSSOVER_EXTINCTION_BIAS);
-    return PerformSelectionInEntities(
-            world, &species->entities, species_size, &species->died);
 }
 
 double ScaleEps(World* world,
