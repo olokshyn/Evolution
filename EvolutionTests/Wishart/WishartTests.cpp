@@ -105,59 +105,57 @@ extern "C" {
 #include "Wishart/Wishart.h"
 }
 
-using namespace std;
-
 namespace {
 
-    std::vector<const double*> to_point_pointers(
-            const std::vector< std::vector<double> >& points) {
-        std::vector<const double*> point_pointers(points.size());
-        std::transform(points.begin(), points.end(), point_pointers.begin(),
-                       [](const std::vector<double>& point) -> const double* {
-                           return point.data();
-                       });
-        return point_pointers;
-    }
+std::vector<const double*> to_point_pointers(
+        const std::vector< std::vector<double> >& points) {
+    std::vector<const double*> point_pointers(points.size());
+    std::transform(points.begin(), points.end(), point_pointers.begin(),
+                   [](const std::vector<double>& point) -> const double* {
+                       return point.data();
+                   });
+    return point_pointers;
+}
 
-    std::vector<size_t> to_cluster_numbers(
-            std::unique_ptr<size_t> raw_cluster_numbers,
-            size_t vectors_count) {
-        return std::vector<size_t>(raw_cluster_numbers.get(),
-                                   raw_cluster_numbers.get() + vectors_count);
-    }
+std::vector<size_t> to_cluster_numbers(
+        std::unique_ptr<size_t> raw_cluster_numbers,
+        size_t vectors_count) {
+    return std::vector<size_t>(raw_cluster_numbers.get(),
+                               raw_cluster_numbers.get() + vectors_count);
+}
 
-    std::vector<size_t> run_wishart(const std::vector<std::vector<double> >& points,
-                                    double h, size_t k) {
-        std::vector<const double*> point_pointers = to_point_pointers(points);
+std::vector<size_t> run_wishart(const std::vector<std::vector<double> >& points,
+                                double h, size_t k) {
+    std::vector<const double*> point_pointers = to_point_pointers(points);
 
-        return to_cluster_numbers(
-                std::unique_ptr<size_t>(
-                        Wishart(point_pointers.data(),
-                                points.size(),
-                                points[0].size(),
-                                h, k)),
-                points.size());
-    }
+    return to_cluster_numbers(
+            std::unique_ptr<size_t>(
+                    Wishart(point_pointers.data(),
+                            points.size(),
+                            points[0].size(),
+                            h, k)),
+            points.size());
+}
 
-    const auto run_FCPS_test_wishart =
-            run_FCPS_test<decltype(run_wishart), run_wishart>;
+const auto run_FCPS_test_wishart =
+        run_FCPS_test<decltype(run_wishart), run_wishart>;
 }
 
 TEST(WishartTest, one_positive) {
-    vector< vector<double> > points = {
+    std::vector< std::vector<double> > points = {
             { 1.0, 1.0 }
     };
 
     for (double h = 0; h <= 1.0; h += 0.1) {
         auto cluster_numbers = run_wishart(points, h, 1);
 
-        ASSERT_EQ(1, cluster_numbers.size());
-        EXPECT_EQ(1, cluster_numbers.at(0));
+        ASSERT_EQ(1u, cluster_numbers.size());
+        EXPECT_EQ(1u, cluster_numbers.at(0));
     }
 }
 
 TEST(WishartTest, two_positive) {
-    vector< vector<double> > points = {
+    std::vector< std::vector<double> > points = {
             { 0.0, 0.0 },
             { 0.5, 0.5 }
     };
@@ -166,15 +164,15 @@ TEST(WishartTest, two_positive) {
         for (double h = 0; h <= 1.0; h += 0.1) {
             auto cluster_numbers = run_wishart(points, h, k);
 
-            ASSERT_EQ(2, cluster_numbers.size());
-            EXPECT_EQ(1, cluster_numbers[0]);
-            EXPECT_EQ(1, cluster_numbers[1]);
+            ASSERT_EQ(2u, cluster_numbers.size());
+            EXPECT_EQ(1u, cluster_numbers[0]);
+            EXPECT_EQ(1u, cluster_numbers[1]);
         }
     }
 }
 
 TEST(WishartTest, three_2_1_positive) {
-    vector< vector<double> > points1 = {
+    std::vector< std::vector<double> > points1 = {
             { 0.1, 0.1 },
             { 0.2, 0.2 },
             { 0.7, 0.7 }
@@ -183,13 +181,13 @@ TEST(WishartTest, three_2_1_positive) {
     for (double h = 0; h <= 1.0; h += 0.1) {
         auto cluster_numbers = run_wishart(points1, h, 1);
 
-        ASSERT_EQ(3, cluster_numbers.size());
-        EXPECT_EQ(1, std::accumulate(cluster_numbers.begin(),
-                                     cluster_numbers.end(),
-                                     1, std::multiplies<size_t>()));
+        ASSERT_EQ(3u, cluster_numbers.size());
+        EXPECT_EQ(1u, std::accumulate(cluster_numbers.begin(),
+                                      cluster_numbers.end(),
+                                      1u, std::multiplies<size_t>()));
     }
 
-    vector< vector<double> > points2 = {
+    std::vector< std::vector<double> > points2 = {
             { 0.1, 0.1 },
             { 0.8, 0.8 },
             { 0.7, 0.7 }
@@ -198,17 +196,17 @@ TEST(WishartTest, three_2_1_positive) {
     for (double h = 0; h <= 1.0; h += 0.1) {
         auto cluster_numbers = run_wishart(points2, h, 2);
 
-        ASSERT_EQ(3, cluster_numbers.size());
-        EXPECT_EQ(1, std::accumulate(cluster_numbers.begin(),
-                                     cluster_numbers.end(),
-                                     1, std::multiplies<size_t>()));
+        ASSERT_EQ(3u, cluster_numbers.size());
+        EXPECT_EQ(1u, std::accumulate(cluster_numbers.begin(),
+                                      cluster_numbers.end(),
+                                      1u, std::multiplies<size_t>()));
     }
 }
 
 TEST(WishartTest, three_2_2_positive) {
     double delta = 0.3;
     for (double x3 = 0.5, y3 = 0.5; x3 <= 1.0; x3 += 0.1, y3 += 0.1) {
-        vector< vector<double> > points = { // d(x1, x3) = d(x2, x3)
+        std::vector< std::vector<double> > points = { // d(x1, x3) = d(x2, x3)
                 { x3 - delta, y3 - delta },
                 { x3 + delta, y3 + delta },
                 { x3,         y3 }
@@ -216,9 +214,9 @@ TEST(WishartTest, three_2_2_positive) {
 
         for (double h = 0; h <= 1.0; h += 0.1) {
             auto cluster_numbers = run_wishart(points, h, 1);
-            ASSERT_EQ(3, cluster_numbers.size());
-            EXPECT_EQ(1, cluster_numbers[0]);
-            EXPECT_EQ(2, cluster_numbers[1]);
+            ASSERT_EQ(3u, cluster_numbers.size());
+            EXPECT_EQ(1u, cluster_numbers[0]);
+            EXPECT_EQ(2u, cluster_numbers[1]);
             EXPECT_TRUE(cluster_numbers[2] == 1 || cluster_numbers[2] == 2);
         }
     }
@@ -229,7 +227,7 @@ TEST(WishartTest, four_3_2_positive) {
     // but is legal due to the order nearest neighbors are considered
 
     // 3.3 2) d(x1, x4) = d(x3, x4) = d(x1, x2)
-    const vector< vector<double> > points = {
+    const std::vector< std::vector<double> > points = {
             { 0.4, 0.4 },
             { 0.2, 0.2 },
             { 0.8, 0.8 },
@@ -237,15 +235,15 @@ TEST(WishartTest, four_3_2_positive) {
     };
 
     auto cluster_numbers = run_wishart(points, 0.7, 1);
-    ASSERT_EQ(4, cluster_numbers.size());
-    EXPECT_EQ(1, cluster_numbers[0]);
-    EXPECT_EQ(1, cluster_numbers[1]);
-    EXPECT_EQ(2, cluster_numbers[2]);
-    EXPECT_EQ(1, cluster_numbers[3]);
+    ASSERT_EQ(4u, cluster_numbers.size());
+    EXPECT_EQ(1u, cluster_numbers[0]);
+    EXPECT_EQ(1u, cluster_numbers[1]);
+    EXPECT_EQ(2u, cluster_numbers[2]);
+    EXPECT_EQ(1u, cluster_numbers[3]);
 }
 
 TEST(WishartTest, four_3_3_positive) {
-    for (const vector< vector<double> >& points : vector< vector< vector<double> > >(
+    for (const std::vector< std::vector<double> >& points : std::vector< std::vector< std::vector<double> > >(
             {
                     { // 1) d(x1, x2) <= d(x3, x4)
                             { 0.0, 0.0 },
@@ -272,16 +270,16 @@ TEST(WishartTest, four_3_3_positive) {
                     //                    }
             })) {
         auto cluster_numbers = run_wishart(points, 0.2, 1);
-        ASSERT_EQ(4, cluster_numbers.size());
-        EXPECT_EQ(1, cluster_numbers[0]);
-        EXPECT_EQ(1, cluster_numbers[1]);
-        EXPECT_EQ(2, cluster_numbers[2]);
-        EXPECT_EQ(2, cluster_numbers[3]);
+        ASSERT_EQ(4u, cluster_numbers.size());
+        EXPECT_EQ(1u, cluster_numbers[0]);
+        EXPECT_EQ(1u, cluster_numbers[1]);
+        EXPECT_EQ(2u, cluster_numbers[2]);
+        EXPECT_EQ(2u, cluster_numbers[3]);
     }
 }
 
 TEST(WishartTest, four_3_4_positive) {
-    for (const vector< vector<double> >& points : vector< vector< vector<double> > >(
+    for (const std::vector< std::vector<double> >& points : std::vector< std::vector< std::vector<double> > >(
             {
                     { // 1) d(x1, x3) = d(x2, x3) <= d(x1, x4)
                             { 0.2,  0.2 },
@@ -354,16 +352,16 @@ TEST(WishartTest, four_3_4_positive) {
                     }
             })) {
         auto cluster_numbers = run_wishart(points, 0.2, 1);
-        ASSERT_EQ(4, cluster_numbers.size());
-        EXPECT_EQ(1, cluster_numbers[0]);
-        EXPECT_EQ(2, cluster_numbers[1]);
-        EXPECT_EQ(1, cluster_numbers[2]);
-        EXPECT_EQ(1, cluster_numbers[3]);
+        ASSERT_EQ(4u, cluster_numbers.size());
+        EXPECT_EQ(1u, cluster_numbers[0]);
+        EXPECT_EQ(2u, cluster_numbers[1]);
+        EXPECT_EQ(1u, cluster_numbers[2]);
+        EXPECT_EQ(1u, cluster_numbers[3]);
     }
 }
 
 TEST(WishartTest, four_3_5_positive) {
-    for (const vector< vector<double> >& points : vector< vector< vector<double> > >(
+    for (const std::vector< std::vector<double> >& points : std::vector< std::vector< std::vector<double> > >(
             {
                     { // 1) d(x1, x3) = d(x2, x3) <= d(x2, x4)
                             { 0.2, 0.2 },
@@ -418,16 +416,16 @@ TEST(WishartTest, four_3_5_positive) {
                     }
             })) {
         auto cluster_numbers = run_wishart(points, 0.2, 1);
-        ASSERT_EQ(4, cluster_numbers.size());
-        EXPECT_EQ(1, cluster_numbers[0]);
-        EXPECT_EQ(2, cluster_numbers[1]);
-        EXPECT_EQ(1, cluster_numbers[2]);
-        EXPECT_EQ(2, cluster_numbers[3]);
+        ASSERT_EQ(4u, cluster_numbers.size());
+        EXPECT_EQ(1u, cluster_numbers[0]);
+        EXPECT_EQ(2u, cluster_numbers[1]);
+        EXPECT_EQ(1u, cluster_numbers[2]);
+        EXPECT_EQ(2u, cluster_numbers[3]);
     }
 }
 
 TEST(WishartTest, four_3_6_positive) {
-    for (const vector< vector<double> >& points : vector< vector< vector<double> > >(
+    for (const std::vector< std::vector<double> >& points : std::vector< std::vector< std::vector<double> > >(
             {
                     //                    The algorithm won`t produce expected results in thess cases
                     //                    due to the order nearest neighbors are considered
@@ -460,16 +458,16 @@ TEST(WishartTest, four_3_6_positive) {
                     }
             })) {
         auto cluster_numbers = run_wishart(points, 0.2, 1);
-        ASSERT_EQ(4, cluster_numbers.size());
-        EXPECT_EQ(1, cluster_numbers[0]);
-        EXPECT_EQ(2, cluster_numbers[1]);
-        EXPECT_EQ(2, cluster_numbers[2]);
-        EXPECT_EQ(1, cluster_numbers[3]);
+        ASSERT_EQ(4u, cluster_numbers.size());
+        EXPECT_EQ(1u, cluster_numbers[0]);
+        EXPECT_EQ(2u, cluster_numbers[1]);
+        EXPECT_EQ(2u, cluster_numbers[2]);
+        EXPECT_EQ(1u, cluster_numbers[3]);
     }
 }
 
 TEST(WishartTest, four_3_7_positive) {
-    for (const vector< vector<double> >& points : vector< vector< vector<double> > >(
+    for (const std::vector< std::vector<double> >& points : std::vector< std::vector< std::vector<double> > >(
             {
                     //                    The algorithm won`t produce expected results in thess cases
                     //                    due to the order nearest neighbors are considered
@@ -502,16 +500,16 @@ TEST(WishartTest, four_3_7_positive) {
                     //                    }
             })) {
         auto cluster_numbers = run_wishart(points, 0.2, 1);
-        ASSERT_EQ(4, cluster_numbers.size());
-        EXPECT_EQ(1, cluster_numbers[0]);
-        EXPECT_EQ(2, cluster_numbers[1]);
-        EXPECT_EQ(2, cluster_numbers[2]);
-        EXPECT_EQ(2, cluster_numbers[3]);
+        ASSERT_EQ(4u, cluster_numbers.size());
+        EXPECT_EQ(1u, cluster_numbers[0]);
+        EXPECT_EQ(2u, cluster_numbers[1]);
+        EXPECT_EQ(2u, cluster_numbers[2]);
+        EXPECT_EQ(2u, cluster_numbers[3]);
     }
 }
 
 //TEST(WishartTest, 3_3_2_2) {
-//    for (const vector< vector<double> >& points : vector< vector< vector<double> > >(
+//    for (const std::vector< std::vector<double> >& points : std::vector< std::vector< std::vector<double> > >(
 //            {
 //                    {
 //                            { 0.0, 0.0 },
@@ -542,15 +540,15 @@ TEST(WishartTest, FisherIris) {
     const size_t iris_cluster_size = 50;
     const char* iris_filename = "data/fisher_iris.txt";
 
-    vector< vector<double> > iris(iris_count);
+    std::vector< std::vector<double> > iris(iris_count);
 
-    ifstream iris_file(iris_filename);
+    std::ifstream iris_file(iris_filename);
     if (!iris_file.is_open()) {
-        throw runtime_error("Failed to open iris file");
+        throw std::runtime_error("Failed to open iris file");
     }
 
     for (size_t i = 0; i != iris_count; ++i) {
-        iris[i] = vector<double>(iris_dimensions);
+        iris[i] = std::vector<double>(iris_dimensions);
         for (size_t j = 0; j != iris_dimensions; ++j) {
             iris_file >> iris[i][j];
         }
@@ -581,22 +579,22 @@ TEST(WishartTest, FCPS_Atom) {
     auto points = read_points("data/FCPS/01FCPSdata/Atom.lrn");
     auto cluster_labels = read_cluster_labels("data/FCPS/01FCPSdata/Atom.cls");
 
-    tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
-                                                                 cluster_labels);
-    EXPECT_DOUBLE_EQ(get<0>(result), 0.15);  // best eps
-    EXPECT_EQ(get<1>(result), 3);  // best min_pts
-    EXPECT_EQ(get<2>(result), 12);  // min erroneously clustered points
+    std::tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
+                                                                      cluster_labels);
+    EXPECT_DOUBLE_EQ(std::get<0>(result), 0.15);  // best eps
+    EXPECT_EQ(std::get<1>(result), 3u);  // best min_pts
+    EXPECT_EQ(std::get<2>(result), 12u);  // min erroneously clustered points
 }
 
 TEST(WishartTest, FCPS_Chainlink) {
     auto points = read_points("data/FCPS/01FCPSdata/Chainlink.lrn");
     auto cluster_labels = read_cluster_labels("data/FCPS/01FCPSdata/Chainlink.cls");
 
-    tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
-                                                                 cluster_labels);
-    EXPECT_DOUBLE_EQ(get<0>(result), 0.1);  // best eps
-    EXPECT_EQ(get<1>(result), 1);  // best min_pts
-    EXPECT_EQ(get<2>(result), 974);  // min erroneously clustered points
+    std::tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
+                                                                      cluster_labels);
+    EXPECT_DOUBLE_EQ(std::get<0>(result), 0.1);  // best eps
+    EXPECT_EQ(std::get<1>(result), 1u);  // best min_pts
+    EXPECT_EQ(std::get<2>(result), 974u);  // min erroneously clustered points
 }
 
 // Disabled due to long runtime
@@ -604,86 +602,86 @@ TEST(WishartTest, DISABLED_FCPS_EngyTime) {
     auto points = read_points("data/FCPS/01FCPSdata/EngyTime.lrn");
     auto cluster_labels = read_cluster_labels("data/FCPS/01FCPSdata/EngyTime.cls");
 
-    tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
-                                                                 cluster_labels);
-    EXPECT_DOUBLE_EQ(get<0>(result), 0.1);  // best eps
-    EXPECT_EQ(get<1>(result), 3);  // best min_pts
-    EXPECT_EQ(get<2>(result), 2430);  // min erroneously clustered points
+    std::tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
+                                                                      cluster_labels);
+    EXPECT_DOUBLE_EQ(std::get<0>(result), 0.1);  // best eps
+    EXPECT_EQ(std::get<1>(result), 3u);  // best min_pts
+    EXPECT_EQ(std::get<2>(result), 2430u);  // min erroneously clustered points
 }
 
 TEST(WishartTest, FCPS_GolfBall) {
     auto points = read_points("data/FCPS/01FCPSdata/GolfBall.lrn");
     auto cluster_labels = read_cluster_labels("data/FCPS/01FCPSdata/GolfBall.cls");
 
-    tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
-                                                                 cluster_labels);
-    EXPECT_DOUBLE_EQ(get<0>(result), 0.2);  // best eps
-    EXPECT_EQ(get<1>(result), 3);  // best min_pts
-    EXPECT_EQ(get<2>(result), 0);  // min erroneously clustered points
+    std::tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
+                                                                      cluster_labels);
+    EXPECT_DOUBLE_EQ(std::get<0>(result), 0.2);  // best eps
+    EXPECT_EQ(std::get<1>(result), 3u);  // best min_pts
+    EXPECT_EQ(std::get<2>(result), 0u);  // min erroneously clustered points
 }
 
 TEST(WishartTest, FCPS_Hepta) {
     auto points = read_points("data/FCPS/01FCPSdata/Hepta.lrn");
     auto cluster_labels = read_cluster_labels("data/FCPS/01FCPSdata/Hepta.cls");
 
-    tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
-                                                                 cluster_labels);
-    EXPECT_DOUBLE_EQ(get<0>(result), 0.1);  // best eps
-    EXPECT_EQ(get<1>(result), 1);  // best min_pts
-    EXPECT_EQ(get<2>(result), 171);  // min erroneously clustered points
+    std::tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
+                                                                      cluster_labels);
+    EXPECT_DOUBLE_EQ(std::get<0>(result), 0.1);  // best eps
+    EXPECT_EQ(std::get<1>(result), 1u);  // best min_pts
+    EXPECT_EQ(std::get<2>(result), 171u);  // min erroneously clustered points
 }
 
 TEST(WishartTest, FCPS_Lsun) {
     auto points = read_points("data/FCPS/01FCPSdata/Lsun.lrn");
     auto cluster_labels = read_cluster_labels("data/FCPS/01FCPSdata/Lsun.cls");
 
-    tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
-                                                                 cluster_labels);
-    EXPECT_DOUBLE_EQ(get<0>(result), 0.1);  // best eps
-    EXPECT_EQ(get<1>(result), 3);  // best min_pts
-    EXPECT_EQ(get<2>(result), 34);  // min erroneously clustered points
+    std::tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
+                                                                      cluster_labels);
+    EXPECT_DOUBLE_EQ(std::get<0>(result), 0.1);  // best eps
+    EXPECT_EQ(std::get<1>(result), 3u);  // best min_pts
+    EXPECT_EQ(std::get<2>(result), 34u);  // min erroneously clustered points
 }
 
 TEST(WishartTest, FCPS_Target) {
     auto points = read_points("data/FCPS/01FCPSdata/Target.lrn");
     auto cluster_labels = read_cluster_labels("data/FCPS/01FCPSdata/Target.cls");
 
-    tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
-                                                                 cluster_labels);
-    EXPECT_DOUBLE_EQ(get<0>(result), 0.1);  // best eps
-    EXPECT_EQ(get<1>(result), 3);  // best min_pts
-    EXPECT_EQ(get<2>(result), 211);  // min erroneously clustered points
+    std::tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
+                                                                      cluster_labels);
+    EXPECT_DOUBLE_EQ(std::get<0>(result), 0.1);  // best eps
+    EXPECT_EQ(std::get<1>(result), 3u);  // best min_pts
+    EXPECT_EQ(std::get<2>(result), 211u);  // min erroneously clustered points
 }
 
 TEST(WishartTest, FCPS_Tetra) {
     auto points = read_points("data/FCPS/01FCPSdata/Tetra.lrn");
     auto cluster_labels = read_cluster_labels("data/FCPS/01FCPSdata/Tetra.cls");
 
-    tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
-                                                                 cluster_labels);
-    EXPECT_DOUBLE_EQ(get<0>(result), 0.1);  // best eps
-    EXPECT_EQ(get<1>(result), 1);  // best min_pts
-    EXPECT_EQ(get<2>(result), 372);  // min erroneously clustered points
+    std::tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
+                                                                      cluster_labels);
+    EXPECT_DOUBLE_EQ(std::get<0>(result), 0.1);  // best eps
+    EXPECT_EQ(std::get<1>(result), 1u);  // best min_pts
+    EXPECT_EQ(std::get<2>(result), 372u);  // min erroneously clustered points
 }
 
 TEST(WishartTest, FCPS_TwoDiamonds) {
     auto points = read_points("data/FCPS/01FCPSdata/TwoDiamonds.lrn");
     auto cluster_labels = read_cluster_labels("data/FCPS/01FCPSdata/TwoDiamonds.cls");
 
-    tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
-                                                                 cluster_labels);
-    EXPECT_DOUBLE_EQ(get<0>(result), 0.1);  // best eps
-    EXPECT_EQ(get<1>(result), 3);  // best min_pts
-    EXPECT_EQ(get<2>(result), 0);  // min erroneously clustered points
+    std::tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
+                                                                      cluster_labels);
+    EXPECT_DOUBLE_EQ(std::get<0>(result), 0.1);  // best eps
+    EXPECT_EQ(std::get<1>(result), 3u);  // best min_pts
+    EXPECT_EQ(std::get<2>(result), 0u);  // min erroneously clustered points
 }
 
 TEST(WishartTest, FCPS_WingNut) {
     auto points = read_points("data/FCPS/01FCPSdata/WingNut.lrn");
     auto cluster_labels = read_cluster_labels("data/FCPS/01FCPSdata/WingNut.cls");
 
-    tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
-                                                                 cluster_labels);
-    EXPECT_DOUBLE_EQ(get<0>(result), 0.1);  // best eps
-    EXPECT_EQ(get<1>(result), 3);  // best min_pts
-    EXPECT_EQ(get<2>(result), 10);  // min erroneously clustered points
+    std::tuple<double, size_t, size_t> result = run_FCPS_test_wishart(points,
+                                                                      cluster_labels);
+    EXPECT_DOUBLE_EQ(std::get<0>(result), 0.1);  // best eps
+    EXPECT_EQ(std::get<1>(result), 3u);  // best min_pts
+    EXPECT_EQ(std::get<2>(result), 10u);  // min erroneously clustered points
 }

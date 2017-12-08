@@ -11,6 +11,7 @@
 #include <unordered_set>
 #include <utility>
 #include <memory>
+#include <iterator>
 #include <type_traits>
 
 static double random_func(double* x, int n)

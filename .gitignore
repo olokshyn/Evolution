@@ -40,5 +40,4 @@ StatAnalyzer/.idea/*
 ehthumbs.db
 Thumbs.db
 
-googletest
 cmake-build-*

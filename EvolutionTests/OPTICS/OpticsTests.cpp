@@ -29,8 +29,8 @@ TEST(OpticsTest, FCPS_Atom) {
     tuple<double, size_t, size_t> result = run_FCPS_test_optics(points,
                                                                 cluster_labels);
     EXPECT_DOUBLE_EQ(get<0>(result), 0.75);  // best eps
-    EXPECT_EQ(get<1>(result), 1);  // best min_pts
-    EXPECT_EQ(get<2>(result), 790);  // min erroneously clustered points
+    EXPECT_EQ(get<1>(result), 1u);  // best min_pts
+    EXPECT_EQ(get<2>(result), 790u);  // min erroneously clustered points
 }
 
 TEST(OpticsTest, FCPS_Chainlink) {
@@ -40,8 +40,8 @@ TEST(OpticsTest, FCPS_Chainlink) {
     tuple<double, size_t, size_t> result = run_FCPS_test_optics(points,
                                                                 cluster_labels);
     EXPECT_DOUBLE_EQ(get<0>(result), 0.15);  // best eps
-    EXPECT_EQ(get<1>(result), 1);  // best min_pts
-    EXPECT_EQ(get<2>(result), 0);  // min erroneously clustered points
+    EXPECT_EQ(get<1>(result), 1u);  // best min_pts
+    EXPECT_EQ(get<2>(result), 0u);  // min erroneously clustered points
 }
 
 // Disabled due to long runtime
@@ -52,8 +52,8 @@ TEST(OpticsTest, DISABLED_FCPS_EngyTime) {
     tuple<double, size_t, size_t> result = run_FCPS_test_optics(points,
                                                                 cluster_labels);
     EXPECT_DOUBLE_EQ(get<0>(result), 0.1);  // best eps
-    EXPECT_EQ(get<1>(result), 3);  // best min_pts
-    EXPECT_EQ(get<2>(result), 2430);  // min erroneously clustered points
+    EXPECT_EQ(get<1>(result), 3u);  // best min_pts
+    EXPECT_EQ(get<2>(result), 2430u);  // min erroneously clustered points
 }
 
 TEST(OpticsTest, FCPS_GolfBall) {
@@ -63,8 +63,8 @@ TEST(OpticsTest, FCPS_GolfBall) {
     tuple<double, size_t, size_t> result = run_FCPS_test_optics(points,
                                                                 cluster_labels);
     EXPECT_DOUBLE_EQ(get<0>(result), 0.1);  // best eps
-    EXPECT_EQ(get<1>(result), 1);  // best min_pts
-    EXPECT_EQ(get<2>(result), 0);  // min erroneously clustered points
+    EXPECT_EQ(get<1>(result), 1u);  // best min_pts
+    EXPECT_EQ(get<2>(result), 0u);  // min erroneously clustered points
 }
 
 TEST(OpticsTest, FCPS_Hepta) {
@@ -74,8 +74,8 @@ TEST(OpticsTest, FCPS_Hepta) {
     tuple<double, size_t, size_t> result = run_FCPS_test_optics(points,
                                                                 cluster_labels);
     EXPECT_DOUBLE_EQ(get<0>(result), 0.75);  // best eps
-    EXPECT_EQ(get<1>(result), 1);  // best min_pts
-    EXPECT_EQ(get<2>(result), 0);  // min erroneously clustered points
+    EXPECT_EQ(get<1>(result), 1u);  // best min_pts
+    EXPECT_EQ(get<2>(result), 0u);  // min erroneously clustered points
 }
 
 TEST(OpticsTest, FCPS_Lsun) {
@@ -85,8 +85,8 @@ TEST(OpticsTest, FCPS_Lsun) {
     tuple<double, size_t, size_t> result = run_FCPS_test_optics(points,
                                                                 cluster_labels);
     EXPECT_DOUBLE_EQ(get<0>(result), 0.45);  // best eps
-    EXPECT_EQ(get<1>(result), 1);  // best min_pts
-    EXPECT_EQ(get<2>(result), 0);  // min erroneously clustered points
+    EXPECT_EQ(get<1>(result), 1u);  // best min_pts
+    EXPECT_EQ(get<2>(result), 0u);  // min erroneously clustered points
 }
 
 TEST(OpticsTest, FCPS_Target) {
@@ -96,8 +96,8 @@ TEST(OpticsTest, FCPS_Target) {
     tuple<double, size_t, size_t> result = run_FCPS_test_optics(points,
                                                                 cluster_labels);
     EXPECT_DOUBLE_EQ(get<0>(result), 0.25);  // best eps
-    EXPECT_EQ(get<1>(result), 1);  // best min_pts
-    EXPECT_EQ(get<2>(result), 0);  // min erroneously clustered points
+    EXPECT_EQ(get<1>(result), 1u);  // best min_pts
+    EXPECT_EQ(get<2>(result), 0u);  // min erroneously clustered points
 }
 
 TEST(OpticsTest, FCPS_Tetra) {
@@ -107,8 +107,8 @@ TEST(OpticsTest, FCPS_Tetra) {
     tuple<double, size_t, size_t> result = run_FCPS_test_optics(points,
                                                                 cluster_labels);
     EXPECT_DOUBLE_EQ(get<0>(result), 0.5);  // best eps
-    EXPECT_EQ(get<1>(result), 1);  // best min_pts
-    EXPECT_EQ(get<2>(result), 0);  // min erroneously clustered points
+    EXPECT_EQ(get<1>(result), 1u);  // best min_pts
+    EXPECT_EQ(get<2>(result), 0u);  // min erroneously clustered points
 }
 
 TEST(OpticsTest, FCPS_TwoDiamonds) {
@@ -118,8 +118,8 @@ TEST(OpticsTest, FCPS_TwoDiamonds) {
     tuple<double, size_t, size_t> result = run_FCPS_test_optics(points,
                                                                 cluster_labels);
     EXPECT_DOUBLE_EQ(get<0>(result), 0.15);  // best eps
-    EXPECT_EQ(get<1>(result), 1);  // best min_pts
-    EXPECT_EQ(get<2>(result), 0);  // min erroneously clustered points
+    EXPECT_EQ(get<1>(result), 1u);  // best min_pts
+    EXPECT_EQ(get<2>(result), 0u);  // min erroneously clustered points
 }
 
 TEST(OpticsTest, FCPS_WingNut) {
@@ -129,6 +129,6 @@ TEST(OpticsTest, FCPS_WingNut) {
     tuple<double, size_t, size_t> result = run_FCPS_test_optics(points,
                                                                 cluster_labels);
     EXPECT_DOUBLE_EQ(get<0>(result), 0.25);  // best eps
-    EXPECT_EQ(get<1>(result), 1);  // best min_pts
-    EXPECT_EQ(get<2>(result), 0);  // min erroneously clustered points
+    EXPECT_EQ(get<1>(result), 1u);  // best min_pts
+    EXPECT_EQ(get<2>(result), 0u);  // min erroneously clustered points
 }

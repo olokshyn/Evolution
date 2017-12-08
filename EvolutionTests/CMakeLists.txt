@@ -1,6 +1,6 @@
 project(EvolutionTests)
 
-add_subdirectory(googletest)
+add_subdirectory(3rdParty/googletest)
 
 include_directories(../EvolutionLib)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
