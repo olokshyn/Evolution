@@ -108,7 +108,7 @@ void ScaleSumToOne(LIST_TYPE(double) numbers) {
 #endif
 }
 
-double EuclidMeasure(double* x, double* y, size_t size) {
+double EuclidMeasure(const double* x, const double* y, size_t size) {
     double sum = 0.0;
     for (size_t i = 0; i < size; ++i) {
         sum += pow(x[i] - y[i], 2);

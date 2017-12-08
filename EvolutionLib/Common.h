@@ -5,6 +5,8 @@
 #ifndef EVOLUTION_COMMON_H
 #define EVOLUTION_COMMON_H
 
+#include <math.h>
+
 #include "3rdParty/CList/list.h"
 
 #ifndef LIST_DEFINED_DOUBLE
@@ -43,6 +45,6 @@ int selectRandom(int rangeLow, int rangeHigh);
 void Normalize(LIST_TYPE(double) numbers);
 void Scale(LIST_TYPE(double) numbers, double a, double b);
 void ScaleSumToOne(LIST_TYPE(double) numbers);
-double EuclidMeasure(double* x, double* y, size_t size);
+double EuclidMeasure(const double* x, const double* y, size_t size);
 
 #endif //EVOLUTION_COMMON_H

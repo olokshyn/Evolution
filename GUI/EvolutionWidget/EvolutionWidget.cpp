@@ -23,6 +23,8 @@ using namespace QtCharts;
 
 namespace
 {
+    const double offset = 5.0;
+
     QChartView* create_evolution_chart(
             const QString& chartTitle,
             QWidget* parent)
@@ -39,8 +41,6 @@ namespace
 
     QChartView* create_species_chart(
             QAbstractSeries* series,
-            size_t max_species_count,
-            size_t world_size,
             const QString& chartTitle,
             QWidget* parent)
     {
@@ -49,30 +49,6 @@ namespace
         chart->addSeries(series);
         chart->legend()->hide();
         chart->createDefaultAxes();
-        chart->axisX()->setRange(0,
-                                 static_cast<quint64>(max_species_count));
-        chart->axisY()->setRange(0, static_cast<quint64>(world_size / 2));
-        auto chartView = new QChartView(chart, parent);
-        chartView->setRenderHint(QPainter::Antialiasing);
-        chartView->setMinimumHeight(200);
-        return chartView;
-    }
-
-    QChartView* create_fitness_chart(
-            QAbstractSeries* series,
-            size_t world_size,
-            double min_value,
-            double max_value,
-            const QString& chartTitle,
-            QWidget* parent)
-    {
-        auto chart = new QChart();
-        chart->setTitle(chartTitle);
-        chart->addSeries(series);
-        chart->legend()->hide();
-        chart->createDefaultAxes();
-        chart->axisX()->setRange(0, static_cast<quint64>(1.1 * world_size));
-        chart->axisY()->setRange(min_value, max_value);
         auto chartView = new QChartView(chart, parent);
         chartView->setRenderHint(QPainter::Antialiasing);
         chartView->setMinimumHeight(200);
@@ -92,8 +68,41 @@ namespace
         chart->addSeries(series);
         chart->legend()->hide();
         chart->createDefaultAxes();
-        chart->axisX()->setRange(0, static_cast<quint64>(max_generations_count));
+        chart->axisX()->setRange(
+                0, static_cast<qulonglong>(max_generations_count));
         chart->axisY()->setRange(min_fitness, max_fitness);
+        auto chartView = new QChartView(chart, parent);
+        chartView->setRenderHint(QPainter::Antialiasing);
+        chartView->setMinimumHeight(200);
+        return chartView;
+    }
+
+    QChartView* create_fitness_chart(
+            QAbstractSeries* series,
+            const QString& chartTitle,
+            QWidget* parent)
+    {
+        auto chart = new QChart();
+        chart->setTitle(chartTitle);
+        chart->addSeries(series);
+        chart->legend()->hide();
+        chart->createDefaultAxes();
+        auto chartView = new QChartView(chart, parent);
+        chartView->setRenderHint(QPainter::Antialiasing);
+        chartView->setMinimumHeight(200);
+        return chartView;
+    }
+
+    QChartView* create_norms_chart(
+            QAbstractSeries* series,
+            const QString& chartTitle,
+            QWidget* parent)
+    {
+        auto chart = new QChart();
+        chart->setTitle(chartTitle);
+        chart->addSeries(series);
+        chart->legend()->hide();
+        chart->createDefaultAxes();
         auto chartView = new QChartView(chart, parent);
         chartView->setRenderHint(QPainter::Antialiasing);
         chartView->setMinimumHeight(200);
@@ -117,11 +126,17 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
           m_species_died_series(new QLineSeries(this)),
 
           m_species_series(new QLineSeries(this)),
-          m_fitness_series(new QLineSeries(this)),
+          m_species_chart_view(nullptr),
 
           m_max_fitness_series(new QLineSeries(this)),
         // TODO: is it safe to do so?
           m_max_fitness(-std::numeric_limits<double>::max()),
+
+          m_fitness_series(new QLineSeries(this)),
+          m_fitness_chart_view(nullptr),
+
+          m_norms_series(new QLineSeries(this)),
+          m_norm_chart_view(nullptr),
 
           m_settings_widget(settings.parameters(),
                             settings.operators()),
@@ -137,8 +152,9 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
     m_entities_died_series->setName("Entities died");
     m_species_died_series->setName("Species died");
     m_species_series->setName("Species");
-    m_fitness_series->setName("Fitness landscape");
     m_max_fitness_series->setName("Max fitness");
+    m_fitness_series->setName("Fitness landscape");
+    m_norms_series->setName("Fitness-Norm");
 
     connect(m_stop_btn, &QPushButton::clicked,
             this, &EvolutionWidget::stop_evolution);
@@ -174,19 +190,13 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
     layout->addWidget(
             evolution_chart,
             1, 0, 2, 8);
+    m_species_chart_view = create_species_chart(
+            m_species_series,
+            "Species",
+            this);
     layout->addWidget(
-            create_species_chart(m_species_series,
-                                 settings.ui_settings().max_species_count,
-                                 settings.parameters().initial_world_size,
-                                 "Species", this),
+            m_species_chart_view,
             3, 0, 1, 4);
-    layout->addWidget(
-            create_fitness_chart(m_fitness_series,
-                                 settings.parameters().initial_world_size,
-                                 settings.ui_settings().min_fitness,
-                                 settings.ui_settings().max_fitness,
-                                 "Fitness landscape", this),
-            4, 0, 1, 8);
     layout->addWidget(
             create_max_fitness_chart(m_max_fitness_series,
                                      settings.parameters().max_generations_count,
@@ -195,6 +205,19 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
                                      settings.ui_settings().max_fitness,
                                      this),
             3, 4, 1, 4);
+    m_fitness_chart_view = create_fitness_chart(
+            m_fitness_series,
+            "Fitness landscape", this);
+    layout->addWidget(
+            m_fitness_chart_view,
+            4, 0, 1, 4);
+    m_norm_chart_view = create_norms_chart(
+            m_norms_series,
+            "Fitness-Norm",
+            this);
+    layout->addWidget(
+            m_norm_chart_view,
+            4, 4, 1, 4);
     this->setLayout(layout);
 }
 
@@ -245,7 +268,7 @@ void EvolutionWidget::plot_iterations(const QList<IterationInfo>& infos)
         QList<QPointF> entities_died;
         QList<QPointF> species_died;
         QList<QPointF> max_fitness;
-    } infos_data;
+    } infos_data{};
     for (const auto& info : infos)
     {
         infos_data.world_size.append(
@@ -284,20 +307,67 @@ void EvolutionWidget::plot_iterations(const QList<IterationInfo>& infos)
     m_max_fitness_lbl->setText(QString::number(m_max_fitness));
 
     QList<QPointF> points;
+    size_t max_species_size = 0;
     for (size_t i = 0; i != last_info.species.size(); ++i)
     {
         points.append(QPointF(i, last_info.species[i]));
+        if (last_info.species[i] > max_species_size)
+        {
+            max_species_size = last_info.species[i];
+        }
     }
     m_species_series->clear();
+    if (!last_info.species.empty())
+    {
+        m_species_chart_view->chart()->axisX()->setRange(
+                0,
+                static_cast<qulonglong>(last_info.species.size() + 1));
+        m_species_chart_view->chart()->axisY()->setRange(
+                0,
+                static_cast<qulonglong>(max_species_size + 1));
+    }
     m_species_series->append(points);
 
     points.clear();
+    double min_fitness = std::numeric_limits<double>::max();
     for (size_t i = 0; i != last_info.fitnesses.size(); ++i)
     {
         points.append(QPointF(i, last_info.fitnesses[i]));
+        if (last_info.fitnesses[i] < min_fitness)
+        {
+            min_fitness = last_info.fitnesses[i];
+        }
     }
     m_fitness_series->clear();
+    if (!last_info.fitnesses.empty())
+    {
+        m_fitness_chart_view->chart()->axisX()->setRange(
+                0,
+                static_cast<qulonglong>(last_info.fitnesses.size() + 1));
+        m_fitness_chart_view->chart()->axisY()->setRange(min_fitness - offset,
+                                                         m_max_fitness + offset);
+    }
     m_fitness_series->append(points);
+
+    points.clear();
+    LOG_ASSERT(last_info.fitnesses.size() == last_info.norms.size());
+    for (size_t i = 0; i != last_info.norms.size(); ++i)
+    {
+        points.append(QPointF(last_info.norms[i],
+                              last_info.fitnesses[i]));
+        LOG_ASSERT(DOUBLE_LE(last_info.fitnesses[i], m_max_fitness));
+        LOG_ASSERT(DOUBLE_GE(last_info.fitnesses[i], min_fitness));
+    }
+    m_norms_series->clear();
+    if (!last_info.norms.empty())
+    {
+        double max_norm = *std::max_element(last_info.norms.cbegin(),
+                                            last_info.norms.cend());
+        m_norm_chart_view->chart()->axisX()->setRange(0, max_norm + 1);
+        m_norm_chart_view->chart()->axisY()->setRange(min_fitness - offset,
+                                                      m_max_fitness + offset);
+    }
+    m_norms_series->append(points);
 }
 
 void EvolutionWidget::optimum_reached(double optimum)
@@ -318,7 +388,7 @@ void EvolutionWidget::add_evolution_serieses(QtCharts::QChartView* chart_view,
     chart->addSeries(m_species_died_series);
 
     auto axisX = new QValueAxis();
-    axisX->setRange(0, static_cast<quint64>(max_generations_count));
+    axisX->setRange(0, static_cast<qulonglong>(max_generations_count));
     chart->setAxisX(axisX, m_world_size_series);
     chart->setAxisX(axisX, m_species_count_series);
     chart->setAxisX(axisX, m_new_entities_series);
@@ -326,7 +396,7 @@ void EvolutionWidget::add_evolution_serieses(QtCharts::QChartView* chart_view,
     chart->setAxisX(axisX, m_species_died_series);
 
     auto axisY = new QValueAxis();
-    axisY->setRange(0, static_cast<quint64>(2.5 * world_size));
+    axisY->setRange(0, static_cast<qulonglong>(1.2 * world_size));
     chart->setAxisY(axisY, m_world_size_series);
     chart->setAxisY(axisY, m_species_count_series);
     chart->setAxisY(axisY, m_new_entities_series);

@@ -68,13 +68,19 @@ private:
     // One generation chart
     // TODO: use bar chart instead
     QtCharts::QLineSeries* m_species_series;
-
-    // Fitness landscape chart
-    QtCharts::QLineSeries* m_fitness_series;
+    QtCharts::QChartView* m_species_chart_view;
 
     // Max fitness chart
     QtCharts::QLineSeries* m_max_fitness_series;
     double m_max_fitness;
+
+    // Fitness landscape chart
+    QtCharts::QLineSeries* m_fitness_series;
+    QtCharts::QChartView* m_fitness_chart_view;
+
+    // Entities fitness-norm chart
+    QtCharts::QLineSeries* m_norms_series;
+    QtCharts::QChartView* m_norm_chart_view;
 
     SettingsWidget m_settings_widget;
 

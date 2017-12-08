@@ -164,6 +164,25 @@ void EvolutionWorker::iteration_end(
         }
     }
 
+    m_info.norms.reserve(m_world_size);
+    const std::vector<double> zero(m_parameters.chromosome_size);
+#ifndef NDEBUG
+    for (auto value : zero)
+    {
+        LOG_ASSERT(value == 0.0);
+    }
+#endif
+    list_for_each(SpeciesPtr, population, sp_var)
+    {
+        list_for_each(EntityPtr, list_var_value(sp_var)->entities, en_var)
+        {
+            m_info.norms.push_back(
+                    EuclidMeasure(list_var_value(en_var)->chr,
+                                  zero.data(),
+                                  m_parameters.chromosome_size));
+        }
+    }
+
     m_info.species_died = species_died_on_iteration;
 
     send_iteration(m_info);
