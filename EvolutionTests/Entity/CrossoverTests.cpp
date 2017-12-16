@@ -10,7 +10,6 @@ extern "C"
 {
 #include "Entity/CrossoverLib.h"
 #include "Entity/Crossovers.h"
-#include "Functions/TestFunctions.h"
 }
 
 #include "TestsCommon.h"
@@ -25,7 +24,7 @@ namespace
     const size_t chr_size = 100;
     const size_t individuals_size = 10;
     const size_t max_generations_count = 100;
-    Objective* obj = &RastriginFuncObjective;
+    const Objective* obj = &square_objective;
 }
 
 TEST(CrossoverLibTest, dcF)

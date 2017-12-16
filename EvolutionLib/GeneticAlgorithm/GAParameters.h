@@ -7,6 +7,7 @@
 
 #include "GAFwd.h"
 #include "Common.h"
+#include "GAObjective.h"
 
 #define ENABLE_THREADS 0
 #if defined(ENABLE_THREADS) && ENABLE_THREADS

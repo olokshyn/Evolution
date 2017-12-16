@@ -20,10 +20,6 @@ set(ENTITY_SOURCE_FILES
         Entity/Crossovers.c
         Entity/Crossovers.h)
 
-set(FUNCTIONS_SOURCE_FILES
-        Functions/TestFunctions.c
-        Functions/TestFunctions.h)
-
 set(GENETIC_ALGORITHM_SOURCE_FILES
         GeneticAlgorithm/GeneticAlgorithm.c
         GeneticAlgorithm/GeneticAlgorithm.h
@@ -34,7 +30,8 @@ set(GENETIC_ALGORITHM_SOURCE_FILES
         GeneticAlgorithm/World.h
         GeneticAlgorithm/GAParameters.h
         GeneticAlgorithm/GAOperators.h
-        GeneticAlgorithm/GAOperators.c)
+        GeneticAlgorithm/GAOperators.c
+        GeneticAlgorithm/GAObjective.h)
 
 set(LIST_SOURCE_FILES
         List/List.c
@@ -47,6 +44,10 @@ set(LOGGING_SOURCE_FILES
 set(JOURNAL_SOURCE_FILES
         Journal/Journal.c
         Journal/Journal.h)
+
+set(PLUGINMANAGER_SOURCE_FILES
+        PluginManager/PluginManager.c
+        PluginManager/PluginManager.h)
 
 set(SPECIES_SOURCE_FILES
         Species/Species.c
@@ -72,11 +73,11 @@ set(OPTICS_SOURCE_FILES
 
 set(EVOLUTION_LIB_SOURCE_FILES
         ${ENTITY_SOURCE_FILES}
-        ${FUNCTIONS_SOURCE_FILES}
         ${GENETIC_ALGORITHM_SOURCE_FILES}
         ${LIST_SOURCE_FILES}
         ${LOGGING_SOURCE_FILES}
         ${JOURNAL_SOURCE_FILES}
+        ${PLUGINMANAGER_SOURCE_FILES}
         ${SPECIES_SOURCE_FILES}
         ${WISHART_SOURCE_FILES}
         ${AGGLOMERATIVE_CLUSTERING_SOURCE_FILES}
@@ -85,3 +86,4 @@ set(EVOLUTION_LIB_SOURCE_FILES
         Common.h)
 
 add_library(${PROJECT_NAME} ${EVOLUTION_LIB_SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS})

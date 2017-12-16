@@ -10,6 +10,7 @@
 extern "C"
 {
 #include "GeneticAlgorithm/GAParameters.h"
+#include "GeneticAlgorithm/GAObjective.h"
 #include "GeneticAlgorithm/GAOperators.h"
 };
 
@@ -64,6 +65,12 @@ private:
 
     void check_current_objective() const;
     void check_current_operators() const;
+
+    const Objective* get_current_objective() const;
+    const GAOperators* get_current_operators() const;
+
+    void find_current_objective();
+    void find_current_operators();
 
 private:
     const bool m_read_only;

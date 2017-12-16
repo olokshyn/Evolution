@@ -8,32 +8,28 @@
 
 #include "GeneticAlgorithm/GAParameters.h"
 #include "GeneticAlgorithm/GAOperators.h"
+#include "GeneticAlgorithm/GAObjective.h"
 #include "GeneticAlgorithm/GeneticAlgorithm.h"
-#include "Functions/TestFunctions.h"
+#include "PluginManager/PluginManager.h"
 
 #include "Logging/Logging.h"
 
 #if COLORED_OUTPUT
 #define ANSI_COLOR_GREEN   "\x1b[32m"
-    #define ANSI_COLOR_RED     "\x1b[31m"
-    #define ANSI_COLOR_RESET   "\x1b[0m"
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
 #else
-    #define ANSI_COLOR_GREEN
-    #define ANSI_COLOR_RED
-    #define ANSI_COLOR_RESET
+#define ANSI_COLOR_GREEN
+#define ANSI_COLOR_RED
+#define ANSI_COLOR_RESET
 #endif
 
 #define EPS 1e-5
 
 const char* success_template = ANSI_COLOR_GREEN "SUCCESS" ANSI_COLOR_RESET
-": optimum: %.15f \t best: %.15f "
-"\t iterations: %zu "
-"\t avg time spent on a step: %.5f\n";
-
-const char* failure_template = ANSI_COLOR_RED "FAILURE" ANSI_COLOR_RESET
-": optimum: %.15f \t best: %.15f "
-"\t iterations: %zu "
-"\t avg time spent on a step: %.5f\n";
+        ": best: %.15f "
+        "\t iterations: %zu "
+        "\t avg time spent on a step: %.5f\n";
 
 void RunForOneAvg(GAParameters* parameters,
                   const GAOperators* operators,
@@ -60,28 +56,12 @@ void RunForOneAvg(GAParameters* parameters,
         avg_iterations_made += result.iterations_made;
         avg_time_spent += result.time_spent_per_iteration;
 
-        if (fabs(parameters->objective.optimum - result.optimum) < EPS) {
-            if (report_file) {
-                fprintf(report_file,
-                        success_template,
-                        parameters->objective.optimum,
-                        result.optimum,
-                        result.iterations_made,
-                        result.time_spent_per_iteration);
-            }
-        }
-        else {
-            if (report_file) {
-                fprintf(report_file,
-                        failure_template,
-                        parameters->objective.optimum,
-                        result.optimum,
-                        result.iterations_made,
-                        result.time_spent_per_iteration);
-            }
-        }
-
         if (report_file) {
+            fprintf(report_file,
+                    success_template,
+                    result.optimum,
+                    result.iterations_made,
+                    result.time_spent_per_iteration);
             fprintf(report_file, "\n");
             fflush(report_file);
         }
@@ -104,48 +84,9 @@ void RunForAllFunctions(GAParameters* parameters,
         return;
     }
 
-    for (size_t i = 0; i != Objectives_count; ++i) {
-        printf("%s\n", ObjectivesNames[i]);
-        parameters->objective = *Objectives[i];
-
-        RunForOneAvg(parameters, operators, tests_count, report_file);
-    }
-}
-
-void RunForAllHerreraFunctions(GAParameters* parameters,
-                               GAOperators* operators,
-                               size_t tests_count) {
-    const char* functionNames[] = {
-            "f1 - De Jong`s F1 function",
-            "f2 - De Jong`s F2 function",
-            "f3 - Rastrigin`s function",
-            "f4 - Ackley`s function",
-            "f6 - Griewangk`s function"
-    };
-
-    Objective objectiveFunctions[] = {
-            DeJongF1Objective,
-            DeJongF2Objective,
-            RastriginFuncObjective,
-            AckleyFuncObjective,
-            GriewangkFuncObjective
-    };
-
-    LOG_ASSERT(sizeof(functionNames) / sizeof(char*)
-               == sizeof(objectiveFunctions) / sizeof(Objective));
-
-    size_t functionsCount = sizeof(functionNames) / sizeof(char*);
-
-    FILE* report_file = fopen("RunReport.log", "w");
-    if (!report_file) {
-        printf("Failed to open RunReport.log\n");
-        return;
-    }
-
-    for (size_t i = 0; i != functionsCount; ++i) {
-        printf("%s\n", functionNames[i]);
-        fprintf(report_file, "%s\n", functionNames[i]);
-        parameters->objective = objectiveFunctions[i];
+    list_for_each(ConstObjectivePtr, g_plugin_objectives, var) {
+        printf("%s\n", list_var_value(var)->name);
+        parameters->objective = *list_var_value(var);
 
         RunForOneAvg(parameters, operators, tests_count, report_file);
     }
@@ -154,9 +95,14 @@ void RunForAllHerreraFunctions(GAParameters* parameters,
 int main(int argc, char* argv[]) {
     srand((unsigned int)time(NULL));
 
+    if (!load_plugins("../Plugins/Objectives", "../Plugins/Operators")) {
+        fprintf(stderr, "Failed to load plugins: %s", g_PM_last_error);
+        return 1;
+    }
+
     if (!InitLogging("Evolution.log", INFO)) {
         printf("Failed to init logging\n");
-        return 1;
+        goto error;
     }
 
 #ifndef NDEBUG
@@ -180,13 +126,17 @@ int main(int argc, char* argv[]) {
             .stable_value_iterations_count = 100,
             .stable_value_eps = 1e-5,
     };
-
-    for (size_t i = 0; i != Operators_count; ++i) {
-        printf("\n---Operators: %s ---\n", OperatorsNames[i]);
-        RunForAllFunctions(&parameters, Operators[i], 15);
+    list_for_each(ConstGAOperatorsPtr, g_plugin_operators, var) {
+        printf("\n---Operators: %s ---\n", list_var_value(var)->name);
+        RunForAllFunctions(&parameters, list_var_value(var), 15);
     }
 
     ReleaseLogging();
+    unload_plugins();
 
     return 0;
+
+error:
+    unload_plugins();
+    return 1;
 }

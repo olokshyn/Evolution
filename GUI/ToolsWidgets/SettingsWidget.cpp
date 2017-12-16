@@ -17,7 +17,7 @@
 
 extern "C"
 {
-#include "Functions/TestFunctions.h"
+#include "PluginManager/PluginManager.h"
 }
 
 SettingsWidget::SettingsWidget(QWidget* parent)
@@ -102,8 +102,8 @@ SettingsWidget::SettingsWidget(QWidget* parent)
             settings.value("stable_value_eps", 1e-5).toDouble(),
     };
 
-    m_parameters.objective = *Objectives[m_current_objective];
-    m_operators = *Operators[m_current_operators];
+    m_parameters.objective = *get_current_objective();
+    m_operators = *get_current_operators();
 
     m_ui_settings = {
             .min_fitness =
@@ -159,26 +159,8 @@ SettingsWidget::SettingsWidget(const GAParameters& parameters,
           m_max_species_count_edit(nullptr),
           m_iterations_buffer_size_edit(nullptr)
 {
-    for (size_t i = 0; i != Objectives_count; ++i)
-    {
-        if (m_parameters.objective.func == Objectives[i]->func)
-        {
-            m_current_objective = i;
-            break;
-        }
-    }
-    for (size_t i = 0; i != Operators_count; ++i)
-    {
-        if (m_operators.mutation == Operators[i]->mutation
-            && m_operators.crossover == Operators[i]->crossover
-            && m_operators.clustering == Operators[i]->clustering
-            && m_operators.children_selection == Operators[i]->children_selection
-            && m_operators.selection == Operators[i]->selection)
-        {
-            m_current_operators = i;
-            break;
-        }
-    }
+    find_current_objective();
+    find_current_operators();
 
     m_initial_world_size_edit->setReadOnly(true);
     m_chromosome_size_edit->setReadOnly(true);
@@ -364,8 +346,7 @@ void SettingsWidget::save_parameters()
             m_min_pts_edit->text().toULongLong();
     m_parameters.eps =
             m_eps_edit->text().toDouble();
-    m_parameters.objective =
-            *Objectives[m_current_objective];
+    m_parameters.objective = *get_current_objective();
     m_parameters.max_generations_count =
             m_max_generations_count_edit->text().toULongLong();
     m_parameters.stable_value_iterations_count =
@@ -449,9 +430,9 @@ void SettingsWidget::reset_parameters()
             QString::number(m_parameters.eps));
 
     QStringList items;
-    for (size_t i = 0; i != Objectives_count; ++i)
+    list_for_each(ConstObjectivePtr, g_plugin_objectives, var)
     {
-        items.append(ObjectivesNames[i]);
+        items.append(list_var_value(var)->name);
     }
     m_objective_selector->clear();
     m_objective_selector->addItems(items);
@@ -471,7 +452,7 @@ void SettingsWidget::save_operators()
             static_cast<size_t>(m_operators_selector->currentIndex());
     check_current_operators();
 
-    m_operators = *Operators[m_current_operators];
+    m_operators = *get_current_operators();
 
     QSettings settings;
 
@@ -487,9 +468,9 @@ void SettingsWidget::reset_operators()
     check_current_operators();
 
     QStringList items;
-    for (size_t i = 0; i != Operators_count; ++i)
+    list_for_each(ConstGAOperatorsPtr, g_plugin_operators, var)
     {
-        items.append(OperatorsNames[i]);
+        items.append(list_var_value(var)->name);
     }
     m_operators_selector->clear();
     m_operators_selector->addItems(items);
@@ -539,7 +520,7 @@ void SettingsWidget::reset_ui_settings()
 
 void SettingsWidget::check_current_objective() const
 {
-    if (m_current_objective >= Objectives_count)
+    if (m_current_objective >= list_len(g_plugin_objectives))
     {
         qFatal("Current objective index is out of range: %zu",
                m_current_objective);
@@ -548,9 +529,69 @@ void SettingsWidget::check_current_objective() const
 
 void SettingsWidget::check_current_operators() const
 {
-    if (m_current_operators >= Operators_count)
+    if (m_current_operators >= list_len(g_plugin_operators))
     {
         qFatal("Current operators index is out of range: %zu",
                m_current_operators);
+    }
+}
+
+const Objective* SettingsWidget::get_current_objective() const
+{
+    size_t i = 0;
+    list_for_each(ConstObjectivePtr, g_plugin_objectives, var)
+    {
+        if (i++ == m_current_objective)
+        {
+            return list_var_value(var);
+        }
+    }
+    qFatal("Current objective index is invalid: %zu", m_current_objective);
+    abort();
+}
+
+const GAOperators* SettingsWidget::get_current_operators() const
+{
+    size_t i = 0;
+    list_for_each(ConstGAOperatorsPtr, g_plugin_operators, var)
+    {
+        if (i++ == m_current_operators)
+        {
+            return list_var_value(var);
+        }
+    }
+    qFatal("Current operators index is invalid: %zu", m_current_operators);
+    abort();
+}
+
+void SettingsWidget::find_current_objective()
+{
+    size_t i = 0;
+    list_for_each(ConstObjectivePtr, g_plugin_objectives, var)
+    {
+        if (m_parameters.objective.func == list_var_value(var)->func)
+        {
+            m_current_objective = i;
+            break;
+        }
+        ++i;
+    }
+}
+
+void SettingsWidget::find_current_operators()
+{
+    size_t i = 0;
+    list_for_each(ConstGAOperatorsPtr, g_plugin_operators, var)
+    {
+        if (m_operators.mutation == list_var_value(var)->mutation
+            && m_operators.crossover == list_var_value(var)->crossover
+            && m_operators.clustering == list_var_value(var)->clustering
+            && m_operators.children_selection == list_var_value(var)->children_selection
+            && m_operators.selection == list_var_value(var)->selection)
+        {
+            m_current_operators = i;
+            break;
+        }
+        ++i;
     }
 }

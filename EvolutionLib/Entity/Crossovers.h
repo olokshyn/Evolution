@@ -5,8 +5,8 @@
 #ifndef EVOLUTION_CROSSOVERS_H
 #define EVOLUTION_CROSSOVERS_H
 
-#include "Common.h"
 #include "Entity.h"
+#include "GeneticAlgorithm/GAObjective.h"
 
 void OnePointCrossover(const Entity* parent1,
                        const Entity* parent2,

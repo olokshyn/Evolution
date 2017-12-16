@@ -11,7 +11,7 @@
 #include "Logging/Logging.h"
 #include "Journal/Journal.h"
 
-_Thread_local int last_error = 0;
+static _Thread_local int last_error = 0;
 
 static double Iteration(World* world, size_t generation_number);
 static double GetMaxFitness(World* world);

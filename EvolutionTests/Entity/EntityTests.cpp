@@ -7,7 +7,6 @@
 extern "C"
 {
 #include "Entity/Entity.h"
-#include "Functions/TestFunctions.h"
 }
 
 #include "TestsCommon.h"
@@ -18,7 +17,7 @@ namespace
 {
     const size_t chr_size = 200;
     const size_t entities_count = 1000;
-    Objective* obj = &RastriginFuncObjective;
+    const Objective* obj = &square_objective;
 }
 
 TEST(EntityTest, Creation)

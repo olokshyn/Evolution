@@ -19,6 +19,7 @@ typedef struct ga_operators {
                                         size_t min_pts);
     bool (*children_selection)(World* world, LIST_TYPE(EntityPtr)* new_entities);
     bool (*selection)(World* world);
+    const char* name;
 } GAOperators;
 
 bool GAO_UniformMutation(World* world, size_t generation_number);

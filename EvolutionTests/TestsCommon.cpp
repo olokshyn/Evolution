@@ -4,6 +4,11 @@
 
 #include "TestsCommon.h"
 
+extern "C"
+{
+#include "Logging/Logging.h"
+}
+
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -14,32 +19,45 @@
 #include <iterator>
 #include <type_traits>
 
-static double random_func(double* x, int n)
+static double random_func(double* x, size_t n)
 {
     return getRand(0.0, 1.0);
 }
 
+static double square_func(double* x, size_t n)
+{
+    LOG_RELEASE_ASSERT(n != 0);
+    return x[0] * x[0];
+}
+
 const Objective random_objective = {
-        random_func,
-        0.0,
-        1.0
+        .func = random_func,
+        .min = 0.0,
+        .max = 1.0
+};
+
+const Objective square_objective = {
+        .func = square_func,
+        .min = 0.0,
+        .max = 1.0,
+        .max_args_count = 1
 };
 
 namespace
 {
 
-    std::map< size_t, std::unordered_set<size_t> > cluster_labels_to_clusters(
-            const std::vector<size_t>& cluster_labels)
+std::map< size_t, std::unordered_set<size_t> > cluster_labels_to_clusters(
+        const std::vector<size_t>& cluster_labels)
+{
+    // Reorganize cluster_labels so every label will denote
+    // a set of object`s indexes which it contains
+    std::map< size_t, std::unordered_set<size_t> > clusters;
+    for (size_t index = 0; index != cluster_labels.size(); ++index)
     {
-        // Reorganize cluster_labels so every label will denote
-        // a set of object`s indexes which it contains
-        std::map< size_t, std::unordered_set<size_t> > clusters;
-        for (size_t index = 0; index != cluster_labels.size(); ++index)
-        {
-            clusters[cluster_labels[index]].insert(index);
-        }
-        return clusters;
-    };
+        clusters[cluster_labels[index]].insert(index);
+    }
+    return clusters;
+};
 
 }
 
@@ -217,7 +235,7 @@ size_t count_erroneously_clustered_points(
                 found_cluster_matches.end(),
                 [](const std::pair<const size_t, size_t>& match_a,
                    const std::pair<const size_t,
-                           size_t>& match_b) -> bool {
+                                   size_t>& match_b) -> bool {
                     return match_a.second
                            < match_b.second;
                 });

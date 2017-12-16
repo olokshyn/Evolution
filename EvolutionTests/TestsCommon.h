@@ -9,6 +9,7 @@ extern "C" {
 #include "Common.h"
 #include "Entity/Entity.h"
 #include "Species/Species.h"
+#include "GeneticAlgorithm/GAObjective.h"
 }
 
 #include <string>
@@ -16,6 +17,7 @@ extern "C" {
 #include <tuple>
 
 extern const Objective random_objective;
+extern const Objective square_objective;
 
 const double g_FCPPS_min_eps = 0.1;
 const double g_FCPS_max_eps = 0.8;
