@@ -26,7 +26,8 @@ static double random_func(double* x, size_t n)
 
 static double square_func(double* x, size_t n)
 {
-    LOG_RELEASE_ASSERT(n != 0);
+    // TODO: uncomment it
+//    LOG_RELEASE_ASSERT(n == 1);
     return x[0] * x[0];
 }
 

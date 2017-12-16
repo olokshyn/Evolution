@@ -30,6 +30,16 @@ static bool load_each_lib(const char* plugins_dir,
 static bool verify_objective(const Objective* objective);
 static bool verify_operators(const GAOperators* operators);
 
+#define DEFINE_IS_LESS(TYPE) \
+    static bool __is_less_##TYPE(TYPE* a, TYPE* b) { \
+        return strcmp((*a)->name, (*b)->name) < 0; \
+    }
+
+#define is_less(TYPE) __is_less_##TYPE
+
+DEFINE_IS_LESS(ConstObjectivePtr)
+DEFINE_IS_LESS(ConstGAOperatorsPtr)
+
 bool load_plugins(const char* objectives_dir,
                   const char* operators_dir) {
     g_plugin_objectives = list_create(ConstObjectivePtr);
@@ -55,15 +65,17 @@ bool load_plugins(const char* objectives_dir,
         goto error;
     }
 
-    // TODO: use list_empty
-    if (list_len(g_plugin_objectives) == 0
-        || list_len(g_plugin_operators) == 0) {
+    if (list_empty(g_plugin_objectives)
+        || list_empty(g_plugin_operators)) {
 
         g_PM_last_error = "There are no plugins";
         goto error;
     }
 
-    // TODO: sort plugins by name
+    list_selection_sort_cmp(ConstObjectivePtr, g_plugin_objectives,
+                            is_less(ConstObjectivePtr));
+    list_selection_sort_cmp(ConstGAOperatorsPtr, g_plugin_operators,
+                            is_less(ConstGAOperatorsPtr));
 
     return true;
 
@@ -117,8 +129,7 @@ static bool load_objective(const char* library_path) {
     return true;
 
 pop_lib_handle:
-    // TODO: use list_pop
-    list_remove(VoidPtr, list_tail(VoidPtr, g_library_handles));
+    list_pop_back(VoidPtr, g_library_handles);
 destroy_lib_handle:
     dlclose(lib_handle);
     return false;
@@ -154,8 +165,7 @@ static bool load_operator(const char* library_path) {
     return true;
 
 pop_lib_handle:
-    // TODO: use list_pop
-    list_remove(VoidPtr, list_tail(VoidPtr, g_library_handles));
+    list_pop_back(VoidPtr, g_library_handles);
 destroy_lib_handle:
     dlclose(lib_handle);
     return false;
