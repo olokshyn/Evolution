@@ -25,10 +25,12 @@ void RecordIterationStart(Journal* journal,
 }
 
 void RecordIterationEnd(Journal* journal,
-                        LIST_TYPE(SpeciesPtr) population) {
+                        LIST_TYPE(SpeciesPtr) population,
+                        size_t chromosome_size) {
     if (journal && journal->iteration_end) {
         journal->iteration_end(journal->data,
                                population,
+                               chromosome_size,
                                species_died_on_iteration);
     }
     species_died_on_iteration = 0;

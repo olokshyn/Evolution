@@ -15,6 +15,7 @@ typedef struct journal {
                             size_t generation_number);
     void (*iteration_end)(void* data,
                           LIST_TYPE(SpeciesPtr) population,
+                          size_t chromosome_size,
                           size_t species_died_on_iteration);
 
     void (*crossover)(void* data,
@@ -44,7 +45,8 @@ void RecordIterationStart(Journal* journal,
                           size_t generation_number);
 
 void RecordIterationEnd(Journal* journal,
-                        LIST_TYPE(SpeciesPtr) population);
+                        LIST_TYPE(SpeciesPtr) population,
+                        size_t chromosome_size);
 
 void RecordCrossover(Journal* journal,
                      LIST_TYPE(SpeciesPtr) population,

@@ -83,9 +83,10 @@ void EvolutionWorker::iteration_start(void* data,
 
 void EvolutionWorker::iteration_end(void* data,
                                     LIST_TYPE(SpeciesPtr) population,
+                                    size_t chromosome_size,
                                     size_t species_died_on_iteration)
 {
-    worker(data)->iteration_end(population, species_died_on_iteration);
+    worker(data)->iteration_end(population, chromosome_size, species_died_on_iteration);
 }
 
 void EvolutionWorker::crossover(void* data,
@@ -145,6 +146,7 @@ void EvolutionWorker::iteration_start(
 
 void EvolutionWorker::iteration_end(
         LIST_TYPE(SpeciesPtr) population,
+        size_t chromosome_size,
         size_t species_died_on_iteration)
 {
     m_info.world_size = m_world_size;
@@ -165,7 +167,7 @@ void EvolutionWorker::iteration_end(
     }
 
     m_info.norms.reserve(m_world_size);
-    const std::vector<double> zero(m_parameters.chromosome_size);
+    const std::vector<double> zero(chromosome_size);
 #ifndef NDEBUG
     for (auto value : zero)
     {
@@ -179,7 +181,7 @@ void EvolutionWorker::iteration_end(
             m_info.norms.push_back(
                     EuclidMeasure(list_var_value(en_var)->chr,
                                   zero.data(),
-                                  m_parameters.chromosome_size));
+                                  chromosome_size));
         }
     }
 

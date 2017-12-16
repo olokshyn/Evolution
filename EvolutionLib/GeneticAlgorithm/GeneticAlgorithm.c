@@ -189,7 +189,7 @@ double Iteration(World* world, size_t generation_number) {
     }
 
     CountDiedSpecies(world);
-    RecordIterationEnd(world->journal, world->population);
+    RecordIterationEnd(world->journal, world->population, world->chr_size);
 
     double max_fitness = GetMaxFitness(world);
     LogMaxFitness(max_fitness);

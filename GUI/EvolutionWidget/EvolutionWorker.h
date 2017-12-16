@@ -48,6 +48,7 @@ private:
                                 size_t generation_number);
     static void iteration_end(void* data,
                               LIST_TYPE(SpeciesPtr) population,
+                              size_t chromosome_size,
                               size_t species_died_on_iteration);
     static void crossover(void* data,
                           LIST_TYPE(SpeciesPtr) population,
@@ -74,6 +75,7 @@ private:
             size_t generation_number);
     void iteration_end(
             LIST_TYPE(SpeciesPtr) population,
+            size_t chromosome_size,
             size_t species_died_on_iteration);
     void crossover(
             LIST_TYPE(SpeciesPtr) population,
