@@ -79,7 +79,6 @@ private:
     QtCharts::QChartView* m_fitness_chart_view;
 
     // Entities fitness-norm chart
-    QtCharts::QLineSeries* m_norms_series;
     QtCharts::QChartView* m_norm_chart_view;
 
     SettingsWidget m_settings_widget;

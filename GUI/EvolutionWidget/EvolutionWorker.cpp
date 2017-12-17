@@ -15,10 +15,12 @@ extern "C"
 
 namespace
 {
-    inline EvolutionWorker* worker(void* data)
-    {
-        return reinterpret_cast<EvolutionWorker*>(data);
-    }
+
+inline EvolutionWorker* worker(void* data)
+{
+    return reinterpret_cast<EvolutionWorker*>(data);
+}
+
 }
 
 EvolutionWorker::EvolutionWorker(const GAParameters& parameters,
@@ -174,15 +176,19 @@ void EvolutionWorker::iteration_end(
         LOG_ASSERT(value == 0.0);
     }
 #endif
+    m_info.norms.reserve(list_len(population));
     list_for_each(SpeciesPtr, population, sp_var)
     {
+        std::vector<double> species_norms;
+        species_norms.reserve(list_len(list_var_value(sp_var)->entities));
         list_for_each(EntityPtr, list_var_value(sp_var)->entities, en_var)
         {
-            m_info.norms.push_back(
+            species_norms.push_back(
                     EuclidMeasure(list_var_value(en_var)->chr,
                                   zero.data(),
                                   chromosome_size));
         }
+        m_info.norms.push_back(std::move(species_norms));
     }
 
     m_info.species_died = species_died_on_iteration;

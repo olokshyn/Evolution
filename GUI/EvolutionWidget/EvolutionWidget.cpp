@@ -15,6 +15,7 @@
 #include <QChart>
 #include <QValueAxis>
 #include <QTabWidget>
+#include <QScatterSeries>
 
 #include "EvolutionWorker.h"
 #include "Utils/Utils.h"
@@ -94,15 +95,12 @@ namespace
     }
 
     QChartView* create_norms_chart(
-            QAbstractSeries* series,
             const QString& chartTitle,
             QWidget* parent)
     {
         auto chart = new QChart();
         chart->setTitle(chartTitle);
-        chart->addSeries(series);
         chart->legend()->hide();
-        chart->createDefaultAxes();
         auto chartView = new QChartView(chart, parent);
         chartView->setRenderHint(QPainter::Antialiasing);
         chartView->setMinimumHeight(200);
@@ -135,7 +133,6 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
           m_fitness_series(new QLineSeries(this)),
           m_fitness_chart_view(nullptr),
 
-          m_norms_series(new QLineSeries(this)),
           m_norm_chart_view(nullptr),
 
           m_settings_widget(settings.parameters(),
@@ -154,7 +151,6 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
     m_species_series->setName("Species");
     m_max_fitness_series->setName("Max fitness");
     m_fitness_series->setName("Fitness landscape");
-    m_norms_series->setName("Fitness-Norm");
 
     connect(m_stop_btn, &QPushButton::clicked,
             this, &EvolutionWidget::stop_evolution);
@@ -212,7 +208,6 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
             m_fitness_chart_view,
             4, 0, 1, 4);
     m_norm_chart_view = create_norms_chart(
-            m_norms_series,
             "Fitness-Norm",
             this);
     layout->addWidget(
@@ -349,25 +344,36 @@ void EvolutionWidget::plot_iterations(const QList<IterationInfo>& infos)
     }
     m_fitness_series->append(points);
 
-    points.clear();
-    LOG_ASSERT(last_info.fitnesses.size() == last_info.norms.size());
-    for (size_t i = 0; i != last_info.norms.size(); ++i)
+    size_t index = 0;
+    double max_norm = -std::numeric_limits<double>::max();
+    m_norm_chart_view->chart()->removeAllSeries();
+    for (const auto& species_norms : last_info.norms)
     {
-        points.append(QPointF(last_info.norms[i],
-                              last_info.fitnesses[i]));
-        LOG_ASSERT(DOUBLE_LE(last_info.fitnesses[i], m_max_fitness));
-        LOG_ASSERT(DOUBLE_GE(last_info.fitnesses[i], min_fitness));
+        points.clear();
+        for (auto norm : species_norms)
+        {
+            points.append(QPointF(norm, last_info.fitnesses[index++]));
+            if (norm > max_norm)
+            {
+                max_norm = norm;
+            }
+        }
+        QScatterSeries* species_norms_series = new QScatterSeries(this);
+        species_norms_series->setMarkerShape(QScatterSeries::MarkerShapeCircle);
+        species_norms_series->setMarkerSize(7.0);
+        species_norms_series->append(points);
+        points.clear();
+        m_norm_chart_view->chart()->addSeries(species_norms_series);
     }
-    m_norms_series->clear();
-    if (!last_info.norms.empty())
+
+    LOG_ASSERT(index == last_info.fitnesses.size());
+    if (!DOUBLE_EQ(max_norm, -std::numeric_limits<double>::max()))
     {
-        double max_norm = *std::max_element(last_info.norms.cbegin(),
-                                            last_info.norms.cend());
+        m_norm_chart_view->chart()->createDefaultAxes();
         m_norm_chart_view->chart()->axisX()->setRange(0, max_norm + 1);
         m_norm_chart_view->chart()->axisY()->setRange(min_fitness - offset,
                                                       m_max_fitness + offset);
     }
-    m_norms_series->append(points);
 }
 
 void EvolutionWidget::optimum_reached(double optimum)

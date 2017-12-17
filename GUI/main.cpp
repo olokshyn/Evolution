@@ -1,3 +1,5 @@
+#include <memory>
+
 #include <QApplication>
 
 #include "IterationInfo.h"
@@ -15,6 +17,10 @@ int main(int argv, char* args[])
         qWarning("Failed to load plugins: %s", g_PM_last_error);
         return 1;
     }
+    auto plugins_deleter = [](void*) { unload_plugins(); };
+    // unload plugins only after app gets destructed
+    std::unique_ptr<void, decltype(plugins_deleter)>
+            plugins_guard(reinterpret_cast<void*>(1), plugins_deleter);
 
     QApplication app(argv, args);
 
@@ -27,7 +33,5 @@ int main(int argv, char* args[])
     MainWindow main_window;
     main_window.show();
 
-    int status = app.exec();
-    unload_plugins();
-    return status;
+    return app.exec();
 }
