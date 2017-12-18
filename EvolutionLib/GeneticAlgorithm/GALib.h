@@ -59,4 +59,6 @@ double ScaleEps(World* world,
                 LIST_TYPE(EntityPtr) new_entities,
                 double eps);
 
+bool GaussSLE(double** matrix, size_t rows, size_t cols, double* solution);
+
 #endif //EVOLUTION_GALIB_H

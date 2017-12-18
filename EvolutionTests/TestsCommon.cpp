@@ -4,8 +4,11 @@
 
 #include "TestsCommon.h"
 
+#include "gtest/gtest.h"
+
 extern "C"
 {
+#include "GeneticAlgorithm/GALib.h"
 #include "Logging/Logging.h"
 }
 
@@ -254,4 +257,366 @@ size_t count_erroneously_clustered_points(
     }
 
     return erroneously_clustered_points_count;
+}
+
+TEST(GaussSLE, SimpleCompatible1)
+{
+    const size_t rows = 1;
+    const size_t cols = 2;
+    double** matrix = (double**)malloc(sizeof(double*) * rows);
+    for (size_t i = 0; i != rows; ++i)
+    {
+        matrix[i] = (double*)malloc(sizeof(double) * cols);
+    }
+
+    matrix[0][0] = 2;
+    matrix[0][1] = 1;
+
+    double solution[rows];
+    EXPECT_TRUE(GaussSLE(matrix, rows, cols, solution));
+    EXPECT_DOUBLE_EQ(0.5, solution[0]);
+
+    for (size_t i = 0; i != rows; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+TEST(GaussSLE, SimpleIncompatible1)
+{
+    const size_t rows = 1;
+    const size_t cols = 2;
+    double** matrix = (double**)malloc(sizeof(double*) * rows);
+    for (size_t i = 0; i != rows; ++i)
+    {
+        matrix[i] = (double*)malloc(sizeof(double) * cols);
+    }
+
+    matrix[0][0] = 0;
+    matrix[0][1] = 1;
+
+    double solution[rows];
+    EXPECT_FALSE(GaussSLE(matrix, rows, cols, solution));
+
+    for (size_t i = 0; i != rows; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+TEST(GaussSLE, SimpleCompatible2)
+{
+    const size_t rows = 2;
+    const size_t cols = 3;
+    double** matrix = (double**)malloc(sizeof(double*) * rows);
+    for (size_t i = 0; i != rows; ++i)
+    {
+        matrix[i] = (double*)malloc(sizeof(double) * cols);
+    }
+
+    matrix[0][0] = 2;
+    matrix[0][1] = 1;
+    matrix[0][2] = -1;
+
+    matrix[1][0] = -3;
+    matrix[1][1] = -1;
+    matrix[1][2] = 2;
+
+    double solution[rows];
+    EXPECT_TRUE(GaussSLE(matrix, rows, cols, solution));
+    EXPECT_DOUBLE_EQ(-1, solution[0]);
+    EXPECT_DOUBLE_EQ(1.0, solution[1]);
+
+    for (size_t i = 0; i != rows; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+TEST(GaussSLE, SimpleIncompatible2)
+{
+    const size_t rows = 2;
+    const size_t cols = 3;
+    double** matrix = (double**)malloc(sizeof(double*) * rows);
+    for (size_t i = 0; i != rows; ++i)
+    {
+        matrix[i] = (double*)malloc(sizeof(double) * cols);
+    }
+
+    matrix[0][0] = 2;
+    matrix[0][1] = 1;
+    matrix[0][2] = -1;
+
+    matrix[1][0] = -3;
+    matrix[1][1] = -1.5;
+    matrix[1][2] = 2;
+
+    double solution[rows];
+    EXPECT_FALSE(GaussSLE(matrix, rows, cols, solution));
+
+    for (size_t i = 0; i != rows; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+TEST(GaussSLE, SimpleCompatible3)
+{
+    const size_t rows = 3;
+    const size_t cols = 4;
+    double** matrix = (double**)malloc(sizeof(double*) * rows);
+    for (size_t i = 0; i != rows; ++i)
+    {
+        matrix[i] = (double*)malloc(sizeof(double) * cols);
+    }
+
+    matrix[0][0] = 2;
+    matrix[0][1] = 1;
+    matrix[0][2] = -1;
+    matrix[0][3] = 8;
+
+    matrix[1][0] = -3;
+    matrix[1][1] = -1;
+    matrix[1][2] = 2;
+    matrix[1][3] = -11;
+
+    matrix[2][0] = -2;
+    matrix[2][1] = 1;
+    matrix[2][2] = 2;
+    matrix[2][3] = -3;
+
+    double solution[rows];
+    EXPECT_TRUE(GaussSLE(matrix, rows, cols, solution));
+    EXPECT_DOUBLE_EQ(2.0, solution[0]);
+    EXPECT_DOUBLE_EQ(3.0, solution[1]);
+    EXPECT_DOUBLE_EQ(-1.0, solution[2]);
+
+    for (size_t i = 0; i != rows; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+TEST(GaussSLE, SimpleIncompatible3)
+{
+    const size_t rows = 3;
+    const size_t cols = 4;
+    double** matrix = (double**)malloc(sizeof(double*) * rows);
+    for (size_t i = 0; i != rows; ++i)
+    {
+        matrix[i] = (double*)malloc(sizeof(double) * cols);
+    }
+
+    matrix[0][0] = 2;
+    matrix[0][1] = 1;
+    matrix[0][2] = -1;
+    matrix[0][3] = 8;
+
+    matrix[1][0] = -3;
+    matrix[1][1] = -1;
+    matrix[1][2] = 2;
+    matrix[1][3] = -11;
+
+    matrix[2][0] = 2;
+    matrix[2][1] = 1;
+    matrix[2][2] = -1;
+    matrix[2][3] = 8;
+
+    double solution[rows];
+    EXPECT_FALSE(GaussSLE(matrix, rows, cols, solution));
+
+    for (size_t i = 0; i != rows; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+TEST(GaussSLE, SimpleCompatible4)
+{
+    const size_t rows = 4;
+    const size_t cols = 5;
+    double** matrix = (double**)malloc(sizeof(double*) * rows);
+    for (size_t i = 0; i != rows; ++i)
+    {
+        matrix[i] = (double*)malloc(sizeof(double) * cols);
+    }
+
+    matrix[0][0] = 3;
+    matrix[0][1] = 4;
+    matrix[0][2] = -9;
+    matrix[0][3] = 5;
+    matrix[0][4] = -14;
+
+    matrix[1][0] = -15;
+    matrix[1][1] = -12;
+    matrix[1][2] = 50;
+    matrix[1][3] = -16;
+    matrix[1][4] = 44;
+
+    matrix[2][0] = -27;
+    matrix[2][1] = -36;
+    matrix[2][2] = 73;
+    matrix[2][3] = 8;
+    matrix[2][4] = 142;
+
+    matrix[3][0] = 9;
+    matrix[3][1] = 12;
+    matrix[3][2] = -10;
+    matrix[3][3] = -16;
+    matrix[3][4] = -76;
+
+    double solution[rows];
+    EXPECT_TRUE(GaussSLE(matrix, rows, cols, solution));
+    EXPECT_DOUBLE_EQ(-8.0, solution[0]);
+    EXPECT_DOUBLE_EQ(-2.0, solution[1]);
+    EXPECT_DOUBLE_EQ(-2.0, solution[2]);
+    EXPECT_NEAR(0.0, solution[3], 1e-15);
+
+    for (size_t i = 0; i != rows; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+TEST(GaussSLE, SimpleIncompatible4)
+{
+    const size_t rows = 4;
+    const size_t cols = 5;
+    double** matrix = (double**)malloc(sizeof(double*) * rows);
+    for (size_t i = 0; i != rows; ++i)
+    {
+        matrix[i] = (double*)malloc(sizeof(double) * cols);
+    }
+
+    matrix[0][0] = 3;
+    matrix[0][1] = 4;
+    matrix[0][2] = -9;
+    matrix[0][3] = 5;
+    matrix[0][4] = -14;
+
+    matrix[1][0] = -15;
+    matrix[1][1] = -12;
+    matrix[1][2] = 50;
+    matrix[1][3] = -16;
+    matrix[1][4] = 44;
+
+    matrix[2][0] = 9;
+    matrix[2][1] = 12;
+    matrix[2][2] = -27;
+    matrix[2][3] = 15;
+    matrix[2][4] = -42;
+
+    matrix[3][0] = 9;
+    matrix[3][1] = 12;
+    matrix[3][2] = -10;
+    matrix[3][3] = -16;
+    matrix[3][4] = -76;
+
+    double solution[rows];
+    EXPECT_FALSE(GaussSLE(matrix, rows, cols, solution));
+
+    for (size_t i = 0; i != rows; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+TEST(GaussSLE, SparseCompatible4)
+{
+    const size_t rows = 4;
+    const size_t cols = 5;
+    double** matrix = (double**)malloc(sizeof(double*) * rows);
+    for (size_t i = 0; i != rows; ++i)
+    {
+        matrix[i] = (double*)malloc(sizeof(double) * cols);
+    }
+
+    matrix[0][0] = 0;
+    matrix[0][1] = 0;
+    matrix[0][2] = 0;
+    matrix[0][3] = 5;
+    matrix[0][4] = -15;
+
+    matrix[1][0] = 0;
+    matrix[1][1] = 0;
+    matrix[1][2] = 10;
+    matrix[1][3] = -1;
+    matrix[1][4] = 13;
+
+    matrix[2][0] = 0;
+    matrix[2][1] = 4;
+    matrix[2][2] = 8;
+    matrix[2][3] = 1;
+    matrix[2][4] = 25;
+
+    matrix[3][0] = 2;
+    matrix[3][1] = 2;
+    matrix[3][2] = 2;
+    matrix[3][3] = -2;
+    matrix[3][4] = 36;
+
+    double solution[rows];
+    EXPECT_TRUE(GaussSLE(matrix, rows, cols, solution));
+    EXPECT_DOUBLE_EQ(9.0, solution[0]);
+    EXPECT_DOUBLE_EQ(5.0, solution[1]);
+    EXPECT_DOUBLE_EQ(1.0, solution[2]);
+    EXPECT_DOUBLE_EQ(-3.0, solution[3]);
+
+    for (size_t i = 0; i != rows; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+TEST(GaussSLE, SparseIncompatible4)
+{
+    const size_t rows = 4;
+    const size_t cols = 5;
+    double** matrix = (double**)malloc(sizeof(double*) * rows);
+    for (size_t i = 0; i != rows; ++i)
+    {
+        matrix[i] = (double*)malloc(sizeof(double) * cols);
+    }
+
+    matrix[0][0] = 0;
+    matrix[0][1] = 0;
+    matrix[0][2] = 0;
+    matrix[0][3] = 5;
+    matrix[0][4] = -15;
+
+    matrix[1][0] = 0;
+    matrix[1][1] = 0;
+    matrix[1][2] = 0;
+    matrix[1][3] = 5;
+    matrix[1][4] = 10;
+
+    matrix[2][0] = 0;
+    matrix[2][1] = 4;
+    matrix[2][2] = 8;
+    matrix[2][3] = 1;
+    matrix[2][4] = 25;
+
+    matrix[3][0] = 2;
+    matrix[3][1] = 2;
+    matrix[3][2] = 2;
+    matrix[3][3] = -2;
+    matrix[3][4] = 36;
+
+    double solution[rows];
+    EXPECT_FALSE(GaussSLE(matrix, rows, cols, solution));
+
+    for (size_t i = 0; i != rows; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
 }
