@@ -24,7 +24,7 @@ using namespace QtCharts;
 
 namespace
 {
-    const double offset = 5.0;
+    const double offset = 0.5;
 
     QChartView* create_evolution_chart(
             const QString& chartTitle,
@@ -339,18 +339,18 @@ void EvolutionWidget::plot_iterations(const QList<IterationInfo>& infos)
         m_fitness_chart_view->chart()->axisX()->setRange(
                 0,
                 static_cast<qulonglong>(last_info.fitnesses.size() + 1));
-        m_fitness_chart_view->chart()->axisY()->setRange(min_fitness - offset,
-                                                         m_max_fitness + offset);
+        m_fitness_chart_view->chart()->axisY()->setRange(min_fitness - 0.5 * offset * fabs(min_fitness),
+                                                         m_max_fitness + 2 * offset * fabs(m_max_fitness));
     }
     m_fitness_series->append(points);
 
     size_t index = 0;
     double max_norm = -std::numeric_limits<double>::max();
     m_norm_chart_view->chart()->removeAllSeries();
-    for (const auto& species_norms : last_info.norms)
+    for (size_t i = 0; i != last_info.norms.size(); ++i)
     {
         points.clear();
-        for (auto norm : species_norms)
+        for (auto norm : last_info.norms[i])
         {
             points.append(QPointF(norm, last_info.fitnesses[index++]));
             if (norm > max_norm)
@@ -361,6 +361,10 @@ void EvolutionWidget::plot_iterations(const QList<IterationInfo>& infos)
         QScatterSeries* species_norms_series = new QScatterSeries(this);
         species_norms_series->setMarkerShape(QScatterSeries::MarkerShapeCircle);
         species_norms_series->setMarkerSize(7.0);
+        species_norms_series->setColor(
+                QColor::fromHsl(static_cast<int>(round(360.0 / last_info.norms.size() * i)),
+                                static_cast<int>(round(200 + getRand(0.0, 10.0))),
+                                static_cast<int>(round(150 + getRand(0.0, 10.0)))));
         species_norms_series->append(points);
         points.clear();
         m_norm_chart_view->chart()->addSeries(species_norms_series);
@@ -371,8 +375,8 @@ void EvolutionWidget::plot_iterations(const QList<IterationInfo>& infos)
     {
         m_norm_chart_view->chart()->createDefaultAxes();
         m_norm_chart_view->chart()->axisX()->setRange(0, max_norm + 1);
-        m_norm_chart_view->chart()->axisY()->setRange(min_fitness - offset,
-                                                      m_max_fitness + offset);
+        m_norm_chart_view->chart()->axisY()->setRange(min_fitness - 0.5 * offset * fabs(min_fitness),
+                                                      m_max_fitness + 2 * offset * fabs(m_max_fitness));
     }
 }
 
