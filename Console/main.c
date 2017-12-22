@@ -90,6 +90,7 @@ void RunForAllFunctions(GAParameters* parameters,
 
         RunForOneAvg(parameters, operators, tests_count, report_file);
     }
+    fclose(report_file);
 }
 
 int main(int argc, char* argv[]) {
@@ -125,6 +126,10 @@ int main(int argc, char* argv[]) {
             .max_generations_count = 5000,
             .stable_value_iterations_count = 100,
             .stable_value_eps = 1e-5,
+            .species_link_iterations_count = 10,
+            .species_link_probability = 0.5,
+            .species_link_min = -1.0,
+            .species_link_max = 1.0,
     };
     list_for_each(ConstGAOperatorsPtr, g_plugin_operators, var) {
         printf("\n---Operators: %s ---\n", list_var_value(var)->name);

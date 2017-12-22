@@ -39,7 +39,7 @@ LIST_TYPE(SpeciesPtr) GAO_Clustering(World* world,
 
 bool GAO_ChildrenSelection(World* world, LIST_TYPE(EntityPtr)* new_entities);
 
-bool GAO_SpeciesLinksSelection(World* world);
+bool GAO_SpeciesRandomLinksSelection(World* world);
 
 bool GAO_LinearRankingSelection(World* world);
 

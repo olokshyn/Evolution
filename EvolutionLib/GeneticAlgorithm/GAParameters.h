@@ -24,10 +24,6 @@
 
 #define EXTINCTION_BIAS 0.9
 
-#define SPECIES_LINK_PROBABILITY 0.5
-#define SPECIES_LINK_MIN -1.0
-#define SPECIES_LINK_MAX  1.0
-
 typedef struct ga_parameters {
     size_t initial_world_size;
     size_t chromosome_size;
@@ -43,6 +39,10 @@ typedef struct ga_parameters {
     size_t max_generations_count;
     size_t stable_value_iterations_count;
     double stable_value_eps;
+    size_t species_link_iterations_count;
+    double species_link_probability;
+    double species_link_min;
+    double species_link_max;
 } GAParameters;
 
 #endif //EVOLUTION_GAPARAMETERS_H

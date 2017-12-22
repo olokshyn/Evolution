@@ -24,38 +24,38 @@ double NonUniformMutationDelta(size_t t, double y,
 
 // Crossover
 
-bool CrossEntitiesWithProbability(World* world,
+bool CrossEntitiesWithProbability(const World* world,
                                   LIST_TYPE(EntityPtr) entities,
                                   LIST_TYPE(EntityPtr) new_entities,
                                   double probability,
                                   size_t generation_number);
 
-bool CountSpeciesLinks(LIST_TYPE(double) fitnesses);
-
-
 // Selection
 
 bool FitnessBasedSelectionTemplate(
         World* world,
-        bool (*selection)(World* world,
+        bool (*selection)(const World* world,
                           LIST_TYPE(EntityPtr)* entities_ptr,
                           size_t alive_count,
                           size_t* entities_died),
-        bool (*adjust_fitnesses)(LIST_TYPE(double) fitnesses));
+        bool (*adjust_fitnesses)(const World* world,
+                                 LIST_TYPE(double) fitnesses));
 
-bool LinearRankingSelection(World* world,
+bool LinearRankingSelection(const World* world,
                             LIST_TYPE(EntityPtr)* entities_ptr,
                             size_t alive_count,
                             size_t* entities_died);
 
-bool PerformSelectionInEntities(World* world,
+bool PerformSelectionInEntities(const World* world,
                                 LIST_TYPE(EntityPtr)* entities_ptr,
                                 size_t alive_count,
                                 size_t* entities_died);
 
+bool CountRandomSpeciesLinks(const World* world, LIST_TYPE(double) fitnesses);
+
 // Other
 
-double ScaleEps(World* world,
+double ScaleEps(const World* world,
                 LIST_TYPE(EntityPtr) new_entities,
                 double eps);
 

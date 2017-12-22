@@ -20,7 +20,7 @@ double NonUniformMutationDelta(size_t t, double y,
                             parameters->mutation_on_iteration_dependence)));
 }
 
-bool CrossEntitiesWithProbability(World* world,
+bool CrossEntitiesWithProbability(const World* world,
                                   LIST_TYPE(EntityPtr) entities,
                                   LIST_TYPE(EntityPtr) new_entities,
                                   double probability,
@@ -127,61 +127,13 @@ error:
     return false;
 }
 
-bool CountSpeciesLinks(LIST_TYPE(double) fitnesses) {
-    LOG_FUNC_START;
-
-    if (DOUBLE_EQ(SPECIES_LINK_PROBABILITY, 0.0)) {
-        goto exit;
-    }
-
-    bool* counted = (bool*)calloc(list_len(fitnesses), sizeof(bool));
-    if (!counted) {
-        goto error;
-    }
-
-    size_t i = 0;
-    for (LIST_ITER_TYPE(double) iter_i = list_begin(double, fitnesses);
-            list_iter_valid(iter_i);
-            list_next(double, iter_i), ++i) {
-        if (counted[i]) {
-            continue;
-        }
-        size_t j = 0;
-        for (LIST_ITER_TYPE(double) iter_j = list_begin(double, fitnesses);
-                list_iter_valid(iter_j) && !counted[i];
-                list_next(double, iter_j), ++j) {
-            if (list_iter_eq(iter_i, iter_j)
-                || counted[j]
-                || !doWithProbability(SPECIES_LINK_PROBABILITY)) {
-
-                continue;
-            }
-            list_iter_value(iter_i) +=
-                    getRand(SPECIES_LINK_MIN, SPECIES_LINK_MAX)
-                    * list_iter_value(iter_j);
-            counted[i] = true;
-            counted[j] = true;
-        }
-        list_iter_value(iter_i) = MAX(list_iter_value(iter_i), 1.0);
-    }
-    free(counted);
-    Normalize(fitnesses);
-exit:
-    LOG_FUNC_SUCCESS;
-    return true;
-
-error:
-    LOG_FUNC_ERROR;
-    return false;
-}
-
 bool FitnessBasedSelectionTemplate(
         World* world,
-        bool (*selection)(World* world,
+        bool (*selection)(const World* world,
                           LIST_TYPE(EntityPtr)* entities_ptr,
                           size_t alive_count,
                           size_t* entities_died),
-        bool (*adjust_fitnesses)(LIST_TYPE(double) fitnesses)) {
+        bool (*adjust_fitnesses)(const World* world, LIST_TYPE(double) fitnesses)) {
 
     LOG_FUNC_START;
 
@@ -189,7 +141,7 @@ bool FitnessBasedSelectionTemplate(
     if (!fitnesses) {
         goto error;
     }
-    if (adjust_fitnesses && !adjust_fitnesses(fitnesses)) {
+    if (adjust_fitnesses && !adjust_fitnesses(world, fitnesses)) {
         goto destroy_fitnesses;
     }
     ScaleSumToOne(fitnesses);
@@ -243,7 +195,7 @@ error:
     return false;
 }
 
-bool LinearRankingSelection(World* world,
+bool LinearRankingSelection(const World* world,
                             LIST_TYPE(EntityPtr)* entities_ptr,
                             size_t alive_count,
                             size_t* entities_died) {
@@ -371,7 +323,7 @@ error:
 }
 
 bool PerformSelectionInEntities(
-        World* world,
+        const World* world,
         LIST_TYPE(EntityPtr)* entities_ptr,
         size_t alive_count,
         size_t* entities_died) {
@@ -444,7 +396,100 @@ error:
     return false;
 }
 
-double ScaleEps(World* world,
+bool CountRandomSpeciesLinks(const World* world, LIST_TYPE(double) fitnesses) {
+    LOG_FUNC_START;
+
+    if (DOUBLE_EQ(world->parameters->species_link_probability, 0.0)) {
+        goto exit;
+    }
+
+    double** influence = (double**)calloc(list_len(fitnesses), sizeof(double*));
+    if (!influence) {
+        goto error;
+    }
+    for (size_t i = 0; i != list_len(fitnesses); ++i) {
+        influence[i] = (double*)calloc(list_len(fitnesses), sizeof(double));
+        if (!influence[i]) {
+            goto destroy_influence;
+        }
+    }
+
+    size_t i = 0;
+    list_for_each(double, fitnesses, var_i) {
+        size_t j = 0;
+        list_for_each(double, fitnesses, var_j) {
+            if (!list_var_eq(var_i, var_j)
+                && doWithProbability(world->parameters->species_link_probability)) {
+
+                influence[i][j] = getRand(world->parameters->species_link_min,
+                                          world->parameters->species_link_max);
+            }
+            ++j;
+        }
+        LOG_ASSERT(j == list_len(fitnesses));
+        ++i;
+    }
+    LOG_ASSERT(i == list_len(fitnesses));
+
+    double* initial_fitnesses = (double*)malloc(sizeof(double) * list_len(fitnesses));
+    if (!initial_fitnesses) {
+        goto destroy_influence;
+    }
+    i = 0;
+    list_for_each(double, fitnesses, var) {
+        initial_fitnesses[i++] = list_var_value(var);
+    }
+    LOG_ASSERT(i == list_len(fitnesses));
+
+    double* old_fitnesses = (double*)malloc(sizeof(double) * list_len(fitnesses));
+    if (!old_fitnesses) {
+        goto destroy_initial_fitnesses;
+    }
+    for (size_t k = 0; k != world->parameters->species_link_iterations_count; ++k) {
+        i = 0;
+        list_for_each(double, fitnesses, var) {
+            old_fitnesses[i++] = list_var_value(var);
+        }
+        LOG_ASSERT(i == list_len(fitnesses));
+        i = 0;
+        list_for_each(double, fitnesses, var_i) {
+            list_var_value(var_i) = initial_fitnesses[i];
+            size_t j = 0;
+            list_for_each(double, fitnesses, var_j) {
+                if (!list_var_eq(var_i, var_j) && !DOUBLE_EQ(influence[i][j], 0.0)) {
+                    list_var_value(var_i) += influence[i][j] * old_fitnesses[j];
+                }
+                ++j;
+            }
+            LOG_ASSERT(j == list_len(fitnesses));
+            ++i;
+        }
+        LOG_ASSERT(i == list_len(fitnesses));
+    }
+    free(old_fitnesses);
+    free(initial_fitnesses);
+    for (size_t k = 0; k != list_len(fitnesses); ++k) {
+        free(influence[k]);
+    }
+    free(influence);
+    Normalize(fitnesses);
+exit:
+    LOG_FUNC_SUCCESS;
+    return true;
+
+destroy_initial_fitnesses:
+    free(initial_fitnesses);
+destroy_influence:
+    for (size_t k = 0; k != list_len(fitnesses); ++k) {
+        free(influence[k]);
+    }
+    free(influence);
+error:
+    LOG_FUNC_ERROR;
+    return false;
+}
+
+double ScaleEps(const World* world,
                 LIST_TYPE(EntityPtr) new_entities,
                 double eps) {
     LOG_FUNC_START;

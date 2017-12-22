@@ -42,6 +42,10 @@ SettingsWidget::SettingsWidget(QWidget* parent)
           m_max_generations_count_edit(new QLineEdit(this)),
           m_stable_value_iterations_count_edit(new QLineEdit(this)),
           m_stable_value_eps_edit(new QLineEdit(this)),
+          m_species_link_iterations_count_edit(new QLineEdit(this)),
+          m_species_link_probability_edit(new QLineEdit(this)),
+          m_species_link_min_edit(new QLineEdit(this)),
+          m_species_link_max_edit(new QLineEdit(this)),
 
         // operators
           m_operators_selector(new QComboBox(this)),
@@ -100,6 +104,18 @@ SettingsWidget::SettingsWidget(QWidget* parent)
 
             .stable_value_eps =
             settings.value("stable_value_eps", 1e-5).toDouble(),
+
+            .species_link_iterations_count =
+            settings.value("species_link_iterations_count", 5).toULongLong(),
+
+            .species_link_probability =
+            settings.value("species_link_probability", 0.5).toDouble(),
+
+            .species_link_min =
+            settings.value("species_link_min", -1.0).toDouble(),
+
+            .species_link_max =
+            settings.value("species_link_max", 1.0).toDouble()
     };
 
     m_parameters.objective = *get_current_objective();
@@ -149,6 +165,10 @@ SettingsWidget::SettingsWidget(const GAParameters& parameters,
           m_max_generations_count_edit(new QLineEdit(this)),
           m_stable_value_iterations_count_edit(new QLineEdit(this)),
           m_stable_value_eps_edit(new QLineEdit(this)),
+          m_species_link_iterations_count_edit(new QLineEdit(this)),
+          m_species_link_probability_edit(new QLineEdit(this)),
+          m_species_link_min_edit(new QLineEdit(this)),
+          m_species_link_max_edit(new QLineEdit(this)),
 
         // operators
           m_operators_selector(new QComboBox(this)),
@@ -176,6 +196,10 @@ SettingsWidget::SettingsWidget(const GAParameters& parameters,
     m_max_generations_count_edit->setReadOnly(true);
     m_stable_value_iterations_count_edit->setReadOnly(true);
     m_stable_value_eps_edit->setReadOnly(true);
+    m_species_link_iterations_count_edit->setReadOnly(true);
+    m_species_link_probability_edit->setReadOnly(true);
+    m_species_link_min_edit->setReadOnly(true);
+    m_species_link_max_edit->setReadOnly(true);
 
     m_operators_selector->setEnabled(false);
 
@@ -282,6 +306,18 @@ QGroupBox* SettingsWidget::create_evolution_box()
     layout->addWidget(new QLabel("Stable value eps", this), 13, 0);
     layout->addWidget(m_stable_value_eps_edit, 13, 1);
 
+    layout->addWidget(new QLabel("Species link iterations count", this), 14, 0);
+    layout->addWidget(m_species_link_iterations_count_edit, 14, 1);
+
+    layout->addWidget(new QLabel("Species link probability", this), 15, 0);
+    layout->addWidget(m_species_link_probability_edit, 15, 1);
+
+    layout->addWidget(new QLabel("Species link min", this), 16, 0);
+    layout->addWidget(m_species_link_min_edit, 16, 1);
+
+    layout->addWidget(new QLabel("Species link max", this), 17, 0);
+    layout->addWidget(m_species_link_max_edit, 17, 1);
+
     return group_box;
 }
 
@@ -353,6 +389,14 @@ void SettingsWidget::save_parameters()
             m_stable_value_iterations_count_edit->text().toULongLong();
     m_parameters.stable_value_eps =
             m_stable_value_eps_edit->text().toDouble();
+    m_parameters.species_link_iterations_count =
+            m_species_link_iterations_count_edit->text().toULongLong();
+    m_parameters.species_link_probability =
+            m_species_link_probability_edit->text().toDouble();
+    m_parameters.species_link_min =
+            m_species_link_min_edit->text().toDouble();
+    m_parameters.species_link_max =
+            m_species_link_max_edit->text().toDouble();
 
     QSettings settings;
 
@@ -400,6 +444,18 @@ void SettingsWidget::save_parameters()
     settings.setValue(
             "stable_value_eps",
             m_parameters.stable_value_eps);
+    settings.setValue(
+            "species_link_iterations_count",
+            static_cast<qulonglong>(m_parameters.species_link_iterations_count));
+    settings.setValue(
+            "species_link_probability",
+            m_parameters.species_link_probability);
+    settings.setValue(
+            "species_link_min",
+            m_parameters.species_link_min);
+    settings.setValue(
+            "species_link_max",
+            m_parameters.species_link_max);
 
     settings.sync();
 }
@@ -444,6 +500,14 @@ void SettingsWidget::reset_parameters()
             QString::number(m_parameters.stable_value_iterations_count));
     m_stable_value_eps_edit->setText(
             QString::number(m_parameters.stable_value_eps));
+    m_species_link_iterations_count_edit->setText(
+            QString::number(m_parameters.species_link_iterations_count));
+    m_species_link_probability_edit->setText(
+            QString::number(m_parameters.species_link_probability));
+    m_species_link_min_edit->setText(
+            QString::number(m_parameters.species_link_min));
+    m_species_link_max_edit->setText(
+            QString::number(m_parameters.species_link_max));
 }
 
 void SettingsWidget::save_operators()

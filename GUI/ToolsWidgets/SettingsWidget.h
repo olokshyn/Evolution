@@ -97,6 +97,10 @@ private:
     QLineEdit* m_max_generations_count_edit;
     QLineEdit* m_stable_value_iterations_count_edit;
     QLineEdit* m_stable_value_eps_edit;
+    QLineEdit* m_species_link_iterations_count_edit;
+    QLineEdit* m_species_link_probability_edit;
+    QLineEdit* m_species_link_min_edit;
+    QLineEdit* m_species_link_max_edit;
 
     // operators
     QComboBox* m_operators_selector;

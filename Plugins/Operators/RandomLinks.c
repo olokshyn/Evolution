@@ -8,6 +8,6 @@ const GAOperators operators = {
         .mutation = GAO_NonUniformMutation,
         .crossover = GAO_UniformCrossover,
         .clustering = GAO_Clustering,
-        .selection = GAO_SpeciesLinksSelection,
+        .selection = GAO_SpeciesRandomLinksSelection,
         .name = "Random Links"
 };

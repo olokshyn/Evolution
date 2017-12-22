@@ -234,10 +234,10 @@ bool GAO_ChildrenSelection(World* world, LIST_TYPE(EntityPtr)* new_entities) {
     return PerformSelectionInEntities(world, new_entities, world->size, NULL);
 }
 
-bool GAO_SpeciesLinksSelection(World* world) {
+bool GAO_SpeciesRandomLinksSelection(World* world) {
     return FitnessBasedSelectionTemplate(world,
                                          PerformSelectionInEntities,
-                                         CountSpeciesLinks);
+                                         CountRandomSpeciesLinks);
 }
 
 bool GAO_LinearRankingSelection(World* world) {
@@ -269,5 +269,5 @@ const GAOperators LokshynOperators = {
         .mutation = GAO_NonUniformMutation,
         .crossover = GAO_UniformCrossover,
         .clustering = GAO_Clustering,
-        .selection = GAO_SpeciesLinksSelection
+        .selection = GAO_SpeciesRandomLinksSelection
 };
