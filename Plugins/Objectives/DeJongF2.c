@@ -6,7 +6,7 @@
 
 #include "GeneticAlgorithm/GAObjective.h"
 
-double DeJongF2(double* args, size_t args_size) {
+double DeJongF2(const double* args, size_t args_size) {
     double res = 0;
     for (int i = 0; i < args_size - 1; ++i) {
         res += 100 * pow(args[i + 1] - args[i] * args[i], 2.0)

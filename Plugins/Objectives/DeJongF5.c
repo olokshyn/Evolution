@@ -9,7 +9,7 @@
 
 #define MAX_ARGS_COUNT 2
 
-double DeJongF5(double* args, size_t args_size) {
+double DeJongF5(const double* args, size_t args_size) {
     LOG_ASSERT(args_size == MAX_ARGS_COUNT);
     double res = 0;
     for (int i = -2; i <= 2; ++i) {

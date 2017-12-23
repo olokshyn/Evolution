@@ -7,7 +7,7 @@
 
 #include <stddef.h>
 
-typedef double (*ObjectiveFunc)(double* args, size_t args_count);
+typedef double (*ObjectiveFunc)(const double* args, size_t args_count);
 
 typedef struct objective {
     ObjectiveFunc func;

@@ -21,6 +21,8 @@ add_executable(${PROJECT_NAME}
         EvolutionWidget/EvolutionWidget.h
         EvolutionWidget/EvolutionWorker.cpp
         EvolutionWidget/EvolutionWorker.h
+        ToolsWidgets/GraphWidget.cpp
+        ToolsWidgets/GraphWidget.h
         ToolsWidgets/SettingsWidget.cpp
         ToolsWidgets/SettingsWidget.h
         ToolsWidgets/LauncherWidget.cpp

@@ -116,6 +116,7 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
           m_max_fitness_lbl(new QLabel(this)),
           m_stop_btn(new QPushButton("Stop evolution", this)),
           m_show_info_btn(new QPushButton("Show parameters", this)),
+          m_plot_graph_btn(new QPushButton("Plot graph", this)),
 
           m_world_size_series(new QLineSeries(this)),
           m_species_count_series(new QLineSeries(this)),
@@ -156,6 +157,8 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
             this, &EvolutionWidget::stop_evolution);
     connect(m_show_info_btn, &QPushButton::clicked,
             this, &EvolutionWidget::show_info);
+    connect(m_plot_graph_btn, &QPushButton::clicked,
+            this, &EvolutionWidget::plot_graph);
 
     connect(m_worker.get(), &EvolutionWorker::iterations_done,
             this, &EvolutionWidget::plot_iterations,
@@ -178,6 +181,7 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
 
     row_layout->addWidget(m_stop_btn, 1);
     row_layout->addWidget(m_show_info_btn, 1);
+    row_layout->addWidget(m_plot_graph_btn, 1);
 
     auto layout = new QGridLayout();
     layout->addLayout(
@@ -227,6 +231,11 @@ EvolutionWidget::~EvolutionWidget()
 
 void EvolutionWidget::start_evolution()
 {
+    m_worker->stop_evolution();
+    if (m_thread.joinable())
+    {
+        m_thread.join();
+    }
     m_thread = std::thread([this]() {
         try
         {
@@ -247,6 +256,18 @@ void EvolutionWidget::stop_evolution()
 void EvolutionWidget::show_info()
 {
     m_settings_widget.show();
+}
+
+void EvolutionWidget::plot_graph()
+{
+    const auto& parameters = m_settings_widget.parameters();
+    size_t args_count = parameters.chromosome_size;
+    if (parameters.objective.max_args_count != 0)
+    {
+        args_count = MIN(args_count, parameters.objective.max_args_count);
+    }
+    m_graph_widget.plot(&parameters.objective, args_count);
+    m_graph_widget.showMaximized();
 }
 
 void EvolutionWidget::plot_iterations(const QList<IterationInfo>& infos)

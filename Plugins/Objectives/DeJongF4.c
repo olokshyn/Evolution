@@ -7,7 +7,7 @@
 #include "GeneticAlgorithm/GAObjective.h"
 #include "Common.h"
 
-double DeJongF4(double* args, size_t args_size) {
+double DeJongF4(const double* args, size_t args_size) {
     double res = getRand(0, 1);  // TODO: Gauss distribution must be used
     for (int i = 0; i < args_size; ++i) {
         res += (i + 1) * pow(args[i], 4.0);

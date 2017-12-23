@@ -21,6 +21,7 @@ extern "C"
 }
 
 #include "IterationInfo.h"
+#include "ToolsWidgets/GraphWidget.h"
 #include "ToolsWidgets/SettingsWidget.h"
 
 class QLabel;
@@ -42,6 +43,7 @@ public slots:
     void start_evolution();
     void stop_evolution();
     void show_info();
+    void plot_graph();
 
 private slots:
     void plot_iterations(const QList<IterationInfo>& infos);
@@ -57,6 +59,7 @@ private:
     QLabel* m_max_fitness_lbl;
     QPushButton* m_stop_btn;
     QPushButton* m_show_info_btn;
+    QPushButton* m_plot_graph_btn;
 
     // Evolution chart
     QtCharts::QLineSeries* m_world_size_series;
@@ -82,6 +85,7 @@ private:
     QtCharts::QChartView* m_norm_chart_view;
 
     SettingsWidget m_settings_widget;
+    GraphWidget m_graph_widget;
 
     std::thread m_thread;
     std::unique_ptr<EvolutionWorker> m_worker;

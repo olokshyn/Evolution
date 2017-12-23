@@ -6,7 +6,7 @@
 
 #include "GeneticAlgorithm/GAObjective.h"
 
-double Rana(double* args, size_t args_size) {
+double Rana(const double* args, size_t args_size) {
     double res = 0, t1 = 0, t2 = 0;
     for (int i = 0; i < args_size - 1; ++i) {
         t1 = sqrt(fabs(args[i + 1] + 1 - args[i]));

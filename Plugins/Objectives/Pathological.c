@@ -6,7 +6,7 @@
 
 #include "GeneticAlgorithm/GAObjective.h"
 
-double Pathological(double* args, size_t args_size) {
+double Pathological(const double* args, size_t args_size) {
     double res = 0;
     for (int i = 0; i < args_size - 1; ++i) {
         // TODO: check this function

@@ -22,12 +22,12 @@ extern "C"
 #include <iterator>
 #include <type_traits>
 
-static double random_func(double* x, size_t n)
+static double random_func(const double* x, size_t n)
 {
     return getRand(0.0, 1.0);
 }
 
-static double square_func(double* x, size_t n)
+static double square_func(const double* x, size_t n)
 {
     return x[0] * x[0];
 }

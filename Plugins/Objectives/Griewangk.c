@@ -9,7 +9,7 @@
 
 #define MAX_ARGS_COUNT 10
 
-double Griewangk(double* args, size_t args_size) {
+double Griewangk(const double* args, size_t args_size) {
     LOG_ASSERT(args_size <= MAX_ARGS_COUNT);
     double res = 0;
     for (int i = 0; i < args_size; ++i) {

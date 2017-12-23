@@ -184,7 +184,7 @@ bool FitnessBasedSelectionTemplate(
 
     list_destroy(double, fitnesses);
 
-    LOG_ASSERT(world->size != 0);
+    LOG_RELEASE_ASSERT(world->size != 0);
     LOG_FUNC_SUCCESS;
     return true;
 

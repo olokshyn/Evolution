@@ -55,6 +55,7 @@ void EvolutionWorker::start_evolution()
 {
     utils::LoggingGuard::singleton(m_name + ".log", m_log_level);
 
+    m_stop_evolution = false;
     GAResult result = RunEvolution(&m_parameters,
                                    &m_operators,
                                    &m_journal);

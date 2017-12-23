@@ -6,7 +6,7 @@
 
 #include "GeneticAlgorithm/GAObjective.h"
 
-double StretchedVSineWave(double* args, size_t args_size) {
+double StretchedVSineWave(const double* args, size_t args_size) {
     double res = 0, t = 0;
     for (int i = 0; i < args_size - 1; ++i) {
         t = pow(args[i], 2) + pow(args[i + 1], 2);

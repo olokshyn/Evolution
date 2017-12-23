@@ -20,12 +20,21 @@
     #define LOG_ASSERT(cond)
 #endif
 
+#ifndef __cplusplus
 #include <signal.h>
 #define LOG_RELEASE_ASSERT(cond) if (!(cond)) { \
     Log(ERROR, "Assertion error: %s : %s : %d", \
         __FILE__, __func__, __LINE__); \
     raise(SIGABRT); \
 }
+#else
+#include <csignal>
+#define LOG_RELEASE_ASSERT(cond) if (!(cond)) { \
+    ::Log(ERROR, "Assertion error: %s : %s : %d", \
+          __FILE__, __func__, __LINE__); \
+    ::raise(SIGABRT); \
+}
+#endif
 
 #include <stdbool.h>
 
