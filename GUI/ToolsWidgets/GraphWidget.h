@@ -32,6 +32,9 @@ public:
 
 signals:
     void plotting_progress(double percents);
+    void twod_data_ready(const QList<QPointF>& data,
+                         double min_x, double max_x,
+                         double min_y, double max_y);
     void norms_data_ready(const QList<QPointF>& min_norms,
                           const QList<QPointF>& max_norms,
                           double min_norm, double max_norm,
@@ -41,6 +44,9 @@ signals:
 public slots:
     void clear_graph();
     void stop_plotting();
+    void plot_twod_data(const QList<QPointF>& data,
+                        double min_x, double max_x,
+                        double min_y, double max_y);
     void plot_norms_data(const QList<QPointF>& min_norms,
                          const QList<QPointF>& max_norms,
                          double min_norm, double max_norm,
@@ -55,7 +61,8 @@ private slots:
     void update_loading(double percents);
 
 private:
-    void plot_in_norms(const Objective* objective, size_t args_count);
+    void plot_twod(const Objective* objective, size_t args_count);
+    void plot_norms(const Objective* objective, size_t args_count);
 
 private:
     std::thread m_plotter_thread;

@@ -81,6 +81,9 @@ GraphWidget::GraphWidget(QWidget* parent)
 {
     m_chart_view->setChart(new QChart());
 
+    connect(this, &GraphWidget::twod_data_ready,
+            this, &GraphWidget::plot_twod_data,
+            Qt::QueuedConnection);
     connect(this, &GraphWidget::norms_data_ready,
             this, &GraphWidget::plot_norms_data,
             Qt::QueuedConnection);
@@ -109,9 +112,18 @@ void GraphWidget::plot(const Objective* objective, size_t args_count)
     }
     clear_graph();
     m_stop_plotting = false;
-    m_plotter_thread = std::thread([this, objective, args_count]() {
-        plot_in_norms(objective, args_count);
-    });
+    if (args_count == 1)
+    {
+        m_plotter_thread = std::thread([this, objective, args_count]() {
+            plot_twod(objective, args_count);
+        });
+    }
+    else
+    {
+        m_plotter_thread = std::thread([this, objective, args_count]() {
+            plot_norms(objective, args_count);
+        });
+    }
 }
 
 void GraphWidget::clear_graph()
@@ -136,6 +148,27 @@ void GraphWidget::stop_plotting()
     {
         m_plotter_thread.join();
     }
+}
+
+void GraphWidget::plot_twod_data(const QList<QPointF>& data,
+                                 double min_x, double max_x,
+                                 double min_y, double max_y)
+{
+    m_loading_lbl->setVisible(false);
+
+    QLineSeries* series = new QLineSeries(this);
+    series->setColor(QColor(0, 50, 255));
+
+    series->append(data);
+
+    auto chart = m_chart_view->chart();
+    chart->addSeries(series);
+    chart->createDefaultAxes();
+    chart->axisX()->setRange(min_x - offset * fabs(min_x),
+                             max_x + offset * fabs(max_x));
+    chart->axisY()->setRange(min_y - 0.5 * offset * fabs(min_y),
+                             max_y + 2 * offset * fabs(max_y) + offset);
+    chart->legend()->hide();
 }
 
 void GraphWidget::plot_norms_data(const QList<QPointF>& min_norms,
@@ -163,7 +196,7 @@ void GraphWidget::plot_norms_data(const QList<QPointF>& min_norms,
     chart->axisX()->setRange(min_norm - offset * fabs(min_norm),
                              max_norm + offset * fabs(max_norm));
     chart->axisY()->setRange(global_objective_min - 0.5 * offset * fabs(global_objective_min),
-                             global_objective_max + 2 * offset * fabs(global_objective_max));
+                             global_objective_max + 2 * offset * fabs(global_objective_max) + offset);
 }
 
 void GraphWidget::resizeEvent(QResizeEvent* event)
@@ -183,7 +216,59 @@ void GraphWidget::update_loading(double percents)
     m_loading_lbl->setText(QString::number(percents, 'f', 2) + "%");
 }
 
-void GraphWidget::plot_in_norms(const Objective* objective, size_t args_count)
+void GraphWidget::plot_twod(const Objective* objective, size_t args_count)
+{
+    LOG_RELEASE_ASSERT(args_count == 1);
+    // Don`t use DOUBLE_GT, we need a positive value further
+    LOG_RELEASE_ASSERT(objective->max > objective->min);
+    double step = (objective->max - objective->min) / g_graph_steps_count;
+
+    double min_x = std::numeric_limits<double>::max();
+    double max_x = -std::numeric_limits<double>::max();
+    double min_y = std::numeric_limits<double>::max();
+    double max_y = -std::numeric_limits<double>::max();
+
+    unsigned long long iterations_count =
+            static_cast<unsigned long long>(powl(g_graph_steps_count + 1, args_count));
+    unsigned long long iterations_done = 0;
+    unsigned long long update_status_iterations = iterations_count / 10;
+
+    QList<QPointF> data;
+    for_each_point_in_space(
+            args_count, objective->min, objective->max, step,
+            [this, objective, &data, &min_x, &max_x, &min_y, &max_y,
+             &iterations_done, &iterations_count, &update_status_iterations]
+                    (const std::vector<double>& point) -> bool {
+                LOG_ASSERT(point.size() == 1);
+                double objective_value = objective->func(point.data(), point.size());
+                data.append(QPointF(point[0], objective_value));
+
+                min_x = MIN(min_x, point[0]);
+                max_x = MAX(max_x, point[0]);
+                min_y = MIN(min_y, objective_value);
+                max_y = MAX(max_y, objective_value);
+
+                ++iterations_done;
+                if (iterations_done % update_status_iterations == 0)
+                {
+                    emit plotting_progress(
+                            static_cast<double>(
+                                    static_cast<long double>(iterations_done)
+                                    / static_cast<long double>(iterations_count))
+                            * 100.0);
+                }
+                return !m_stop_plotting;
+            });
+    if (m_stop_plotting)
+    {
+        return;
+    }
+    // There must be at least one point in the range
+    LOG_RELEASE_ASSERT(!data.empty());
+    emit twod_data_ready(data, min_x, max_x, min_y, max_y);
+}
+
+void GraphWidget::plot_norms(const Objective* objective, size_t args_count)
 {
     // Don`t use DOUBLE_GT, we need a positive value further
     LOG_RELEASE_ASSERT(objective->max > objective->min);
