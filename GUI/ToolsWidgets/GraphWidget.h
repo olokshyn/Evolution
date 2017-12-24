@@ -25,10 +25,24 @@ class GraphWidget : public QWidget
 Q_OBJECT
 
 public:
+    struct GraphParameters
+    {
+        explicit GraphParameters(const Objective* objective = nullptr,
+                                 size_t args_count = 0,
+                                 size_t detalization_level = 100,
+                                 size_t update_progress_times = 10000);
+
+        const Objective* objective;
+        size_t args_count;
+        size_t detalization_level;
+        size_t update_progress_times;
+    };
+
+public:
     explicit GraphWidget(QWidget* parent = nullptr);
     ~GraphWidget() override;
 
-    void plot(const Objective* objective, size_t args_count);
+    void plot(const GraphParameters& parameters);
 
 signals:
     void plotting_progress(double percents);
@@ -61,8 +75,8 @@ private slots:
     void update_loading(double percents);
 
 private:
-    void plot_twod(const Objective* objective, size_t args_count);
-    void plot_norms(const Objective* objective, size_t args_count);
+    void plot_twod(const GraphParameters& parameters);
+    void plot_norms(const GraphParameters& parameters);
 
 private:
     std::thread m_plotter_thread;

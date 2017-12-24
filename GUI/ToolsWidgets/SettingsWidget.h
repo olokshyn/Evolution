@@ -14,6 +14,8 @@ extern "C"
 #include "GeneticAlgorithm/GAOperators.h"
 };
 
+#include "GraphWidget.h"
+
 class QLineEdit;
 class QComboBox;
 class QGroupBox;
@@ -29,12 +31,12 @@ public:
         double max_fitness;
         size_t max_species_count;
         size_t iterations_buffer_size;
+        GraphWidget::GraphParameters graph_params;
     };
 
 public:
     explicit SettingsWidget(QWidget* parent = nullptr);
-    SettingsWidget(const GAParameters& parameters,
-                   const GAOperators& operators,
+    SettingsWidget(const SettingsWidget& settings,
                    QWidget* parent = nullptr);
 
     const GAParameters& parameters() const;
@@ -110,6 +112,8 @@ private:
     QLineEdit* m_max_fitness_edit;
     QLineEdit* m_max_species_count_edit;
     QLineEdit* m_iterations_buffer_size_edit;
+    QLineEdit* m_graph_detalization_level_edit;
+    QLineEdit* m_graph_update_progress_times_edit;
 };
 
 

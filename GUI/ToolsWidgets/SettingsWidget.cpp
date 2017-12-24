@@ -54,7 +54,9 @@ SettingsWidget::SettingsWidget(QWidget* parent)
           m_min_fitness_edit(new QLineEdit(this)),
           m_max_fitness_edit(new QLineEdit(this)),
           m_max_species_count_edit(new QLineEdit(this)),
-          m_iterations_buffer_size_edit(new QLineEdit(this))
+          m_iterations_buffer_size_edit(new QLineEdit(this)),
+          m_graph_detalization_level_edit(new QLineEdit(this)),
+          m_graph_update_progress_times_edit(new QLineEdit(this))
 {
     QSettings settings;
 
@@ -118,7 +120,8 @@ SettingsWidget::SettingsWidget(QWidget* parent)
             settings.value("species_link_max", 1.0).toDouble()
     };
 
-    m_parameters.objective = *get_current_objective();
+    auto current_objective = get_current_objective();
+    m_parameters.objective = *current_objective;
     m_operators = *get_current_operators();
 
     m_ui_settings = {
@@ -132,20 +135,33 @@ SettingsWidget::SettingsWidget(QWidget* parent)
             settings.value("max_species_count", 50).toULongLong(),
 
             .iterations_buffer_size =
-            settings.value("iterations_buffer_size", 1).toULongLong()
+            settings.value("iterations_buffer_size", 10).toULongLong(),
+
+            .graph_params =
+            GraphWidget::GraphParameters(
+                    current_objective,
+                    m_parameters.chromosome_size,
+                    settings.value("graph_detalization_level", 100).toULongLong(),
+                    settings.value("graph_update_progress_times", 10000).toULongLong())
     };
+
+    if (current_objective->max_args_count != 0)
+    {
+        m_ui_settings.graph_params.args_count = MIN(m_ui_settings.graph_params.args_count,
+                                                    current_objective->max_args_count);
+    }
 
     init_widget();
 }
 
-SettingsWidget::SettingsWidget(const GAParameters& parameters,
-                               const GAOperators& operators,
+SettingsWidget::SettingsWidget(const SettingsWidget& settings,
                                QWidget* parent)
         : QWidget(parent),
           m_read_only(true),
 
-          m_parameters(parameters),
-          m_operators(operators),
+          m_parameters(settings.parameters()),
+          m_operators(settings.operators()),
+          m_ui_settings(settings.ui_settings()),
 
           m_current_objective(0),
           m_current_operators(0),
@@ -177,7 +193,9 @@ SettingsWidget::SettingsWidget(const GAParameters& parameters,
           m_min_fitness_edit(nullptr),
           m_max_fitness_edit(nullptr),
           m_max_species_count_edit(nullptr),
-          m_iterations_buffer_size_edit(nullptr)
+          m_iterations_buffer_size_edit(nullptr),
+          m_graph_detalization_level_edit(nullptr),
+          m_graph_update_progress_times_edit(nullptr)
 {
     find_current_objective();
     find_current_operators();
@@ -353,6 +371,12 @@ QGroupBox* SettingsWidget::create_ui_settings_box()
     layout->addWidget(new QLabel("Iterations buffer size", this), 3, 0);
     layout->addWidget(m_iterations_buffer_size_edit, 3, 1);
 
+    layout->addWidget(new QLabel("Plot detalization level", this), 4, 0);
+    layout->addWidget(m_graph_detalization_level_edit, 4, 1);
+
+    layout->addWidget(new QLabel("Plot update progress times", this), 5, 0);
+    layout->addWidget(m_graph_update_progress_times_edit, 5, 1);
+
     return group_box;
 }
 
@@ -361,6 +385,8 @@ void SettingsWidget::save_parameters()
     m_current_objective =
             static_cast<size_t>(m_objective_selector->currentIndex());
     check_current_objective();
+
+    auto current_objective = get_current_objective();
 
     m_parameters.initial_world_size =
             m_initial_world_size_edit->text().toULongLong();
@@ -382,7 +408,7 @@ void SettingsWidget::save_parameters()
             m_min_pts_edit->text().toULongLong();
     m_parameters.eps =
             m_eps_edit->text().toDouble();
-    m_parameters.objective = *get_current_objective();
+    m_parameters.objective = *current_objective;
     m_parameters.max_generations_count =
             m_max_generations_count_edit->text().toULongLong();
     m_parameters.stable_value_iterations_count =
@@ -397,6 +423,14 @@ void SettingsWidget::save_parameters()
             m_species_link_min_edit->text().toDouble();
     m_parameters.species_link_max =
             m_species_link_max_edit->text().toDouble();
+
+    m_ui_settings.graph_params.objective = current_objective;
+    m_ui_settings.graph_params.args_count = m_parameters.chromosome_size;
+    if (current_objective->max_args_count != 0)
+    {
+        m_ui_settings.graph_params.args_count = MIN(m_ui_settings.graph_params.args_count,
+                                                    current_objective->max_args_count);
+    }
 
     QSettings settings;
 
@@ -551,6 +585,10 @@ void SettingsWidget::save_ui_settings()
             m_max_species_count_edit->text().toULongLong();
     m_ui_settings.iterations_buffer_size =
             m_iterations_buffer_size_edit->text().toULongLong();
+    m_ui_settings.graph_params.detalization_level =
+            m_graph_detalization_level_edit->text().toULongLong();
+    m_ui_settings.graph_params.update_progress_times =
+            m_graph_update_progress_times_edit->text().toULongLong();
 
     QSettings settings;
 
@@ -566,6 +604,12 @@ void SettingsWidget::save_ui_settings()
     settings.setValue(
             "iterations_buffer_size",
             static_cast<qulonglong>(m_ui_settings.iterations_buffer_size));
+    settings.setValue(
+            "graph_detalization_level",
+            static_cast<qulonglong>(m_ui_settings.graph_params.detalization_level));
+    settings.setValue(
+            "graph_update_progress_times",
+            static_cast<qulonglong>(m_ui_settings.graph_params.update_progress_times));
 
     settings.sync();
 }
@@ -580,6 +624,10 @@ void SettingsWidget::reset_ui_settings()
             QString::number(m_ui_settings.max_species_count));
     m_iterations_buffer_size_edit->setText(
             QString::number(m_ui_settings.iterations_buffer_size));
+    m_graph_detalization_level_edit->setText(
+            QString::number(m_ui_settings.graph_params.detalization_level));
+    m_graph_update_progress_times_edit->setText(
+            QString::number(m_ui_settings.graph_params.update_progress_times));
 }
 
 void SettingsWidget::check_current_objective() const

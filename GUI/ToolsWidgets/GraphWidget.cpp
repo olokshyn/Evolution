@@ -26,7 +26,6 @@ namespace
 {
 
 const double offset = 0.3;
-const size_t g_graph_steps_count = 100;
 
 bool __for_each_point_in_space(std::vector<double>& point, size_t index,
                                double a, double b, double step,
@@ -73,6 +72,17 @@ bool double_less(double left, double right)
 
 }
 
+GraphWidget::GraphParameters::GraphParameters(const Objective* objective,
+                                              size_t args_count,
+                                              size_t detalization_level,
+                                              size_t update_progress_times)
+    : objective(objective),
+      args_count(args_count),
+      detalization_level(detalization_level),
+      update_progress_times(update_progress_times)
+{
+}
+
 GraphWidget::GraphWidget(QWidget* parent)
         : QWidget(parent),
           m_stop_plotting(false),
@@ -104,26 +114,30 @@ GraphWidget::~GraphWidget()
     stop_plotting();
 }
 
-void GraphWidget::plot(const Objective* objective, size_t args_count)
+void GraphWidget::plot(const GraphParameters& parameters)
 {
-    if (args_count == 0)
+    if (parameters.args_count == 0)
     {
         return;
     }
     clear_graph();
     m_stop_plotting = false;
-    if (args_count == 1)
+    if (parameters.args_count == 1)
     {
-        m_plotter_thread = std::thread([this, objective, args_count]() {
-            plot_twod(objective, args_count);
+        // Copy parameters to avoid dangling reference errors
+        m_plotter_thread = std::thread([this, parameters]() {
+            plot_twod(parameters);
         });
     }
     else
     {
-        m_plotter_thread = std::thread([this, objective, args_count]() {
-            plot_norms(objective, args_count);
+        // Copy parameters to avoid dangling reference errors
+        m_plotter_thread = std::thread([this, parameters]() {
+            plot_norms(parameters);
         });
     }
+    setWindowTitle(QString("%1 %2D").arg(parameters.objective->name)
+                                    .arg(parameters.args_count + 1));
 }
 
 void GraphWidget::clear_graph()
@@ -216,12 +230,13 @@ void GraphWidget::update_loading(double percents)
     m_loading_lbl->setText(QString::number(percents, 'f', 2) + "%");
 }
 
-void GraphWidget::plot_twod(const Objective* objective, size_t args_count)
+void GraphWidget::plot_twod(const GraphParameters& parameters)
 {
-    LOG_RELEASE_ASSERT(args_count == 1);
+    LOG_RELEASE_ASSERT(parameters.args_count == 1);
     // Don`t use DOUBLE_GT, we need a positive value further
-    LOG_RELEASE_ASSERT(objective->max > objective->min);
-    double step = (objective->max - objective->min) / g_graph_steps_count;
+    LOG_RELEASE_ASSERT(parameters.objective->max > parameters.objective->min);
+    double step = (parameters.objective->max - parameters.objective->min)
+                  / parameters.detalization_level;
 
     double min_x = std::numeric_limits<double>::max();
     double max_x = -std::numeric_limits<double>::max();
@@ -229,18 +244,22 @@ void GraphWidget::plot_twod(const Objective* objective, size_t args_count)
     double max_y = -std::numeric_limits<double>::max();
 
     unsigned long long iterations_count =
-            static_cast<unsigned long long>(powl(g_graph_steps_count + 1, args_count));
+            static_cast<unsigned long long>(powl(parameters.detalization_level + 1,
+                                                 parameters.args_count));
     unsigned long long iterations_done = 0;
-    unsigned long long update_status_iterations = iterations_count / 10;
+    unsigned long long update_status_iterations =
+            iterations_count / parameters.update_progress_times;
+    // powl returns 0 if the resulting value overflows
+    LOG_RELEASE_ASSERT(iterations_count != 0);
 
     QList<QPointF> data;
     for_each_point_in_space(
-            args_count, objective->min, objective->max, step,
-            [this, objective, &data, &min_x, &max_x, &min_y, &max_y,
+            parameters.args_count, parameters.objective->min, parameters.objective->max, step,
+            [this, &parameters, &data, &min_x, &max_x, &min_y, &max_y,
              &iterations_done, &iterations_count, &update_status_iterations]
                     (const std::vector<double>& point) -> bool {
                 LOG_ASSERT(point.size() == 1);
-                double objective_value = objective->func(point.data(), point.size());
+                double objective_value = parameters.objective->func(point.data(), point.size());
                 data.append(QPointF(point[0], objective_value));
 
                 min_x = MIN(min_x, point[0]);
@@ -268,30 +287,35 @@ void GraphWidget::plot_twod(const Objective* objective, size_t args_count)
     emit twod_data_ready(data, min_x, max_x, min_y, max_y);
 }
 
-void GraphWidget::plot_norms(const Objective* objective, size_t args_count)
+void GraphWidget::plot_norms(const GraphParameters& parameters)
 {
     // Don`t use DOUBLE_GT, we need a positive value further
-    LOG_RELEASE_ASSERT(objective->max > objective->min);
-    double step = (objective->max - objective->min) / g_graph_steps_count;
+    LOG_RELEASE_ASSERT(parameters.objective->max > parameters.objective->min);
+    double step = (parameters.objective->max - parameters.objective->min)
+                  / parameters.detalization_level;
 
     unsigned long long iterations_count =
-            static_cast<unsigned long long>(powl(g_graph_steps_count + 1, args_count));
+            static_cast<unsigned long long>(powl(parameters.detalization_level + 1,
+                                                 parameters.args_count));
+    // powl returns 0 if the resulting value overflows
+    LOG_RELEASE_ASSERT(iterations_count != 0);
     unsigned long long iterations_done = 0;
-    unsigned long long update_status_iterations = iterations_count / 10000;
+    unsigned long long update_status_iterations =
+            iterations_count / parameters.update_progress_times;
 
     // NOTE: double_less does not provide a total order, this may cause issues.
     // norm: [objective min value, objective max value]
     std::map<double, std::pair<double, double>, decltype(&double_less)> norms(&double_less);
     for_each_point_in_space(
-            args_count, objective->min, objective->max, step,
-            [this, objective, &norms, &iterations_done, &iterations_count, &update_status_iterations]
+            parameters.args_count, parameters.objective->min, parameters.objective->max, step,
+            [this, &parameters, &norms, &iterations_done, &iterations_count, &update_status_iterations]
                     (const std::vector<double>& point) -> bool {
                 LOG_ASSERT(!point.empty());
                 double norm = sqrt(std::accumulate(point.begin(), point.end(), 0.0,
                                                    [](double left, double right) -> double {
                                                        return left + right * right;
                                                    }));
-                double objective_value = objective->func(point.data(), point.size());
+                double objective_value = parameters.objective->func(point.data(), point.size());
                 auto iter = norms.find(norm);
                 if (iter == norms.end())
                 {
@@ -320,7 +344,8 @@ void GraphWidget::plot_norms(const Objective* objective, size_t args_count)
     // There must be at least one point in the range
     LOG_RELEASE_ASSERT(!norms.empty());
 
-    double max_norm = sqrt(args_count * pow(MAX(fabs(objective->min), fabs(objective->max)), 2.0));
+    double max_norm = sqrt(parameters.args_count * pow(MAX(fabs(parameters.objective->min),
+                                                           fabs(parameters.objective->max)), 2.0));
     double global_objective_min = std::numeric_limits<double>::max();
     double global_objective_max = -std::numeric_limits<double>::max();
 

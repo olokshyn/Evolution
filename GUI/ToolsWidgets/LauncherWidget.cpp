@@ -20,10 +20,13 @@ LauncherWidget::LauncherWidget(QTabWidget* tab, QWidget* parent)
           m_settings_widget(new SettingsWidget(this)),
           m_name_edit(new QLineEdit(this)),
           m_launch_btn(new QPushButton("Launch", this)),
+          m_plot_btn(new QPushButton("Plot", this)),
           m_cancel_btn(new QPushButton("Cancel", this))
 {
     connect(m_launch_btn, &QPushButton::clicked,
             this, &LauncherWidget::launch_evolution);
+    connect(m_plot_btn, &QPushButton::clicked,
+            this, &LauncherWidget::plot_graph);
     connect(m_cancel_btn, &QPushButton::clicked,
             this, &LauncherWidget::cancel);
 
@@ -34,7 +37,8 @@ LauncherWidget::LauncherWidget(QTabWidget* tab, QWidget* parent)
     layout->addWidget(m_name_edit, 1, 1);
 
     layout->addWidget(m_cancel_btn, 1, 2);
-    layout->addWidget(m_launch_btn, 1, 3);
+    layout->addWidget(m_plot_btn, 1, 3);
+    layout->addWidget(m_launch_btn, 1, 4);
 }
 
 void LauncherWidget::launch_evolution()
@@ -55,6 +59,15 @@ void LauncherWidget::launch_evolution()
     m_tab->addTab(widget, m_name_edit->text());
     widget->start_evolution();
 
+    hide();
+    m_name_edit->clear();
+}
+
+void LauncherWidget::plot_graph()
+{
+    m_settings_widget->save_settings();
+    m_graph_widget.plot(m_settings_widget->ui_settings().graph_params);
+    m_graph_widget.showMaximized();
     hide();
     m_name_edit->clear();
 }

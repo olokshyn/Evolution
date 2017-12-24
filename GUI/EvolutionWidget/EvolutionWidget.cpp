@@ -136,8 +136,7 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
 
           m_norm_chart_view(nullptr),
 
-          m_settings_widget(settings.parameters(),
-                            settings.operators()),
+          m_settings_widget(settings),
 
           m_worker(new EvolutionWorker(settings.parameters(),
                                        settings.operators(),
@@ -260,13 +259,7 @@ void EvolutionWidget::show_info()
 
 void EvolutionWidget::plot_graph()
 {
-    const auto& parameters = m_settings_widget.parameters();
-    size_t args_count = parameters.chromosome_size;
-    if (parameters.objective.max_args_count != 0)
-    {
-        args_count = MIN(args_count, parameters.objective.max_args_count);
-    }
-    m_graph_widget.plot(&parameters.objective, args_count);
+    m_graph_widget.plot(m_settings_widget.ui_settings().graph_params);
     m_graph_widget.showMaximized();
 }
 

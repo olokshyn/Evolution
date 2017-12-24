@@ -7,6 +7,8 @@
 
 #include <QWidget>
 
+#include "GraphWidget.h"
+
 class QTabWidget;
 class QLineEdit;
 class QPushButton;
@@ -24,13 +26,16 @@ public:
 
 public slots:
     void launch_evolution();
+    void plot_graph();
     void cancel();
 
 private:
     QTabWidget* m_tab;
     SettingsWidget* m_settings_widget;
+    GraphWidget m_graph_widget;
     QLineEdit* m_name_edit;
     QPushButton* m_launch_btn;
+    QPushButton* m_plot_btn;
     QPushButton* m_cancel_btn;
 };
 
