@@ -82,7 +82,7 @@ Entity* MockCreateEntity(size_t chr_size, const Objective* obj)
             new_entity->chr[j] = getRand(0, 1);
         }
     }
-    new_entity->fitness = obj ? obj->func(new_entity->chr, (int)chr_size) : 0.0;
+    new_entity->fitness = obj ? obj->func(new_entity->chr, chr_size) : 0.0;
     new_entity->old = true;
 
     return new_entity.release();

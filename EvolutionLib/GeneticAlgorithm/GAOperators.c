@@ -32,7 +32,7 @@ bool GAO_UniformMutation(World* world, size_t generation_number) {
                 list_var_value(entity_var)->fitness =
                         world->parameters->objective->func(
                                 list_var_value(entity_var)->chr,
-                                (int)world->chr_size);
+                                world->chr_size);
             }
         }
     }

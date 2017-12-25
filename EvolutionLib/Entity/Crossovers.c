@@ -22,7 +22,7 @@ void OnePointCrossover(const Entity* parent1,
     for (size_t i = crossover_point; i < chromosome_size; ++i) {
         child1->chr[i] = parent2->chr[i];
     }
-    child1->fitness = obj->func(child1->chr, (int)chromosome_size);
+    child1->fitness = obj->func(child1->chr, chromosome_size);
     child1->old = 0;
 
     for (size_t i = 0; i < crossover_point; ++i) {
@@ -31,7 +31,7 @@ void OnePointCrossover(const Entity* parent1,
     for (size_t i = crossover_point; i < chromosome_size; ++i) {
         child2->chr[i] = parent1->chr[i];
     }
-    child2->fitness = obj->func(child2->chr, (int)chromosome_size);
+    child2->fitness = obj->func(child2->chr, chromosome_size);
     child2->old = 0;
 }
 
@@ -95,8 +95,8 @@ void DHXCrossover(const Entity* parent1,
                        && child2->chr[i] == child2->chr[i]);
         }
     }
-    child1->fitness = obj->func(child1->chr, (int)chromosome_size);
+    child1->fitness = obj->func(child1->chr, chromosome_size);
     child1->old = 0;
-    child2->fitness = obj->func(child2->chr, (int)chromosome_size);
+    child2->fitness = obj->func(child2->chr, chromosome_size);
     child2->old = 0;
 }

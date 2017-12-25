@@ -124,7 +124,7 @@ static bool InitPopulation(World* world) {
         }
         entity->fitness =
                 world->parameters->objective->func(entity->chr,
-                                                   (int)world->chr_size);
+                                                   world->chr_size);
         entity->old = true;
 
         if (!list_push_back(EntityPtr, species->entities, entity)) {

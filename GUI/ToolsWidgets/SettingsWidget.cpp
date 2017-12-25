@@ -18,6 +18,7 @@
 extern "C"
 {
 #include "PluginManager/PluginManager.h"
+#include "Logging/Logging.h"
 }
 
 SettingsWidget::SettingsWidget(QWidget* parent)
@@ -376,6 +377,7 @@ QGroupBox* SettingsWidget::create_ui_settings_box()
 
 void SettingsWidget::save_parameters()
 {
+    LOG_RELEASE_ASSERT(m_objective_selector->currentIndex() >= 0);
     m_current_objective =
             static_cast<size_t>(m_objective_selector->currentIndex());
     check_current_objective();
@@ -535,6 +537,7 @@ void SettingsWidget::reset_parameters()
 
 void SettingsWidget::save_operators()
 {
+    LOG_RELEASE_ASSERT(m_operators_selector->currentIndex() >= 0);
     m_current_operators =
             static_cast<size_t>(m_operators_selector->currentIndex());
     check_current_operators();

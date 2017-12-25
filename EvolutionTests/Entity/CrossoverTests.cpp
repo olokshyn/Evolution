@@ -220,7 +220,7 @@ TEST(CrossoverTest, OnePointCrossover)
             {
                 ASSERT_EQ(parent2->chr[i], child1->chr[i]);
             }
-            ASSERT_FLOAT_EQ(obj->func(child1->chr, static_cast<int>(chr_size)),
+            ASSERT_FLOAT_EQ(obj->func(child1->chr, chr_size),
                             child1->fitness);
             ASSERT_EQ(0, child1->old);
 
@@ -232,7 +232,7 @@ TEST(CrossoverTest, OnePointCrossover)
             {
                 ASSERT_EQ(parent1->chr[i], child2->chr[i]);
             }
-            ASSERT_FLOAT_EQ(obj->func(child2->chr, static_cast<int>(chr_size)),
+            ASSERT_FLOAT_EQ(obj->func(child2->chr, chr_size),
                             child2->fitness);
             ASSERT_EQ(0, child2->old);
         }
@@ -368,10 +368,10 @@ TEST(CrossoverTest, DHXCrossover)
                                           chr_size) / parents_dist,
                             accuracy);
             }
-            ASSERT_FLOAT_EQ(obj->func(child1t1->chr, (int)chr_size),
+            ASSERT_FLOAT_EQ(obj->func(child1t1->chr, chr_size),
                             child1t1->fitness);
             ASSERT_EQ(0, child1t1->old);
-            ASSERT_FLOAT_EQ(obj->func(child2t1->chr, (int)chr_size),
+            ASSERT_FLOAT_EQ(obj->func(child2t1->chr, chr_size),
                             child2t1->fitness);
             ASSERT_EQ(0, child1t1->old);
 
