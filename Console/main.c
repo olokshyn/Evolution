@@ -86,7 +86,7 @@ void RunForAllFunctions(GAParameters* parameters,
 
     list_for_each(ConstObjectivePtr, g_plugin_objectives, var) {
         printf("%s\n", list_var_value(var)->name);
-        parameters->objective = *list_var_value(var);
+        parameters->objective = list_var_value(var);
 
         RunForOneAvg(parameters, operators, tests_count, report_file);
     }

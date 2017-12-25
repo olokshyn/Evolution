@@ -212,9 +212,7 @@ double GetMaxFitness(World* world) {
         list_for_each(EntityPtr,
                       list_var_value(species_var)->entities,
                       entity_var) {
-            if (list_var_value(entity_var)->fitness
-                > max_fitness) {
-
+            if (list_var_value(entity_var)->fitness > max_fitness) {
                 max_fitness = list_var_value(entity_var)->fitness;
             }
         }

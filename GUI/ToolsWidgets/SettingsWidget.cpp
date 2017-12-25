@@ -96,7 +96,7 @@ SettingsWidget::SettingsWidget(QWidget* parent)
             .eps =
             settings.value("eps", 0.09).toDouble(),
 
-            .objective = {},
+            .objective = nullptr,
 
             .max_generations_count =
             settings.value("max_generations_count", 500).toULongLong(),
@@ -121,8 +121,8 @@ SettingsWidget::SettingsWidget(QWidget* parent)
     };
 
     auto current_objective = get_current_objective();
-    m_parameters.objective = *current_objective;
-    m_operators = *get_current_operators();
+    m_parameters.objective = current_objective;
+    m_operators = get_current_operators();
 
     m_ui_settings = {
             .min_fitness =
@@ -140,16 +140,10 @@ SettingsWidget::SettingsWidget(QWidget* parent)
             .graph_params =
             GraphWidget::GraphParameters(
                     current_objective,
-                    m_parameters.chromosome_size,
+                    get_chromosome_size(&m_parameters),
                     settings.value("graph_detalization_level", 100).toULongLong(),
                     settings.value("graph_update_progress_times", 10000).toULongLong())
     };
-
-    if (current_objective->max_args_count != 0)
-    {
-        m_ui_settings.graph_params.args_count = MIN(m_ui_settings.graph_params.args_count,
-                                                    current_objective->max_args_count);
-    }
 
     init_widget();
 }
@@ -229,7 +223,7 @@ const GAParameters& SettingsWidget::parameters() const
     return m_parameters;
 }
 
-const GAOperators& SettingsWidget::operators() const
+const GAOperators* SettingsWidget::operators() const
 {
     return m_operators;
 }
@@ -408,7 +402,7 @@ void SettingsWidget::save_parameters()
             m_min_pts_edit->text().toULongLong();
     m_parameters.eps =
             m_eps_edit->text().toDouble();
-    m_parameters.objective = *current_objective;
+    m_parameters.objective = current_objective;
     m_parameters.max_generations_count =
             m_max_generations_count_edit->text().toULongLong();
     m_parameters.stable_value_iterations_count =
@@ -425,12 +419,7 @@ void SettingsWidget::save_parameters()
             m_species_link_max_edit->text().toDouble();
 
     m_ui_settings.graph_params.objective = current_objective;
-    m_ui_settings.graph_params.args_count = m_parameters.chromosome_size;
-    if (current_objective->max_args_count != 0)
-    {
-        m_ui_settings.graph_params.args_count = MIN(m_ui_settings.graph_params.args_count,
-                                                    current_objective->max_args_count);
-    }
+    m_ui_settings.graph_params.args_count = get_chromosome_size(&m_parameters);
 
     QSettings settings;
 
@@ -550,7 +539,7 @@ void SettingsWidget::save_operators()
             static_cast<size_t>(m_operators_selector->currentIndex());
     check_current_operators();
 
-    m_operators = *get_current_operators();
+    m_operators = get_current_operators();
 
     QSettings settings;
 
@@ -681,7 +670,7 @@ void SettingsWidget::find_current_objective()
     size_t i = 0;
     list_for_each(ConstObjectivePtr, g_plugin_objectives, var)
     {
-        if (m_parameters.objective.func == list_var_value(var)->func)
+        if (m_parameters.objective == list_var_value(var))
         {
             m_current_objective = i;
             break;
@@ -695,11 +684,7 @@ void SettingsWidget::find_current_operators()
     size_t i = 0;
     list_for_each(ConstGAOperatorsPtr, g_plugin_operators, var)
     {
-        if (m_operators.mutation == list_var_value(var)->mutation
-            && m_operators.crossover == list_var_value(var)->crossover
-            && m_operators.clustering == list_var_value(var)->clustering
-            && m_operators.children_selection == list_var_value(var)->children_selection
-            && m_operators.selection == list_var_value(var)->selection)
+        if (m_operators == list_var_value(var))
         {
             m_current_operators = i;
             break;

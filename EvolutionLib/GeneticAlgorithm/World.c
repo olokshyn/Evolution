@@ -40,11 +40,7 @@ World* CreateWorld(const GAParameters* parameters,
     }
 
     world->size = parameters->initial_world_size;
-    world->chr_size = parameters->chromosome_size;
-    if (parameters->objective.max_args_count > 0) {
-        world->chr_size = MIN(parameters->chromosome_size,
-                              parameters->objective.max_args_count);
-    }
+    world->chr_size = get_chromosome_size(parameters);
 
     world->parameters = (GAParameters*)malloc(sizeof(GAParameters));
     if (!world->parameters) {
@@ -123,12 +119,12 @@ static bool InitPopulation(World* world) {
 
         for (size_t j = 0; j != world->chr_size; ++j) {
             entity->chr[j] =
-                    getRand(world->parameters->objective.min,
-                            world->parameters->objective.max);
+                    getRand(world->parameters->objective->min,
+                            world->parameters->objective->max);
         }
         entity->fitness =
-                world->parameters->objective.func(entity->chr,
-                                                  (int)world->chr_size);
+                world->parameters->objective->func(entity->chr,
+                                                   (int)world->chr_size);
         entity->old = true;
 
         if (!list_push_back(EntityPtr, species->entities, entity)) {

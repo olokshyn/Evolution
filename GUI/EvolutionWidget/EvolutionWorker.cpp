@@ -24,7 +24,7 @@ inline EvolutionWorker* worker(void* data)
 }
 
 EvolutionWorker::EvolutionWorker(const GAParameters& parameters,
-                                 const GAOperators& operators,
+                                 const GAOperators* operators,
                                  size_t buffer_size,
                                  std::string name,
                                  LogLevel log_level,
@@ -57,7 +57,7 @@ void EvolutionWorker::start_evolution()
 
     m_stop_evolution = false;
     GAResult result = RunEvolution(&m_parameters,
-                                   &m_operators,
+                                   m_operators,
                                    &m_journal);
     flush_buffer();
     if (result.error)
@@ -165,6 +165,10 @@ void EvolutionWorker::iteration_end(
     {
         list_for_each(EntityPtr, list_var_value(sp_var)->entities, en_var)
         {
+            LOG_ASSERT(
+                    DOUBLE_EQ(list_var_value(en_var)->fitness,
+                              m_parameters.objective->func(list_var_value(en_var)->chr,
+                                                           get_chromosome_size(&m_parameters))));
             m_info.fitnesses.push_back(list_var_value(en_var)->fitness);
         }
     }

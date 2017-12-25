@@ -40,7 +40,7 @@ public:
                    QWidget* parent = nullptr);
 
     const GAParameters& parameters() const;
-    const GAOperators& operators() const;
+    const GAOperators* operators() const;
     const UISettings& ui_settings() const;
 
 signals:
@@ -78,7 +78,7 @@ private:
     const bool m_read_only;
 
     GAParameters m_parameters;
-    GAOperators m_operators;
+    const GAOperators* m_operators;
     UISettings m_ui_settings;
 
     size_t m_current_objective;

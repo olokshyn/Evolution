@@ -35,7 +35,7 @@ typedef struct ga_parameters {
     size_t selection_elitists_count;
     size_t min_pts;
     double eps;
-    Objective objective;
+    const Objective* objective;
     size_t max_generations_count;
     size_t stable_value_iterations_count;
     double stable_value_eps;
@@ -44,5 +44,13 @@ typedef struct ga_parameters {
     double species_link_min;
     double species_link_max;
 } GAParameters;
+
+inline static size_t get_chromosome_size(const GAParameters* parameters) {
+    size_t chr_size = parameters->chromosome_size;
+    if (parameters->objective->max_args_count != 0) {
+        chr_size = MIN(chr_size, parameters->objective->max_args_count);
+    }
+    return chr_size;
+}
 
 #endif //EVOLUTION_GAPARAMETERS_H

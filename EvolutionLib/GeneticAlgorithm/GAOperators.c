@@ -27,10 +27,10 @@ bool GAO_UniformMutation(World* world, size_t generation_number) {
             if (doWithProbability(world->parameters->mutation_probability)) {
                 size_t i = (size_t)selectRandom(0, (int)world->chr_size - 1);
                 list_var_value(entity_var)->chr[i] =
-                        getRand(world->parameters->objective.min,
-                                world->parameters->objective.max);
+                        getRand(world->parameters->objective->min,
+                                world->parameters->objective->max);
                 list_var_value(entity_var)->fitness =
-                        world->parameters->objective.func(
+                        world->parameters->objective->func(
                                 list_var_value(entity_var)->chr,
                                 (int)world->chr_size);
             }
@@ -60,7 +60,7 @@ bool GAO_NonUniformMutation(World* world, size_t generation_number) {
                     list_var_value(entity_var)->chr[i] +=
                             NonUniformMutationDelta(
                                     generation_number,
-                                    world->parameters->objective.max
+                                    world->parameters->objective->max
                                     - list_var_value(entity_var)->chr[i],
                                     world->parameters);
                 }
@@ -69,9 +69,12 @@ bool GAO_NonUniformMutation(World* world, size_t generation_number) {
                             NonUniformMutationDelta(
                                     generation_number,
                                     list_var_value(entity_var)->chr[i]
-                                    - world->parameters->objective.min,
+                                    - world->parameters->objective->min,
                                     world->parameters);
                 }
+                list_var_value(entity_var)->fitness =
+                        world->parameters->objective->func(list_var_value(entity_var)->chr,
+                                                           world->chr_size);
             }
         }
     }

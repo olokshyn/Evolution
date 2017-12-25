@@ -28,7 +28,7 @@ Q_OBJECT
 
 public:
     EvolutionWorker(const GAParameters& parameters,
-                    const GAOperators& operators,
+                    const GAOperators* operators,
                     size_t buffer_size,
                     std::string name,
                     LogLevel log_level = INFO,
@@ -100,7 +100,7 @@ private:
 
 private:
     const GAParameters m_parameters;
-    const GAOperators m_operators;
+    const GAOperators* m_operators;
     Journal m_journal;
 
     const std::string m_name;
