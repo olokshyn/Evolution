@@ -19,94 +19,95 @@
 #include <QTextStream>
 
 #include "EvolutionWorker.h"
+#include "ToolsWidgets/CustomChartView.h"
 #include "Utils/Utils.h"
 
 using namespace QtCharts;
 
 namespace
 {
-    const double offset = 0.5;
+const double offset = 0.5;
 
-    QChartView* create_evolution_chart(
-            const QString& chartTitle,
-            QWidget* parent)
-    {
-        auto chart = new QChart();
-        chart->setTitle(chartTitle);
-        chart->legend()->setVisible(true);
-        chart->legend()->setAlignment(Qt::AlignBottom);
-        auto chartView = new QChartView(chart, parent);
-        chartView->setRenderHint(QPainter::Antialiasing);
-        chartView->setMinimumHeight(300);
-        return chartView;
-    }
+CustomChartView* create_evolution_chart(
+        const QString& chartTitle,
+        QWidget* parent)
+{
+    auto chart = new QChart();
+    chart->setTitle(chartTitle);
+    chart->legend()->setVisible(true);
+    chart->legend()->setAlignment(Qt::AlignBottom);
+    auto chartView = new CustomChartView(chart, parent);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setMinimumHeight(300);
+    return chartView;
+}
 
-    QChartView* create_species_chart(
-            QAbstractSeries* series,
-            const QString& chartTitle,
-            QWidget* parent)
-    {
-        auto chart = new QChart();
-        chart->setTitle(chartTitle);
-        chart->addSeries(series);
-        chart->legend()->hide();
-        chart->createDefaultAxes();
-        auto chartView = new QChartView(chart, parent);
-        chartView->setRenderHint(QPainter::Antialiasing);
-        chartView->setMinimumHeight(200);
-        return chartView;
-    }
+CustomChartView* create_species_chart(
+        QAbstractSeries* series,
+        const QString& chartTitle,
+        QWidget* parent)
+{
+    auto chart = new QChart();
+    chart->setTitle(chartTitle);
+    chart->addSeries(series);
+    chart->legend()->hide();
+    chart->createDefaultAxes();
+    auto chartView = new CustomChartView(chart, parent);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setMinimumHeight(200);
+    return chartView;
+}
 
-    QChartView* create_max_fitness_chart(
-            QAbstractSeries* series,
-            size_t max_generations_count,
-            const QString& chartTitle,
-            double min_fitness,
-            double max_fitness,
-            QWidget* parent)
-    {
-        auto chart = new QChart();
-        chart->setTitle(chartTitle);
-        chart->addSeries(series);
-        chart->legend()->hide();
-        chart->createDefaultAxes();
-        chart->axisX()->setRange(
-                0, static_cast<qulonglong>(max_generations_count));
-        chart->axisY()->setRange(min_fitness, max_fitness);
-        auto chartView = new QChartView(chart, parent);
-        chartView->setRenderHint(QPainter::Antialiasing);
-        chartView->setMinimumHeight(200);
-        return chartView;
-    }
+CustomChartView* create_max_fitness_chart(
+        QAbstractSeries* series,
+        size_t max_generations_count,
+        const QString& chartTitle,
+        double min_fitness,
+        double max_fitness,
+        QWidget* parent)
+{
+    auto chart = new QChart();
+    chart->setTitle(chartTitle);
+    chart->addSeries(series);
+    chart->legend()->hide();
+    chart->createDefaultAxes();
+    chart->axisX()->setRange(
+            0, static_cast<qulonglong>(max_generations_count));
+    chart->axisY()->setRange(min_fitness, max_fitness);
+    auto chartView = new CustomChartView(chart, parent);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setMinimumHeight(200);
+    return chartView;
+}
 
-    QChartView* create_fitness_chart(
-            QAbstractSeries* series,
-            const QString& chartTitle,
-            QWidget* parent)
-    {
-        auto chart = new QChart();
-        chart->setTitle(chartTitle);
-        chart->addSeries(series);
-        chart->legend()->hide();
-        chart->createDefaultAxes();
-        auto chartView = new QChartView(chart, parent);
-        chartView->setRenderHint(QPainter::Antialiasing);
-        chartView->setMinimumHeight(200);
-        return chartView;
-    }
+CustomChartView* create_fitness_chart(
+        QAbstractSeries* series,
+        const QString& chartTitle,
+        QWidget* parent)
+{
+    auto chart = new QChart();
+    chart->setTitle(chartTitle);
+    chart->addSeries(series);
+    chart->legend()->hide();
+    chart->createDefaultAxes();
+    auto chartView = new CustomChartView(chart, parent);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setMinimumHeight(200);
+    return chartView;
+}
 
-    QChartView* create_norms_chart(
-            const QString& chartTitle,
-            QWidget* parent)
-    {
-        auto chart = new QChart();
-        chart->setTitle(chartTitle);
-        chart->legend()->hide();
-        auto chartView = new QChartView(chart, parent);
-        chartView->setRenderHint(QPainter::Antialiasing);
-        chartView->setMinimumHeight(200);
-        return chartView;
-    }
+CustomChartView* create_norms_chart(
+        const QString& chartTitle,
+        QWidget* parent)
+{
+    auto chart = new QChart();
+    chart->setTitle(chartTitle);
+    chart->legend()->hide();
+    auto chartView = new CustomChartView(chart, parent);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setMinimumHeight(200);
+    return chartView;
+}
 }
 
 EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
@@ -421,7 +422,7 @@ void EvolutionWidget::optimum_reached(double optimum)
     m_max_fitness_lbl->setText(QString::number(optimum) + " (optimum)");
 }
 
-void EvolutionWidget::add_evolution_serieses(QtCharts::QChartView* chart_view,
+void EvolutionWidget::add_evolution_serieses(CustomChartView* chart_view,
                                              size_t max_generations_count,
                                              size_t world_size)
 {

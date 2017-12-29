@@ -10,7 +10,6 @@
 #include <thread>
 
 #include <QWidget>
-#include <QChartView>
 #include <QLineSeries>
 #include <QList>
 
@@ -28,6 +27,7 @@ class QLabel;
 class QPushButton;
 
 class EvolutionWorker;
+class CustomChartView;
 
 class EvolutionWidget : public QWidget
 {
@@ -50,7 +50,7 @@ private slots:
     void optimum_reached(double optimum);
 
 private:
-    void add_evolution_serieses(QtCharts::QChartView* chart_view,
+    void add_evolution_serieses(CustomChartView* chart_view,
                                 size_t max_generations_count,
                                 size_t world_size);
 
@@ -73,7 +73,7 @@ private:
     // One generation chart
     // TODO: use bar chart instead
     QtCharts::QLineSeries* m_species_series;
-    QtCharts::QChartView* m_species_chart_view;
+    CustomChartView* m_species_chart_view;
 
     // Max fitness chart
     QtCharts::QLineSeries* m_max_fitness_series;
@@ -81,10 +81,10 @@ private:
 
     // Fitness landscape chart
     QtCharts::QLineSeries* m_fitness_series;
-    QtCharts::QChartView* m_fitness_chart_view;
+    CustomChartView* m_fitness_chart_view;
 
     // Entities fitness-norm chart
-    QtCharts::QChartView* m_norm_chart_view;
+    CustomChartView* m_norm_chart_view;
 
     SettingsWidget m_settings_widget;
     GraphWidget m_graph_widget;

@@ -9,7 +9,6 @@
 #include <atomic>
 
 #include <QWidget>
-#include <QChartView>
 #include <QPointF>
 #include <QList>
 
@@ -19,6 +18,8 @@ extern "C"
 };
 
 class QLabel;
+
+class CustomChartView;
 
 class GraphWidget : public QWidget
 {
@@ -81,7 +82,7 @@ private:
 private:
     std::thread m_plotter_thread;
     std::atomic<bool> m_stop_plotting;
-    QtCharts::QChartView* m_chart_view;
+    CustomChartView* m_chart_view;
     QLabel* m_loading_lbl;
 };
 

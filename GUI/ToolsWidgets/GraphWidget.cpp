@@ -20,6 +20,8 @@ extern "C"
 #include "Logging/Logging.h"
 }
 
+#include "ToolsWidgets/CustomChartView.h"
+
 using namespace QtCharts;
 
 namespace
@@ -76,17 +78,17 @@ GraphWidget::GraphParameters::GraphParameters(const Objective* objective,
                                               size_t args_count,
                                               size_t detalization_level,
                                               size_t update_progress_times)
-    : objective(objective),
-      args_count(args_count),
-      detalization_level(detalization_level),
-      update_progress_times(update_progress_times)
+        : objective(objective),
+          args_count(args_count),
+          detalization_level(detalization_level),
+          update_progress_times(update_progress_times)
 {
 }
 
 GraphWidget::GraphWidget(QWidget* parent)
         : QWidget(parent),
           m_stop_plotting(false),
-          m_chart_view(new QChartView(this)),
+          m_chart_view(new CustomChartView(this)),
           m_loading_lbl(new QLabel(this))
 {
     m_chart_view->setChart(new QChart());
