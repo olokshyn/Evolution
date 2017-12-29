@@ -33,9 +33,16 @@ void CustomChartView::mouseMoveEvent(QMouseEvent* event)
     QChartView::mouseMoveEvent(event);
 }
 
+void CustomChartView::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    Q_UNUSED(event)
+    chart()->zoomReset();
+}
+
 void CustomChartView::setup()
 {
     setMouseTracking(true);
+    setRubberBand(QChartView::RectangleRubberBand);
 }
 
 QPointF CustomChartView::graph_coords(const QPoint& widget_coords) const

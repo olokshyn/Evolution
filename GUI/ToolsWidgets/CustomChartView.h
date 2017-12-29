@@ -15,6 +15,7 @@ public:
 
 protected:
     void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
     void setup();
