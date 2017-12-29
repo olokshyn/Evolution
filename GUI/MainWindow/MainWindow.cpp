@@ -16,7 +16,8 @@ namespace
     const QString g_tab_stylesheet =
             "background-image: url(:/images/genesis.jpg); "
                     "background-repeat: no-repeat;"
-                    "background-position: center;";
+                    "background-position: center;"
+                    "background-color: black;";
 }
 
 MainWindow::MainWindow(QWidget* parent)
@@ -43,8 +44,6 @@ MainWindow::MainWindow(QWidget* parent)
     evolution_menu->setTitle("Evolution");
     evolution_menu->addAction(action);
     menuBar()->addMenu(evolution_menu);
-
-    resize(800, 800);
 }
 
 void MainWindow::launch_evolution()

@@ -31,7 +31,7 @@ int main(int argv, char* args[])
     qRegisterMetaType<IterationInfo>();
 
     MainWindow main_window;
-    main_window.show();
+    main_window.showMaximized();
 
     return app.exec();
 }

@@ -16,6 +16,7 @@
 #include <QValueAxis>
 #include <QTabWidget>
 #include <QScatterSeries>
+#include <QTextStream>
 
 #include "EvolutionWorker.h"
 #include "Utils/Utils.h"
@@ -118,6 +119,8 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
           m_show_info_btn(new QPushButton("Show parameters", this)),
           m_plot_graph_btn(new QPushButton("Plot graph", this)),
 
+          m_best_entity_lbl(new QLabel(this)),
+
           m_world_size_series(new QLineSeries(this)),
           m_species_count_series(new QLineSeries(this)),
           m_new_entities_series(new QLineSeries(this)),
@@ -186,6 +189,14 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
     layout->addLayout(
             row_layout,
             0, 0, 1, 8);
+
+    auto info_layout = new QGridLayout();
+
+    info_layout->addWidget(new QLabel("Optimum point:", this), 0, 0, 1, 1);
+    info_layout->addWidget(m_best_entity_lbl, 0, 1, 1, 1);
+
+    layout->addLayout(info_layout, 1, 8, 4, 1);
+
     layout->addWidget(
             evolution_chart,
             1, 0, 2, 8);
@@ -290,17 +301,11 @@ void EvolutionWidget::plot_iterations(const QList<IterationInfo>& infos)
                 QPointF(info.generation_number, info.entities_died));
         infos_data.species_died.append(
                 QPointF(info.generation_number, info.species_died));
-
-        if (!info.fitnesses.empty())
+        infos_data.max_fitness.append(
+                QPointF(info.generation_number, info.max_fitness));
+        if (m_max_fitness < info.max_fitness)
         {
-            double max_fitness = *std::max_element(info.fitnesses.cbegin(),
-                                                   info.fitnesses.cend());
-            if (max_fitness > m_max_fitness)
-            {
-                m_max_fitness = max_fitness;
-            }
-            infos_data.max_fitness.append(
-                    QPointF(info.generation_number, max_fitness));
+            m_max_fitness = info.max_fitness;
         }
     }
     m_world_size_series->append(infos_data.world_size);
@@ -314,6 +319,23 @@ void EvolutionWidget::plot_iterations(const QList<IterationInfo>& infos)
 
     m_generation_number_lbl->setText(QString::number(last_info.generation_number));
     m_max_fitness_lbl->setText(QString::number(m_max_fitness));
+
+    QString best_entity_info;
+    QTextStream stream(&best_entity_info);
+    stream.setRealNumberPrecision(5);
+    stream << "(";
+    double sum = 0.0;
+    for (size_t i = 0; i != last_info.best_entity.size(); ++i)
+    {
+        stream << " " << last_info.best_entity[i];
+        if (i + 1 != last_info.best_entity.size())
+        {
+            stream << ",\n";
+        }
+        sum += last_info.best_entity[i] * last_info.best_entity[i];
+    }
+    stream << ")\n[" << sqrt(sum) << "]";
+    m_best_entity_lbl->setText(*stream.string());
 
     QList<QPointF> points;
     size_t max_species_size = 0;

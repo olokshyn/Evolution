@@ -5,6 +5,7 @@
 #include "EvolutionWidget/EvolutionWorker.h"
 
 #include <utility>
+#include <limits>
 
 extern "C"
 {
@@ -173,7 +174,6 @@ void EvolutionWorker::iteration_end(
         }
     }
 
-    m_info.norms.reserve(m_world_size);
     const std::vector<double> zero(chromosome_size);
 #ifndef NDEBUG
     for (auto value : zero)
@@ -182,6 +182,8 @@ void EvolutionWorker::iteration_end(
     }
 #endif
     m_info.norms.reserve(list_len(population));
+    m_info.max_fitness = -std::numeric_limits<double>::max();
+    const Entity* best_entity = nullptr;
     list_for_each(SpeciesPtr, population, sp_var)
     {
         std::vector<double> species_norms;
@@ -192,8 +194,18 @@ void EvolutionWorker::iteration_end(
                     EuclidMeasure(list_var_value(en_var)->chr,
                                   zero.data(),
                                   chromosome_size));
+            if (m_info.max_fitness < list_var_value(en_var)->fitness)
+            {
+                m_info.max_fitness = list_var_value(en_var)->fitness;
+                best_entity = list_var_value(en_var);
+            }
         }
         m_info.norms.push_back(std::move(species_norms));
+    }
+    if (best_entity)
+    {
+        m_info.best_entity.assign(best_entity->chr,
+                                  best_entity->chr + chromosome_size);
     }
 
     m_info.species_died = species_died_on_iteration;

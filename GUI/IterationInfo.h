@@ -14,6 +14,8 @@ struct IterationInfo
     std::vector<size_t> species;
     std::vector<double> fitnesses;
     std::vector< std::vector<double> > norms;
+    std::vector<double> best_entity;
+    double max_fitness = 0.0;
     size_t new_entities_count = 0;
     size_t entities_died = 0;
     size_t species_died = 0;

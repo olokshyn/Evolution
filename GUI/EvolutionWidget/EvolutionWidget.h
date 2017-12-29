@@ -61,6 +61,8 @@ private:
     QPushButton* m_show_info_btn;
     QPushButton* m_plot_graph_btn;
 
+    QLabel* m_best_entity_lbl;
+
     // Evolution chart
     QtCharts::QLineSeries* m_world_size_series;
     QtCharts::QLineSeries* m_species_count_series;
