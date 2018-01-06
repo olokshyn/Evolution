@@ -10,6 +10,8 @@
 #include "GAFwd.h"
 #include "Species/Species.h"
 
+typedef bool (*iteration_info_hook_t)(World* world, size_t generation_number, double max_fitness);
+
 typedef struct ga_operators {
     bool (*mutation)(World* world, size_t generation_number);
     LIST_TYPE(EntityPtr) (*crossover)(World* world, size_t generation_number);
@@ -19,6 +21,7 @@ typedef struct ga_operators {
                                         size_t min_pts);
     bool (*children_selection)(World* world, LIST_TYPE(EntityPtr)* new_entities);
     bool (*selection)(World* world);
+    iteration_info_hook_t iteration_info_hook;
     const char* name;
 } GAOperators;
 
@@ -45,27 +48,6 @@ bool GAO_LinearRankingSelection(World* world);
 
 bool GAO_ElitistsSelection(World* world);
 
-extern const GAOperators HerreraOperators;
-
-extern const GAOperators HerreraWithClusteringOperators;
-
-extern const GAOperators LokshynOperators;
-
-static const char* const OperatorsNames[] = {
-        "Herrera",
-        "Herrera with clustering",
-        "Lokshyn"
-};
-
-static const GAOperators* const Operators[] = {
-        &HerreraOperators,
-        &HerreraWithClusteringOperators,
-        &LokshynOperators
-};
-
-static_assert(sizeof(OperatorsNames) / sizeof(OperatorsNames[0])
-              == sizeof(Operators) / sizeof(Operators[0]),
-              "Operators names are ill-formed");
-static const size_t Operators_count = sizeof(Operators) / sizeof(Operators[0]);
+bool GAO_ConvergenceStopIterationHook(World* world, size_t generation_number, double max_fitness);
 
 #endif //EVOLUTION_GAOPERATORS_H

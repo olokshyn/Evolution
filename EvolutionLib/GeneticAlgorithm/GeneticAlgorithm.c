@@ -12,6 +12,7 @@
 #include "Journal/Journal.h"
 
 static _Thread_local int last_error = 0;
+static _Thread_local bool stop_evolution = false;
 
 static double Iteration(World* world, size_t generation_number);
 static double GetMaxFitness(World* world);
@@ -49,11 +50,9 @@ GAResult RunEvolution(const GAParameters* parameters,
      * of the randomly-generated entities.
      */
     double max_fitness = GetMaxFitness(world);
-    double prev_max_fitness = 0.0;
-
-    size_t value_is_stable_count = 0;
     for (size_t i = 0;
             i != parameters->max_generations_count
+            && !stop_evolution
             && !EvolutionStopRequested(world->journal);
             ++i) {
         begin = clock();
@@ -69,27 +68,6 @@ GAResult RunEvolution(const GAParameters* parameters,
         if (cur_fitness > max_fitness) {
             max_fitness = cur_fitness;
         }
-
-        if (!world->size || parameters->stable_value_iterations_count) {
-            if (!world->size || fabs(max_fitness - prev_max_fitness)
-                                < parameters->stable_value_eps) {
-
-                ++value_is_stable_count;
-                if (!world->size
-                    || value_is_stable_count
-                       >= parameters->stable_value_iterations_count) {
-
-                    result.optimum = max_fitness;
-                    result.iterations_made = i;
-                    result.time_spent_per_iteration = time_spent / i;
-                    goto exit;
-                }
-            }
-            else {
-                value_is_stable_count = 0;
-            }
-        }
-        prev_max_fitness = max_fitness;
     }
 
     result.optimum = max_fitness;
@@ -97,7 +75,6 @@ GAResult RunEvolution(const GAParameters* parameters,
     result.time_spent_per_iteration = time_spent
                                       / parameters->max_generations_count;
 
-exit:
     DestroyWorld(world);
     LOG_FUNC_SUCCESS;
     return result;
@@ -192,6 +169,9 @@ double Iteration(World* world, size_t generation_number) {
     RecordIterationEnd(world->journal, world->population, world->chr_size);
 
     double max_fitness = GetMaxFitness(world);
+    if (world->operators->iteration_info_hook) {
+        stop_evolution = world->operators->iteration_info_hook(world, generation_number, max_fitness);
+    }
     LogMaxFitness(max_fitness);
     LOG_FUNC_SUCCESS;
     return max_fitness;

@@ -9,5 +9,6 @@ const GAOperators operators = {
         .crossover = GAO_UniformCrossover,
         .clustering = GAO_Clustering,
         .selection = GAO_SpeciesRandomLinksSelection,
+        .iteration_info_hook = GAO_ConvergenceStopIterationHook,
         .name = "Random Links"
 };
