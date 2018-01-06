@@ -42,6 +42,8 @@ public:
 public slots:
     void start_evolution();
     void stop_evolution();
+    void pause_evolution();
+    void resume_evolution();
     void show_info();
     void plot_graph();
 
@@ -58,6 +60,8 @@ private:
     QLabel* m_generation_number_lbl;
     QLabel* m_max_fitness_lbl;
     QPushButton* m_stop_btn;
+    QPushButton* m_pause_btn;
+    QPushButton* m_resume_btn;
     QPushButton* m_show_info_btn;
     QPushButton* m_plot_graph_btn;
 

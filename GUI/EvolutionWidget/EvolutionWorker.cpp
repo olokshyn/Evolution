@@ -37,7 +37,8 @@ EvolutionWorker::EvolutionWorker(const GAParameters& parameters,
           m_log_level(log_level),
           m_world_size(0),
           m_buffer_size(buffer_size),
-          m_stop_evolution(false)
+          m_stop_evolution(false),
+          m_pause_evolution(false)
 {
     m_journal.data = this;
     m_journal.evolution_stop_requested = &EvolutionWorker::evolution_stop_requested;
@@ -56,7 +57,11 @@ void EvolutionWorker::start_evolution()
 {
     utils::LoggingGuard::singleton(m_name + ".log", m_log_level);
 
+    std::unique_lock<std::mutex> lock(m_mutex);
     m_stop_evolution = false;
+    m_pause_evolution = false;
+    lock.unlock();
+
     GAResult result = RunEvolution(&m_parameters,
                                    m_operators,
                                    &m_journal);
@@ -70,7 +75,28 @@ void EvolutionWorker::start_evolution()
 
 void EvolutionWorker::stop_evolution()
 {
+    std::unique_lock<std::mutex> lock(m_mutex);
     m_stop_evolution = true;
+    if (m_pause_evolution)
+    {
+        m_pause_evolution = false;
+        lock.unlock();
+        m_cond_var.notify_all();
+    }
+}
+
+void EvolutionWorker::pause_evolution()
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_pause_evolution = true;
+}
+
+void EvolutionWorker::resume_evolution()
+{
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_pause_evolution = false;
+    lock.unlock();
+    m_cond_var.notify_all();
 }
 
 bool EvolutionWorker::evolution_stop_requested(void* data)
@@ -136,6 +162,11 @@ void EvolutionWorker::species_death(void* data,
 
 bool EvolutionWorker::evolution_stop_requested() const
 {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if (m_pause_evolution)
+    {
+        m_cond_var.wait(lock, [this]{ return !m_pause_evolution; });
+    }
     return m_stop_evolution;
 }
 

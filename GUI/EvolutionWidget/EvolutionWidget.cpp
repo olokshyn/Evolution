@@ -117,6 +117,8 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
           m_generation_number_lbl(new QLabel(this)),
           m_max_fitness_lbl(new QLabel(this)),
           m_stop_btn(new QPushButton("Stop evolution", this)),
+          m_pause_btn(new QPushButton("Pause evolution", this)),
+          m_resume_btn(new QPushButton("Resume evolution", this)),
           m_show_info_btn(new QPushButton("Show parameters", this)),
           m_plot_graph_btn(new QPushButton("Plot graph", this)),
 
@@ -147,6 +149,8 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
                                        settings.ui_settings().iterations_buffer_size,
                                        name))
 {
+    m_resume_btn->setVisible(false);
+
     m_world_size_series->setName("World size");
     m_species_count_series->setName("Species count");
     m_new_entities_series->setName(("New entities count"));
@@ -158,6 +162,10 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
 
     connect(m_stop_btn, &QPushButton::clicked,
             this, &EvolutionWidget::stop_evolution);
+    connect(m_pause_btn, &QPushButton::clicked,
+            this, &EvolutionWidget::pause_evolution);
+    connect(m_resume_btn, &QPushButton::clicked,
+            this, &EvolutionWidget::resume_evolution);
     connect(m_show_info_btn, &QPushButton::clicked,
             this, &EvolutionWidget::show_info);
     connect(m_plot_graph_btn, &QPushButton::clicked,
@@ -183,6 +191,8 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
     row_layout->addWidget(m_max_fitness_lbl, 1);
 
     row_layout->addWidget(m_stop_btn, 1);
+    row_layout->addWidget(m_pause_btn, 1);
+    row_layout->addWidget(m_resume_btn, 1);
     row_layout->addWidget(m_show_info_btn, 1);
     row_layout->addWidget(m_plot_graph_btn, 1);
 
@@ -196,7 +206,7 @@ EvolutionWidget::EvolutionWidget(const SettingsWidget& settings,
     info_layout->addWidget(new QLabel("Optimum point:", this), 0, 0, 1, 1);
     info_layout->addWidget(m_best_entity_lbl, 0, 1, 1, 1);
 
-    layout->addLayout(info_layout, 1, 8, 4, 1);
+    layout->addLayout(info_layout, 0, 8, 5, 1);
 
     layout->addWidget(
             evolution_chart,
@@ -262,6 +272,20 @@ void EvolutionWidget::start_evolution()
 void EvolutionWidget::stop_evolution()
 {
     m_worker->stop_evolution();
+}
+
+void EvolutionWidget::pause_evolution()
+{
+    m_worker->pause_evolution();
+    m_pause_btn->setVisible(false);
+    m_resume_btn->setVisible(true);
+}
+
+void EvolutionWidget::resume_evolution()
+{
+    m_worker->resume_evolution();
+    m_resume_btn->setVisible(false);
+    m_pause_btn->setVisible(true);
 }
 
 void EvolutionWidget::show_info()
@@ -386,25 +410,40 @@ void EvolutionWidget::plot_iterations(const QList<IterationInfo>& infos)
     m_norm_chart_view->chart()->removeAllSeries();
     for (size_t i = 0; i != last_info.norms.size(); ++i)
     {
+        double mid_norm = 0.0;
+        double mid_fitness = 0.0;
         points.clear();
         for (auto norm : last_info.norms[i])
         {
+            mid_norm += norm;
+            mid_fitness += last_info.fitnesses[index];
             points.append(QPointF(norm, last_info.fitnesses[index++]));
             if (norm > max_norm)
             {
                 max_norm = norm;
             }
         }
+        mid_norm /= last_info.norms[i].size();
+        mid_fitness /= last_info.norms[i].size();
+
+        auto species_color = QColor::fromHsl(
+                static_cast<int>(round(360.0 / MIN(last_info.norms.size(), 360) * (i % 360))),
+                static_cast<int>(round(200 + getRand(0.0, 10.0))),
+                static_cast<int>(round(150 + getRand(0.0, 10.0))));
         QScatterSeries* species_norms_series = new QScatterSeries(this);
         species_norms_series->setMarkerShape(QScatterSeries::MarkerShapeCircle);
         species_norms_series->setMarkerSize(7.0);
-        species_norms_series->setColor(
-                QColor::fromHsl(static_cast<int>(round(360.0 / last_info.norms.size() * i)),
-                                static_cast<int>(round(200 + getRand(0.0, 10.0))),
-                                static_cast<int>(round(150 + getRand(0.0, 10.0)))));
+        species_norms_series->setColor(species_color);
         species_norms_series->append(points);
         points.clear();
         m_norm_chart_view->chart()->addSeries(species_norms_series);
+
+        QScatterSeries* species_mid_series = new QScatterSeries(this);
+        species_mid_series->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
+        species_mid_series->setMarkerSize(8.0);
+        species_mid_series->setColor(species_color);
+        species_mid_series->append(mid_norm, mid_fitness);
+        m_norm_chart_view->chart()->addSeries(species_mid_series);
     }
 
     LOG_ASSERT(index == last_info.fitnesses.size());

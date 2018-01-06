@@ -7,7 +7,8 @@
 
 #include <memory>
 #include <string>
-#include <atomic>
+#include <mutex>
+#include <condition_variable>
 
 #include <QObject>
 #include <QList>
@@ -36,6 +37,8 @@ public:
 
     void start_evolution();
     void stop_evolution();
+    void pause_evolution();
+    void resume_evolution();
 
 signals:
     void iterations_done(const QList<IterationInfo>& infos);
@@ -112,7 +115,10 @@ private:
     QList<IterationInfo> m_buffered_infos;
     size_t m_buffer_size;
 
-    std::atomic<bool> m_stop_evolution;
+    mutable std::mutex m_mutex;
+    mutable std::condition_variable m_cond_var;
+    bool m_stop_evolution;
+    bool m_pause_evolution;
 };
 
 #endif //GUI_EVOLUTIONMANAGER_H
