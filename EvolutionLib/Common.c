@@ -35,7 +35,7 @@ int selectRandom(int rangeLow, int rangeHigh) {
 
 void Normalize(LIST_TYPE(double) numbers) {
     // TODO: maybe something different should be done here?
-    Scale(numbers, 0.1, 0.9);
+    Scale(numbers, 0.01, 0.99);
 }
 
 void Scale(LIST_TYPE(double) numbers, double a, double b) {
@@ -94,6 +94,9 @@ void ScaleSumToOne(LIST_TYPE(double) numbers) {
     double sum = 0.0;
     list_for_each(double, numbers, var) {
         sum += list_var_value(var);
+    }
+    if (DOUBLE_EQ(sum, 1.0)) {
+        return;
     }
     LOG_RELEASE_ASSERT(!DOUBLE_EQ(sum, 0.0));
     list_for_each(double, numbers, var) {

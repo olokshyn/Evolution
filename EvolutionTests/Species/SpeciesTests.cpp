@@ -60,8 +60,8 @@ TEST(SpeciesTest, NormalizeSpeciesFitnesses)
     for (; list_iter_valid(it);
             list_next(SpeciesPtr, it), list_next(double, ft_it), ++i)
     {
-        EXPECT_LE(0.1, list_iter_value(ft_it));
-        EXPECT_GE(0.9, list_iter_value(ft_it));
+        EXPECT_LE(0.01, list_iter_value(ft_it));
+        EXPECT_GE(0.99, list_iter_value(ft_it));
     }
     ASSERT_EQ(species_count, i);
 

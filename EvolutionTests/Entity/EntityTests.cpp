@@ -143,8 +143,8 @@ TEST(EntityTest, NormalizeEntitiesFitnesses)
         ++i;
         sum += list_var_value(var);
 
-        ASSERT_LE(0.1, list_var_value(var));
-        ASSERT_GE(0.9, list_var_value(var));
+        ASSERT_LE(0.01, list_var_value(var));
+        ASSERT_GE(0.99, list_var_value(var));
     }
     ASSERT_EQ(list_len(entities), i);
 
