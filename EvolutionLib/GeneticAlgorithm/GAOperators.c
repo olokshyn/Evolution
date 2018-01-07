@@ -256,6 +256,12 @@ bool GAO_ElitistsSelection(World* world) {
                                          NULL);
 }
 
+bool GAO_SpeciesSizePenaltySelection(World* world) {
+    return FitnessBasedSelectionTemplate(world,
+                                         PerformSelectionInEntities,
+                                         CountSpeciesSizePenalty);
+}
+
 bool GAO_ConvergenceStopIterationHook(World* world, size_t generation_number, double max_fitness) {
     static _Thread_local size_t stable_iterations_done = 0;
     static _Thread_local double last_max_fitness = -DBL_MAX;

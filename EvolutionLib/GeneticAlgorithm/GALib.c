@@ -54,7 +54,7 @@ bool CrossEntitiesWithProbability(const World* world,
     LIST_ITER_TYPE(EntityPtr) iter_i = list_begin(EntityPtr, entities);
     LIST_ITER_TYPE(double) ft_iter_i = list_begin(double, entities_fitnesses);
     for (; list_iter_valid(iter_i);
-            list_next(EntityPtr, iter_i), list_next(double, ft_iter_i), ++i) {
+           list_next(EntityPtr, iter_i), list_next(double, ft_iter_i), ++i) {
         if (crossed_parents[i]) {
             continue;
         }
@@ -63,9 +63,9 @@ bool CrossEntitiesWithProbability(const World* world,
         LIST_ITER_TYPE(double) ft_iter_j =
                 list_begin(double, entities_fitnesses);
         for (; list_iter_valid(iter_j) && !crossed_parents[i];
-                list_next(EntityPtr, iter_j),
-                        list_next(double, ft_iter_j),
-                        ++j) {
+               list_next(EntityPtr, iter_j),
+                       list_next(double, ft_iter_j),
+                       ++j) {
             if (list_iter_eq(iter_i, iter_j)
                 || crossed_parents[j]
                 || !doWithProbability(probability)) {
@@ -153,8 +153,8 @@ bool FitnessBasedSelectionTemplate(
             list_begin(SpeciesPtr, world->population);
     LIST_ITER_TYPE(double) fitness_iter = list_begin(double, fitnesses);
     for (; list_iter_valid(species_iter);
-            list_next(SpeciesPtr, species_iter),
-                    list_next(double, fitness_iter)) {
+           list_next(SpeciesPtr, species_iter),
+                   list_next(double, fitness_iter)) {
         size_t alive_count = (size_t)round(world->parameters->initial_world_size
                                            * list_iter_value(fitness_iter));
         if (!selection(world,
@@ -168,7 +168,7 @@ bool FitnessBasedSelectionTemplate(
     world->size = new_world_size;
 
     for (species_iter = list_begin(SpeciesPtr, world->population);
-            list_iter_valid(species_iter);
+         list_iter_valid(species_iter);
             ) {
         if (!list_len(list_iter_value(species_iter)->entities)) {
             LIST_ITER_TYPE(SpeciesPtr) temp = species_iter;
@@ -255,9 +255,9 @@ bool LinearRankingSelection(const World* world,
     Entity* new_entity = NULL;
     if (world->parameters->selection_elitists_count) {
         for (size_t i = 0;
-                i != alive_count
-                && i != world->parameters->selection_elitists_count;
-                ++i) {
+             i != alive_count
+             && i != world->parameters->selection_elitists_count;
+             ++i) {
             new_entity = CopyEntity(entities_p[i], world->chr_size);
             if (!new_entity) {
                 goto destroy_entities_p;
@@ -487,6 +487,35 @@ destroy_influence:
 error:
     LOG_FUNC_ERROR;
     return false;
+}
+
+bool CountSpeciesSizePenalty(const World* world, LIST_TYPE(double) fitness) {
+    LOG_FUNC_START;
+
+    if (list_len(world->population) == 1) {
+        Log(INFO, "%s: No penalty for one species", __FUNCTION__);
+        goto exit;
+    }
+
+    const double penalty_power = 1.0;
+
+    LIST_ITER_TYPE(SpeciesPtr) species_iter = list_begin(SpeciesPtr, world->population);
+    LIST_ITER_TYPE(double) fitness_iter = list_begin(double, fitness);
+    for (; list_iter_valid(species_iter) && list_iter_valid(fitness_iter);
+           list_next(SpeciesPtr, species_iter), list_next(double, fitness_iter)) {
+        double penalty = penalty_power * list_len(list_iter_value(species_iter)->entities) / (double)world->size;
+        LOG_RELEASE_ASSERT(penalty < 1.0);
+        if (penalty >= 0.5) {
+            Log(DEBUG, "%s: penalty is more than 0.5 for species of size %zu",
+                __FUNCTION__, list_len(list_iter_value(species_iter)->entities));
+        }
+        list_iter_value(fitness_iter) *= (1.0 - penalty);
+    }
+    LOG_ASSERT(!list_iter_valid(species_iter) && !list_iter_valid(fitness_iter));
+
+exit:
+    LOG_FUNC_SUCCESS;
+    return true;
 }
 
 double ScaleEps(const World* world,

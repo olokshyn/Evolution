@@ -53,6 +53,8 @@ bool PerformSelectionInEntities(const World* world,
 
 bool CountRandomSpeciesLinks(const World* world, LIST_TYPE(double) fitnesses);
 
+bool CountSpeciesSizePenalty(const World* world, LIST_TYPE(double) fitness);
+
 // Other
 
 double ScaleEps(const World* world,

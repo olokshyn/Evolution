@@ -48,6 +48,8 @@ bool GAO_LinearRankingSelection(World* world);
 
 bool GAO_ElitistsSelection(World* world);
 
+bool GAO_SpeciesSizePenaltySelection(World* world);
+
 bool GAO_ConvergenceStopIterationHook(World* world, size_t generation_number, double max_fitness);
 
 #endif //EVOLUTION_GAOPERATORS_H
