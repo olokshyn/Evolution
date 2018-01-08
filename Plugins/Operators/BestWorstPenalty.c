@@ -1,5 +1,5 @@
 //
-// Created by oleg on 06.01.18.
+// Created by oleg on 08.01.18.
 //
 
 #include "GeneticAlgorithm/GAOperators.h"
@@ -9,27 +9,20 @@
 const GAOperators operators = {
         .mutation = Mutation_NonUniform,
         .crossover = Crossover_DHX,
-        .selection = Selection_LinearRanking,
-        .iteration_info_hook = GAO_SwitchIterationInfoHook,
-        .name = "Herrera_s_Clustering_s_RandomLinks"
-};
-
-const GAOperators clustering = {
-        .mutation = Mutation_NonUniform,
-        .crossover = Crossover_DHX,
         .clustering = Clustering_OPTICS,
         .selection = Selection_Linear,
+        .iteration_info_hook = GAO_SwitchIterationInfoHook,
+        .name = "Best Worst Penalty"
 };
 
-const GAOperators random_links = {
+const GAOperators clustering_best_worst_penalty = {
         .mutation = Mutation_NonUniform,
         .crossover = Crossover_DHX,
         .clustering = Clustering_OPTICS,
-        .selection = Selection_Linear_RandomSpeciesLinks,
+        .selection = Selection_Linear_BestWorstPenalty,
 };
 
-
-REGISTER_SWITCH_TO_OPERATORS(&clustering, &random_links)
+REGISTER_SWITCH_TO_OPERATORS(&clustering_best_worst_penalty)
 #define STOP_ON_CONVERGENCE false
 
 #include "GeneticAlgorithm/OperatorsSwitchDef.h"

@@ -36,6 +36,11 @@ bool Selection_Entities_LinearRanking(const World* world,
                                       size_t alive_count,
                                       size_t* entities_died);
 
+bool Selection_Entities_Linear_Best_Worst(const World* world,
+                                          LIST_TYPE(EntityPtr)* entities_ptr,
+                                          size_t alive_count,
+                                          size_t* entities_died);
+
 bool Selection_AdjustFitnesses_RandomSpeciesLinks(const World* world,
                                                   LIST_TYPE(double) fitnesses);
 
@@ -47,6 +52,8 @@ bool Selection_Linear(World* world);
 bool Selection_Linear_RandomSpeciesLinks(World* world);
 
 bool Selection_Linear_SpeciesSizePenalty(World* world);
+
+bool Selection_Linear_BestWorstPenalty(World* world);
 
 bool Selection_LinearRanking(World* world);
 

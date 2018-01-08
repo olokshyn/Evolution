@@ -32,7 +32,7 @@ public:
                     const GAOperators* operators,
                     size_t buffer_size,
                     std::string name,
-                    LogLevel log_level = INFO,
+                    LogLevel log_level = DEBUG,
                     QObject* parent = nullptr);
 
     void start_evolution();

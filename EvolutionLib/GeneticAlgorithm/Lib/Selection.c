@@ -100,7 +100,7 @@ bool Selection_Entities_Linear(const World* world,
         ClearEntitiesList(entities);
         goto exit;
     }
-    LOG_RELEASE_ASSERT(list_len(entities) > 1);
+    LOG_RELEASE_ASSERT(list_len(entities) >= 2);
 
     Entity** entities_p =
             SortedEntitiesPointers(entities, EntityDescendingComparator);
@@ -256,10 +256,10 @@ bool Selection_Entities_LinearRanking(const World* world,
         }
     }
 
+    free(entities_p);
     DestroyEntitiesList(*entities_ptr);
     *entities_ptr = sorted_new_entities;
     sorted_new_entities = NULL;
-    free(entities_p);
     free(selection_probs);
 exit:
     LOG_FUNC_SUCCESS;
@@ -273,6 +273,96 @@ destroy_sorted_new_entities:
     DestroyEntitiesList(sorted_new_entities);
 destroy_selection_probs:
     free(selection_probs);
+error:
+    LOG_FUNC_ERROR;
+    return false;
+}
+
+bool Selection_Entities_LinearBestWorst(const World* world,
+                                        LIST_TYPE(EntityPtr)* entities_ptr,
+                                        size_t alive_count,
+                                        size_t* entities_died) {
+    LOG_FUNC_START;
+    LOG_RELEASE_ASSERT(entities_ptr);
+
+    LIST_TYPE(EntityPtr) entities = *entities_ptr;
+
+    if (alive_count >= list_len(entities)) {
+        Log(DEBUG, "There are less entities %zu that should left alive %zu",
+            list_len(entities), alive_count);
+        goto exit;
+    }
+    if (alive_count < 2) {
+        if (entities_died) {
+            list_for_each(EntityPtr, entities, var) {
+                *entities_died += list_var_value(var)->old;
+            }
+        }
+        ClearEntitiesList(entities);
+        goto exit;
+    }
+    LOG_RELEASE_ASSERT(list_len(entities) >= 2);
+
+    Entity** entities_p =
+            SortedEntitiesPointers(entities, EntityDescendingComparator);
+    if (!entities_p) {
+        goto error;
+    }
+
+    LIST_TYPE(EntityPtr) sorted_new_entities = list_create(EntityPtr);
+    if (!sorted_new_entities) {
+        goto destroy_entities_p;
+    }
+
+    size_t worst_alive_count = alive_count / 2;
+    size_t best_alive_count = alive_count - worst_alive_count;
+
+    Entity* new_entity = NULL;
+    for (size_t i = 0; i != best_alive_count; ++i) {
+        new_entity = CopyEntity(entities_p[i], world->chr_size);
+        if (!new_entity) {
+            goto destroy_sorted_new_entities;
+        }
+        if (!list_push_back(EntityPtr, sorted_new_entities, new_entity)) {
+            goto destroy_entity;
+        }
+        new_entity = NULL;
+        entities_p[i] = NULL;
+    }
+    for (size_t i = list_len(entities) - worst_alive_count; i != list_len(entities); ++i) {
+        new_entity = CopyEntity(entities_p[i], world->chr_size);
+        if (!new_entity) {
+            goto destroy_sorted_new_entities;
+        }
+        if (!list_push_back(EntityPtr, sorted_new_entities, new_entity)) {
+            goto destroy_entity;
+        }
+        new_entity = NULL;
+        entities_p[i] = NULL;
+    }
+
+    if (entities_died) {
+        for (size_t i = 0; i != list_len(entities); ++i) {
+            if (entities_p[i]) {
+                *entities_died += entities_p[i]->old;
+            }
+        }
+    }
+
+    free(entities_p);
+    DestroyEntitiesList(entities);
+    *entities_ptr = sorted_new_entities;
+
+exit:
+    LOG_FUNC_SUCCESS;
+    return true;
+
+destroy_entity:
+    DestroyEntity(new_entity);
+destroy_sorted_new_entities:
+    DestroyEntitiesList(sorted_new_entities);
+destroy_entities_p:
+    free(entities_p);
 error:
     LOG_FUNC_ERROR;
     return false;
@@ -419,6 +509,12 @@ bool Selection_Linear_RandomSpeciesLinks(World* world) {
 bool Selection_Linear_SpeciesSizePenalty(World* world) {
     return Selection_Template_FitnessBased(world,
                                            Selection_Entities_Linear,
+                                           Selection_AdjustFitnesses_SpeciesSizePenalty);
+}
+
+bool Selection_Linear_BestWorstPenalty(World* world) {
+    return Selection_Template_FitnessBased(world,
+                                           Selection_Entities_LinearBestWorst,
                                            Selection_AdjustFitnesses_SpeciesSizePenalty);
 }
 
