@@ -207,7 +207,11 @@ TEST(CrossoverTest, OnePointCrossover)
                               child1,
                               child2,
                               obj,
-                              chr_size);
+                              0.0,
+                              0.0,
+                              chr_size,
+                              0,
+                              0);
 
             size_t crossover_point = (chr_size % 2 == 0) ?
                                      (chr_size / 2) :

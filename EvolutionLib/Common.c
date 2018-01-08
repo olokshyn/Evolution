@@ -118,3 +118,49 @@ double EuclidMeasure(const double* x, const double* y, size_t size) {
     }
     return sqrt(sum);
 }
+
+bool GaussSLE(double** matrix, size_t rows, size_t cols, double* solution) {
+    if (rows + 1 != cols) {
+        return false;
+    }
+
+    // forward
+    for (size_t i = 0; i != rows; ++i) {
+        // find the row with the biggest key
+        size_t max_key_row = i;
+        for (size_t j = i + 1; j != rows; ++j) {
+            if (fabs(matrix[j][i]) > fabs(matrix[max_key_row][i])) {
+                max_key_row = j;
+            }
+        }
+        if (max_key_row != i) {
+            double* temp = matrix[i];
+            matrix[i] = matrix[max_key_row];
+            matrix[max_key_row] = temp;
+        }
+
+        // Check for the incompatible matrix
+        if (DOUBLE_EQ(matrix[i][i], 0.0)) {
+            return false;
+        }
+
+        for (size_t j = i + 1; j != rows; ++j) {
+            double delimiter = - matrix[j][i] / matrix[i][i];
+            for (size_t c = i; c != cols; ++c) {
+                matrix[j][c] += matrix[i][c] * delimiter;
+            }
+        }
+    }
+
+    // backward
+    for (size_t i = 0; i != rows; ++i) {
+        size_t index = rows - i - 1;
+        solution[index] = matrix[index][rows];
+        for (size_t j = index + 1; j != rows; ++j) {
+            solution[index] -= matrix[index][j] * solution[j];
+        }
+        solution[index] /= matrix[index][index];
+    }
+
+    return true;
+}

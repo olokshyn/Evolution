@@ -3,28 +3,29 @@
 //
 
 #include "GeneticAlgorithm/GAOperators.h"
+#include "GeneticAlgorithm/Lib/Operators.h"
 #include "GeneticAlgorithm/OperatorsSwitch.h"
 
 GAOperators operators = {
-        .mutation = GAO_NonUniformMutation,
-        .crossover = GAO_UniformCrossover,
-        .selection = GAO_LinearRankingSelection,
+        .mutation = Mutation_NonUniform,
+        .crossover = Crossover_DHX,
+        .selection = Selection_LinearRanking,
         .iteration_info_hook = GAO_SwitchIterationInfoHook,
         .name = "Herrera_s_Clustering_s_RandomLinks"
 };
 
 const GAOperators clustering = {
-        .mutation = GAO_NonUniformMutation,
-        .crossover = GAO_UniformCrossover,
-        .clustering = GAO_Clustering,
-        .selection = GAO_ElitistsSelection,
+        .mutation = Mutation_NonUniform,
+        .crossover = Crossover_DHX,
+        .clustering = Clustering_OPTICS,
+        .selection = Selection_Linear,
 };
 
 const GAOperators random_links = {
-        .mutation = GAO_NonUniformMutation,
-        .crossover = GAO_UniformCrossover,
-        .clustering = GAO_Clustering,
-        .selection = GAO_SpeciesRandomLinksSelection,
+        .mutation = Mutation_NonUniform,
+        .crossover = Crossover_DHX,
+        .clustering = Clustering_OPTICS,
+        .selection = Selection_Linear_RandomSpeciesLinks,
 };
 
 

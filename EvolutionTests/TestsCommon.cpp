@@ -8,7 +8,6 @@
 
 extern "C"
 {
-#include "GeneticAlgorithm/GALib.h"
 #include "Logging/Logging.h"
 }
 

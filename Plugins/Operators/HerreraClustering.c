@@ -3,12 +3,13 @@
 //
 
 #include "GeneticAlgorithm/GAOperators.h"
+#include "GeneticAlgorithm/Lib/Operators.h"
 
 const GAOperators operators = {
-        .mutation = GAO_NonUniformMutation,
-        .crossover = GAO_UniformCrossover,
-        .clustering = GAO_Clustering,
-        .selection = GAO_ElitistsSelection,
+        .mutation = Mutation_NonUniform,
+        .crossover = Crossover_DHX,
+        .clustering = Clustering_OPTICS,
+        .selection = Selection_Linear,
         .iteration_info_hook = GAO_ConvergenceStopIterationHook,
         .name = "Herrera With Clustering"
 };

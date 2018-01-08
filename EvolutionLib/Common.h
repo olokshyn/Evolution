@@ -34,5 +34,6 @@ void Normalize(LIST_TYPE(double) numbers);
 void Scale(LIST_TYPE(double) numbers, double a, double b);
 void ScaleSumToOne(LIST_TYPE(double) numbers);
 double EuclidMeasure(const double* x, const double* y, size_t size);
+bool GaussSLE(double** matrix, size_t rows, size_t cols, double* solution);
 
 #endif //EVOLUTION_COMMON_H

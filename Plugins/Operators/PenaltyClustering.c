@@ -3,12 +3,13 @@
 //
 
 #include "GeneticAlgorithm/GAOperators.h"
+#include "GeneticAlgorithm/Lib/Operators.h"
 
 const GAOperators operators = {
-        .mutation = GAO_NonUniformMutation,
-        .crossover = GAO_UniformCrossover,
-        .clustering = GAO_Clustering,
-        .selection = GAO_SpeciesSizePenaltySelection,
+        .mutation = Mutation_NonUniform,
+        .crossover = Crossover_DHX,
+        .clustering = Clustering_OPTICS,
+        .selection = Selection_Linear_SpeciesSizePenalty,
         .iteration_info_hook = GAO_ConvergenceStopIterationHook,
         .name = "Penalty Clustering"
 };
