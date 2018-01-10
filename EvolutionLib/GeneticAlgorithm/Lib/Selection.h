@@ -47,6 +47,9 @@ bool Selection_AdjustFitnesses_RandomSpeciesLinks(const World* world,
 bool Selection_AdjustFitnesses_SpeciesSizePenalty(const World* world,
                                                   LIST_TYPE(double) fitnesses);
 
+bool Selection_AdjustFitnesses_DamageTheBest(const World* world,
+                                             LIST_TYPE(double) fitnesses);
+
 bool Selection_Linear(World* world);
 
 bool Selection_Linear_RandomSpeciesLinks(World* world);

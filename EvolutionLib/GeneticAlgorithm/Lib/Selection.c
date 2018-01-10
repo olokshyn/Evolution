@@ -471,7 +471,7 @@ bool Selection_AdjustFitnesses_SpeciesSizePenalty(const World* world,
         goto exit;
     }
 
-    const double penalty_power = 1.0;
+    const double penalty_power = 0.5;
 
     LIST_ITER_TYPE(SpeciesPtr) species_iter = list_begin(SpeciesPtr, world->population);
     LIST_ITER_TYPE(double) fitness_iter = list_begin(double, fitnesses);
@@ -490,6 +490,28 @@ bool Selection_AdjustFitnesses_SpeciesSizePenalty(const World* world,
     LOG_ASSERT(!list_iter_valid(species_iter) && !list_iter_valid(fitness_iter));
 
 exit:
+    LOG_FUNC_SUCCESS;
+    return true;
+}
+
+bool Selection_AdjustFitnesses_DamageTheBest(const World* world,
+                                             LIST_TYPE(double) fitnesses) {
+    LOG_FUNC_START;
+
+    const double damaged_fitness = 0.75;
+
+    LIST_ITER_TYPE(double) iter, max_iter;
+    iter = max_iter = list_begin(double, fitnesses);
+    while (list_iter_valid(iter)) {
+        if (list_iter_value(iter) > list_iter_value(max_iter)) {
+            max_iter = iter;
+        }
+        list_next(double, iter);
+    }
+    if (list_iter_valid(max_iter)) {
+        list_iter_value(max_iter) = damaged_fitness;
+    }
+
     LOG_FUNC_SUCCESS;
     return true;
 }
