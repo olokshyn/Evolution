@@ -93,3 +93,47 @@ error:
     LOG_FUNC_ERROR;
     return 0.0;
 }
+
+double** GetPopulationCentroids(const World* world) {
+    LOG_FUNC_START;
+
+    double** centroids = (double**)calloc(list_len(world->population),
+                                          sizeof(double*));
+    if (!centroids) {
+        goto error;
+    }
+
+    size_t centroid_index = 0;
+    list_for_each(SpeciesPtr, world->population, species_var) {
+        double* centroid = (double*)calloc(world->chr_size, sizeof(double));
+        if (!centroid) {
+            goto destroy_centroids;
+        }
+        list_for_each(EntityPtr, list_var_value(species_var)->entities, entity_var) {
+            for (size_t i = 0; i != world->chr_size; ++i) {
+                centroid[i] += list_var_value(entity_var)->chr[i];
+            }
+        }
+        for (size_t i = 0; i != world->chr_size; ++i) {
+            centroid[i] /= list_len(list_var_value(species_var)->entities);
+        }
+        centroids[centroid_index++] = centroid;
+    }
+    LOG_ASSERT(centroid_index == list_len(world->population));
+
+    LOG_FUNC_SUCCESS;
+    return centroids;
+
+destroy_centroids:
+    DestroyCentroids(centroids, list_len(world->population));
+error:
+    LOG_FUNC_ERROR;
+    return NULL;
+}
+
+void DestroyCentroids(double** centroids, size_t centroids_count) {
+    for (size_t i = 0; i != centroids_count; ++i) {
+        free(centroids[i]);
+    }
+    free(centroids);
+}

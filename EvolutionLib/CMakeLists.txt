@@ -63,7 +63,9 @@ set(EVOLUTION_LIB_SOURCE_FILES
         ${AGGLOMERATIVE_CLUSTERING_SOURCE_FILES}
         ${OPTICS_SOURCE_FILES}
         Common.c
-        Common.h)
+        Common.h
+        math_vector.c
+        math_vector.h)
 
 add_library(${PROJECT_NAME} ${EVOLUTION_LIB_SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS})

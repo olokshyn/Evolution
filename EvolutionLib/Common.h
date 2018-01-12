@@ -35,5 +35,9 @@ void Scale(LIST_TYPE(double) numbers, double a, double b);
 void ScaleSumToOne(LIST_TYPE(double) numbers);
 double EuclidMeasure(const double* x, const double* y, size_t size);
 bool GaussSLE(double** matrix, size_t rows, size_t cols, double* solution);
+double** DistanceMatrix(double** vectors, size_t vectors_count, size_t vector_size);
+void DestroyDistanceMatrix(double** matrix, size_t matrix_size);
+void NormalizeDistanceMatrix(double** matrix, size_t matrix_size);
+size_t MinDistance(double** matrix, size_t matrix_size, size_t vector_index);
 
 #endif //EVOLUTION_COMMON_H

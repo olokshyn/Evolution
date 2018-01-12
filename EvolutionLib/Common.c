@@ -164,3 +164,85 @@ bool GaussSLE(double** matrix, size_t rows, size_t cols, double* solution) {
 
     return true;
 }
+
+double** DistanceMatrix(double** vectors, size_t vectors_count, size_t vector_size) {
+    LOG_FUNC_START;
+
+    double** matrix = (double**)calloc(vectors_count, sizeof(double*));
+    if (!matrix) {
+        goto error;
+    }
+    for (size_t i = 0; i != vectors_count; ++i) {
+        matrix[i] = (double*)malloc(sizeof(double) * vectors_count);
+        if (!matrix[i]) {
+            goto destroy_matrix;
+        }
+    }
+
+    for (size_t i = 0; i != vectors_count; ++i) {
+        for (size_t j = i; j != vectors_count; ++j) {
+            if (i == j) {
+                matrix[i][i] = 0.0;
+                continue;
+            }
+            double distance = EuclidMeasure(vectors[i],
+                                            vectors[j],
+                                            vector_size);
+            matrix[i][j] = distance;
+            matrix[j][i] = distance;
+        }
+    }
+
+    LOG_FUNC_SUCCESS;
+    return matrix;
+
+destroy_matrix:
+    DestroyDistanceMatrix(matrix, vectors_count);
+error:
+    LOG_FUNC_ERROR;
+    return NULL;
+}
+
+void DestroyDistanceMatrix(double** matrix, size_t matrix_size) {
+    for (size_t i = 0; i != matrix_size; ++i) {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+void NormalizeDistanceMatrix(double** matrix, size_t matrix_size) {
+    LOG_RELEASE_ASSERT(matrix_size >= 1);
+    double sum = 0.0;
+    for (size_t i = 0; i != matrix_size - 1; ++i) {
+        for (size_t j = i + 1; j != matrix_size; ++j) {
+            LOG_ASSERT(matrix[i][j] >= 0.0);
+            LOG_ASSERT(matrix[i][j] == matrix[j][i]);
+            sum += matrix[i][j];
+        }
+    }
+    LOG_RELEASE_ASSERT(sum > 0.0);
+    for (size_t i = 0; i != matrix_size - 1; ++i) {
+        for (size_t j = i + 1; j != matrix_size; ++j) {
+            matrix[i][j] /= sum;
+            matrix[j][i] /= sum;
+        }
+    }
+}
+
+size_t MinDistance(double** matrix, size_t matrix_size, size_t vector_index) {
+    LOG_RELEASE_ASSERT(matrix_size >= 2);
+    size_t min_distance_index = 0;
+    if (vector_index == 0) {
+        min_distance_index = 1;
+    }
+    for (size_t i = 0; i != matrix_size; ++i) {
+        if (i == vector_index) {
+            continue;
+        }
+        if (matrix[vector_index][i] < matrix[vector_index][min_distance_index]) {
+            min_distance_index = i;
+        }
+    }
+    LOG_ASSERT(min_distance_index != vector_index);
+    return min_distance_index;
+}

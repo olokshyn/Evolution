@@ -4,10 +4,18 @@
 
 #include "Selection.h"
 
+#include <math.h>
+
 #include "Common.h"
 #include "GeneticAlgorithm/World.h"
 #include "GeneticAlgorithm/GAParameters.h"
 #include "Logging/Logging.h"
+#include "math_vector.h"
+#include "Utils.h"
+
+static _Thread_local double** g_centroids = NULL;
+static _Thread_local double** g_matrix = NULL;
+static _Thread_local double* g_species_size_ratio = NULL;
 
 bool Selection_Template_FitnessBased(
         World* world,
@@ -120,7 +128,7 @@ bool Selection_Entities_Linear(const World* world,
             goto destroy_sorted_new_entities;
         }
         if (!list_push_back(EntityPtr, sorted_new_entities, new_entity)) {
-            goto destroy_entity;
+            goto destroy_new_entity;
         }
         new_entity = NULL;
     }
@@ -139,7 +147,7 @@ exit:
     LOG_FUNC_SUCCESS;
     return true;
 
-destroy_entity:
+destroy_new_entity:
     DestroyEntity(new_entity);
 destroy_sorted_new_entities:
     DestroyEntitiesList(sorted_new_entities);
@@ -368,6 +376,158 @@ error:
     return false;
 }
 
+struct __entity_desc {
+    Entity* entity;
+    double fitness;
+};
+
+static int __entity_desc_cmp(const void* a, const void* b) {
+    // sort descending
+    double diff = ((struct __entity_desc*)b)->fitness
+                  - ((struct __entity_desc*)a)->fitness;
+    return DOUBLE_EQ(diff, 0.0) ? 0 : SIGN(diff);
+}
+
+bool Selection_Entities_Scattering(const World* world,
+                                   LIST_TYPE(EntityPtr)* entities_ptr,
+                                   size_t alive_count,
+                                   size_t* entities_died) {
+    LOG_FUNC_START;
+
+    const double scattering_power = 1.0;
+
+    LIST_TYPE(EntityPtr) entities = *entities_ptr;
+
+    if (alive_count >= list_len(entities)) {
+        Log(DEBUG, "There are less entities %zu that should left alive %zu",
+            list_len(entities), alive_count);
+        goto exit;
+    }
+    if (alive_count < 2) {
+        if (entities_died) {
+            list_for_each(EntityPtr, entities, var) {
+                *entities_died += list_var_value(var)->old;
+            }
+        }
+        ClearEntitiesList(entities);
+        goto exit;
+    }
+    LOG_RELEASE_ASSERT(list_len(entities) >= 2);
+
+    size_t curr_centroid_index = 0;
+#ifndef NDEBUG
+    bool found = false;
+#endif
+    list_for_each(SpeciesPtr, world->population, var) {
+        if (list_var_value(var)->entities == entities) {
+#ifndef NDEBUG
+            found = true;
+#endif
+            break;
+        }
+        ++curr_centroid_index;
+    }
+    LOG_ASSERT(found);
+    size_t centroids_count = list_len(world->population);
+    size_t closest_centroid_index = MinDistance(g_matrix, centroids_count, curr_centroid_index);
+
+    const double* curr_centroid = g_centroids[curr_centroid_index];
+    const double* closest_centroid = g_centroids[closest_centroid_index];
+
+    double* direction = (double*)malloc(sizeof(double) * world->chr_size);
+    if (!direction) {
+        goto error;
+    }
+    math_vector_subtract(closest_centroid, curr_centroid, world->chr_size, direction);
+    math_vector_normalize(direction, world->chr_size);
+    math_vector_multiply(direction, -1.0, world->chr_size, direction);
+
+    struct __entity_desc* descs =
+            (struct __entity_desc*)malloc(sizeof(struct __entity_desc) * list_len(entities));
+    if (!descs) {
+        goto destroy_direction;
+    }
+
+    double* entity_direction = (double*)malloc(sizeof(double) * world->chr_size);
+    if (!entity_direction) {
+        goto destroy_descs;
+    }
+
+    // [0.0, 1.0]
+    double distance_influence = (1.0 - g_matrix[curr_centroid_index][closest_centroid_index]);
+
+    size_t index = 0;
+    list_for_each(EntityPtr, entities, var) {
+        descs[index].entity = list_var_value(var);
+
+        math_vector_subtract(list_var_value(var)->chr, curr_centroid,
+                             world->chr_size, entity_direction);
+        math_vector_normalize(entity_direction, world->chr_size);
+
+        // [-1.0, 1.0]
+        double direction_influence =
+                math_vector_dot_product(direction, entity_direction, world->chr_size);
+        double influence = direction_influence
+                           * distance_influence
+                           * g_species_size_ratio[closest_centroid_index];
+
+        descs[index].fitness = descs[index].entity->fitness
+                               + fabs(descs[index].entity->fitness)
+                                 * scattering_power
+                                 * influence;
+
+        ++index;
+    }
+    LOG_ASSERT(index == list_len(entities));
+    free(entity_direction);
+
+    qsort(descs, list_len(entities), sizeof(struct __entity_desc), __entity_desc_cmp);
+
+    LIST_TYPE(EntityPtr) sorted_new_entities = list_create(EntityPtr);
+    if (!sorted_new_entities) {
+        goto destroy_descs;
+    }
+
+    Entity* new_entity = NULL;
+    for (size_t i = 0; i != alive_count; ++i) {
+        new_entity = CopyEntity(descs[i].entity, world->chr_size);
+        if (!new_entity) {
+            goto destroy_sorted_new_entities;
+        }
+        if (!list_push_back(EntityPtr, sorted_new_entities, new_entity)) {
+            goto destroy_new_entity;
+        }
+        new_entity = NULL;
+    }
+
+    if (entities_died) {
+        for (size_t i = alive_count; i < list_len(entities); ++i) {
+            *entities_died += descs[i].entity->old;
+        }
+    }
+
+    DestroyEntitiesList(entities);
+    *entities_ptr = sorted_new_entities;
+    free(descs);
+    free(direction);
+
+exit:
+    LOG_FUNC_SUCCESS;
+    return true;
+
+destroy_new_entity:
+    DestroyEntity(new_entity);
+destroy_sorted_new_entities:
+    DestroyEntitiesList(sorted_new_entities);
+destroy_descs:
+    free(descs);
+destroy_direction:
+    free(direction);
+error:
+    LOG_FUNC_ERROR;
+    return false;
+}
+
 bool Selection_AdjustFitnesses_RandomSpeciesLinks(const World* world,
                                                   LIST_TYPE(double) fitnesses) {
     LOG_FUNC_START;
@@ -544,6 +704,76 @@ bool Selection_LinearRanking(World* world) {
     return Selection_Template_FitnessBased(world,
                                            Selection_Entities_LinearRanking,
                                            NULL);
+}
+
+bool Selection_Scattering(World* world) {
+    LOG_FUNC_START;
+
+    if (list_len(world->population) == 1) {
+        if (!Selection_Linear(world)) {
+            goto error;
+        }
+        goto exit;
+    }
+
+    size_t centroids_count = list_len(world->population);
+    g_centroids = GetPopulationCentroids(world);
+    if (!g_centroids) {
+        goto error;
+    }
+
+    g_matrix = DistanceMatrix(g_centroids, centroids_count, world->chr_size);
+    if (!g_matrix) {
+        goto destroy_g_centroids;
+    }
+    NormalizeDistanceMatrix(g_matrix, centroids_count);
+
+    g_species_size_ratio = (double*)malloc(sizeof(double) * centroids_count);
+    if (!g_species_size_ratio) {
+        goto destroy_g_matrix;
+    }
+    size_t index = 0;
+    list_for_each(SpeciesPtr, world->population, var) {
+        g_species_size_ratio[index++] = list_len(list_var_value(var)->entities)
+                                        / (double)world->size;
+    }
+#ifndef NDEBUG
+    double sum = 0.0;
+    for (size_t i = 0; i != centroids_count; ++i) {
+        sum += g_species_size_ratio[i];
+    }
+    LOG_ASSERT(DOUBLE_EQ(sum, 1.0));
+#endif
+
+    if (!Selection_Template_FitnessBased(world,
+                                         Selection_Entities_Scattering,
+                                         NULL)) {
+        goto destroy_g_species_size_ratio;
+    }
+
+    free(g_species_size_ratio);
+    g_species_size_ratio = NULL;
+    DestroyDistanceMatrix(g_matrix, centroids_count);
+    g_matrix = NULL;
+    DestroyCentroids(g_centroids, centroids_count);
+    g_centroids = NULL;
+
+exit:
+    LOG_FUNC_SUCCESS;
+    return true;
+
+destroy_g_species_size_ratio:
+    free(g_species_size_ratio);
+    g_species_size_ratio = NULL;
+destroy_g_matrix:
+    DestroyDistanceMatrix(g_matrix, centroids_count);
+    g_matrix = NULL;
+destroy_g_centroids:
+    DestroyCentroids(g_centroids, centroids_count);
+    g_centroids = NULL;
+error:
+    LOG_FUNC_ERROR;
+    return false;
 }
 
 bool Selection_Children_Linear(World* world, LIST_TYPE(EntityPtr)* new_entities) {

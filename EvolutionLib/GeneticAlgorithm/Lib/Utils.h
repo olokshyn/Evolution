@@ -12,4 +12,7 @@ double ScaleEpsToEntitiesNorms(const World* world,
                                LIST_TYPE(EntityPtr) new_entities,
                                double eps);
 
+double** GetPopulationCentroids(const World* world);
+void DestroyCentroids(double** centroids, size_t centroids_count);
+
 #endif //EVOLUTION_UTILS_H
