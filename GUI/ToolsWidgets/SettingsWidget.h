@@ -103,6 +103,11 @@ private:
     QLineEdit* m_species_link_probability_edit;
     QLineEdit* m_species_link_min_edit;
     QLineEdit* m_species_link_max_edit;
+    QLineEdit* m_scattering_power_edit;
+    QLineEdit* m_fitness_influence_power_edit;
+    QLineEdit* m_distance_influence_power_edit;
+    QLineEdit* m_size_influence_power_edit;
+    QLineEdit* m_penalty_power_edit;
 
     // operators
     QComboBox* m_operators_selector;

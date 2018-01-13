@@ -76,3 +76,22 @@ destroy_fitnesses:
     list_destroy(double, fitnesses);
     return NULL;
 }
+
+double* NormalizePopulationFitnesses_array(
+        LIST_TYPE(SpeciesPtr) population) {
+    double* fitnesses = (double*)malloc(sizeof(double) * list_len(population));
+    if (!fitnesses) {
+        return NULL;
+    }
+
+    size_t index = 0;
+    list_for_each(SpeciesPtr, population, var) {
+        double mid_fitness;
+        GetFitnesses(list_var_value(var)->entities, &mid_fitness, NULL, NULL);
+        fitnesses[index++] = mid_fitness;
+    }
+
+    Normalize_array(fitnesses, list_len(population));
+
+    return fitnesses;
+}

@@ -12,6 +12,8 @@ extern "C"
 
 int main(int argv, char* args[])
 {
+    srand((unsigned int)time(NULL));
+
     if (!load_plugins("../Plugins/Objectives", "../Plugins/Operators"))
     {
         qWarning("Failed to load plugins: %s", g_PM_last_error);

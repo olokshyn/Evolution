@@ -8,6 +8,9 @@
 
 #include "Logging/Logging.h"
 
+#define SCALING_LOWER_BOUND 0.01
+#define SCALING_UPPER_BOUND 0.99
+
 double getRand(double min, double max) {
     // return gauss_rnd() * (max - min) + min;
     // LinearRankingSelection relies on [min, max) interval
@@ -35,7 +38,11 @@ int selectRandom(int rangeLow, int rangeHigh) {
 
 void Normalize(LIST_TYPE(double) numbers) {
     // TODO: maybe something different should be done here?
-    Scale(numbers, 0.01, 0.99);
+    Scale(numbers, SCALING_LOWER_BOUND, SCALING_UPPER_BOUND);
+}
+
+void Normalize_array(double* numbers, size_t size) {
+    Scale_array(numbers, size, SCALING_LOWER_BOUND, SCALING_UPPER_BOUND);
 }
 
 void Scale(LIST_TYPE(double) numbers, double a, double b) {
@@ -71,14 +78,66 @@ void Scale(LIST_TYPE(double) numbers, double a, double b) {
         list_for_each(double, numbers, var) {
             list_var_value(var) = (list_var_value(var) - min) * factor + a;
 
-            LOG_RELEASE_ASSERT(DOUBLE_GE(list_var_value(var), a)
-                               && DOUBLE_LE(list_var_value(var), b));
+            LOG_ASSERT(DOUBLE_GE(list_var_value(var), a)
+                       && DOUBLE_LE(list_var_value(var), b));
         }
     }
     else {
         Log(WARNING, "%s: scaling list of equal elements", __func__);
         list_for_each(double, numbers, var) {
             list_var_value(var) = b;
+        }
+    }
+
+exit:
+    LOG_FUNC_SUCCESS;
+    return;
+
+error:
+    LOG_FUNC_ERROR;
+}
+
+void Scale_array(double* numbers, size_t size, double a, double b) {
+    LOG_FUNC_START;
+    LOG_RELEASE_ASSERT(numbers);
+
+    if (size == 0) {
+        Log(WARNING, "%s: cannot scale empty array", __func__);
+        goto error;
+    }
+    if (size == 1) {
+        Log(WARNING, "%s: scaling array of one element", __func__);
+        numbers[0] = b;
+        goto exit;
+    }
+
+    double min = numbers[0];
+    double max = numbers[0];
+    for (size_t i = 0; i != size; ++i) {
+        if (numbers[i] < min) {
+            min = numbers[i];
+        }
+        else if (numbers[i] > max) {
+            max = numbers[i];
+        }
+    }
+
+    if (!DOUBLE_EQ(min, max)) {
+        double factor = (b - a) / (max - min);
+        Log(DEBUG, "%s: min value: %0.3f, max value: %0.3f",
+            __func__, min, max);
+
+        for (size_t i = 0; i != size; ++i) {
+            numbers[i] = (numbers[i] - min) * factor + a;
+
+            LOG_ASSERT(DOUBLE_GE(numbers[i], a)
+                       && DOUBLE_LE(numbers[i], b));
+        }
+    }
+    else {
+        Log(WARNING, "%s: scaling array of equal elements", __func__);
+        for (size_t i = 0; i != size; ++i) {
+            numbers[i] = b;
         }
     }
 

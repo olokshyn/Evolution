@@ -43,6 +43,11 @@ typedef struct ga_parameters {
     double species_link_probability;
     double species_link_min;
     double species_link_max;
+    double scattering_power;
+    double fitness_influence_power;
+    double distance_influence_power;
+    double size_influence_power;
+    double penalty_power;
 } GAParameters;
 
 inline static size_t get_chromosome_size(const GAParameters* parameters) {

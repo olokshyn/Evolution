@@ -16,6 +16,7 @@
 static _Thread_local double** g_centroids = NULL;
 static _Thread_local double** g_matrix = NULL;
 static _Thread_local double* g_species_size_ratio = NULL;
+static _Thread_local double* g_species_fitnesses = NULL;
 
 bool Selection_Template_FitnessBased(
         World* world,
@@ -394,8 +395,6 @@ bool Selection_Entities_Scattering(const World* world,
                                    size_t* entities_died) {
     LOG_FUNC_START;
 
-    const double scattering_power = 1.0;
-
     LIST_TYPE(EntityPtr) entities = *entities_ptr;
 
     if (alive_count >= list_len(entities)) {
@@ -453,8 +452,15 @@ bool Selection_Entities_Scattering(const World* world,
         goto destroy_descs;
     }
 
+    // [0.01, 0.99]
+    double fitness_influence = g_species_fitnesses[closest_centroid_index]
+                               * world->parameters->fitness_influence_power;
     // [0.0, 1.0]
-    double distance_influence = (1.0 - g_matrix[curr_centroid_index][closest_centroid_index]);
+    double distance_influence = (1.0 - g_matrix[curr_centroid_index][closest_centroid_index])
+                                * world->parameters->distance_influence_power;
+    // [0.0, 1.0]
+    double size_influence = g_species_size_ratio[closest_centroid_index]
+                            * world->parameters->size_influence_power;
 
     size_t index = 0;
     list_for_each(EntityPtr, entities, var) {
@@ -467,13 +473,14 @@ bool Selection_Entities_Scattering(const World* world,
         // [-1.0, 1.0]
         double direction_influence =
                 math_vector_dot_product(direction, entity_direction, world->chr_size);
-        double influence = direction_influence
-                           * distance_influence
-                           * g_species_size_ratio[closest_centroid_index];
+        double influence = world->parameters->scattering_power
+                           * (direction_influence
+                              + fitness_influence
+                              + distance_influence
+                              + size_influence);
 
         descs[index].fitness = descs[index].entity->fitness
                                + fabs(descs[index].entity->fitness)
-                                 * scattering_power
                                  * influence;
 
         ++index;
@@ -631,13 +638,11 @@ bool Selection_AdjustFitnesses_SpeciesSizePenalty(const World* world,
         goto exit;
     }
 
-    const double penalty_power = 0.5;
-
     LIST_ITER_TYPE(SpeciesPtr) species_iter = list_begin(SpeciesPtr, world->population);
     LIST_ITER_TYPE(double) fitness_iter = list_begin(double, fitnesses);
     for (; list_iter_valid(species_iter) && list_iter_valid(fitness_iter);
            list_next(SpeciesPtr, species_iter), list_next(double, fitness_iter)) {
-        double penalty = penalty_power
+        double penalty = world->parameters->penalty_power
                          * list_len(list_iter_value(species_iter)->entities)
                          / (double)world->size;
         LOG_RELEASE_ASSERT(penalty < 1.0);
@@ -745,12 +750,19 @@ bool Selection_Scattering(World* world) {
     LOG_ASSERT(DOUBLE_EQ(sum, 1.0));
 #endif
 
-    if (!Selection_Template_FitnessBased(world,
-                                         Selection_Entities_Scattering,
-                                         NULL)) {
+    g_species_fitnesses = NormalizePopulationFitnesses_array(world->population);
+    if (!g_species_fitnesses) {
         goto destroy_g_species_size_ratio;
     }
 
+    if (!Selection_Template_FitnessBased(world,
+                                         Selection_Entities_Scattering,
+                                         NULL)) {
+        goto destroy_g_species_fitnesses;
+    }
+
+    free(g_species_fitnesses);
+    g_species_fitnesses = NULL;
     free(g_species_size_ratio);
     g_species_size_ratio = NULL;
     DestroyDistanceMatrix(g_matrix, centroids_count);
@@ -762,6 +774,9 @@ exit:
     LOG_FUNC_SUCCESS;
     return true;
 
+destroy_g_species_fitnesses:
+    free(g_species_fitnesses);
+    g_species_fitnesses = NULL;
 destroy_g_species_size_ratio:
     free(g_species_size_ratio);
     g_species_size_ratio = NULL;

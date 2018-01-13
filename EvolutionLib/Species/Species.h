@@ -38,4 +38,7 @@ void DestroyPopulation(LIST_TYPE(SpeciesPtr) population);
 LIST_TYPE(double) NormalizePopulationFitnesses(
         LIST_TYPE(SpeciesPtr) population);
 
+double* NormalizePopulationFitnesses_array(
+        LIST_TYPE(SpeciesPtr) population);
+
 #endif //EVOLUTION_SPECIES_H

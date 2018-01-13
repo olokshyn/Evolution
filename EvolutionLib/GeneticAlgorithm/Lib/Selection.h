@@ -36,10 +36,10 @@ bool Selection_Entities_LinearRanking(const World* world,
                                       size_t alive_count,
                                       size_t* entities_died);
 
-bool Selection_Entities_Linear_Best_Worst(const World* world,
-                                          LIST_TYPE(EntityPtr)* entities_ptr,
-                                          size_t alive_count,
-                                          size_t* entities_died);
+bool Selection_Entities_LinearBestWorst(const World* world,
+                                        LIST_TYPE(EntityPtr)* entities_ptr,
+                                        size_t alive_count,
+                                        size_t* entities_died);
 
 bool Selection_Entities_Scattering(const World* world,
                                    LIST_TYPE(EntityPtr)* entities_ptr,

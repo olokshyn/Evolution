@@ -47,6 +47,11 @@ SettingsWidget::SettingsWidget(QWidget* parent)
           m_species_link_probability_edit(new QLineEdit(this)),
           m_species_link_min_edit(new QLineEdit(this)),
           m_species_link_max_edit(new QLineEdit(this)),
+          m_scattering_power_edit(new QLineEdit(this)),
+          m_fitness_influence_power_edit(new QLineEdit(this)),
+          m_distance_influence_power_edit(new QLineEdit(this)),
+          m_size_influence_power_edit(new QLineEdit(this)),
+          m_penalty_power_edit(new QLineEdit(this)),
 
         // operators
           m_operators_selector(new QComboBox(this)),
@@ -68,7 +73,7 @@ SettingsWidget::SettingsWidget(QWidget* parent)
 
     m_parameters = {
             .initial_world_size =
-            settings.value("initial_world_size", 61).toULongLong(),
+            settings.value("initial_world_size", 200).toULongLong(),
 
             .chromosome_size =
             settings.value("chromosome_size", 25).toULongLong(),
@@ -95,7 +100,7 @@ SettingsWidget::SettingsWidget(QWidget* parent)
             settings.value("min_pts", 1).toULongLong(),
 
             .eps =
-            settings.value("eps", 0.09).toDouble(),
+            settings.value("eps", 0.2).toDouble(),
 
             .objective = nullptr,
 
@@ -103,10 +108,10 @@ SettingsWidget::SettingsWidget(QWidget* parent)
             settings.value("max_generations_count", 500).toULongLong(),
 
             .stable_value_iterations_count =
-            settings.value("stable_value_iterations_count", 1000).toULongLong(),
+            settings.value("stable_value_iterations_count", 25).toULongLong(),
 
             .stable_value_eps =
-            settings.value("stable_value_eps", 1e-5).toDouble(),
+            settings.value("stable_value_eps", 0.001).toDouble(),
 
             .species_link_iterations_count =
             settings.value("species_link_iterations_count", 5).toULongLong(),
@@ -118,7 +123,22 @@ SettingsWidget::SettingsWidget(QWidget* parent)
             settings.value("species_link_min", -1.0).toDouble(),
 
             .species_link_max =
-            settings.value("species_link_max", 1.0).toDouble()
+            settings.value("species_link_max", 1.0).toDouble(),
+
+            .scattering_power =
+            settings.value("scattering_power", 0.01).toDouble(),
+
+            .fitness_influence_power =
+            settings.value("fitness_influence_power", 0.5).toDouble(),
+
+            .distance_influence_power =
+            settings.value("distance_influence_power", 0.15).toDouble(),
+
+            .size_influence_power =
+            settings.value("size_influence_power", 0.2).toDouble(),
+
+            .penalty_power =
+            settings.value("penalty_power", 0.75).toDouble()
     };
 
     auto current_objective = get_current_objective();
@@ -180,6 +200,11 @@ SettingsWidget::SettingsWidget(const SettingsWidget& settings,
           m_species_link_probability_edit(new QLineEdit(this)),
           m_species_link_min_edit(new QLineEdit(this)),
           m_species_link_max_edit(new QLineEdit(this)),
+          m_scattering_power_edit(new QLineEdit(this)),
+          m_fitness_influence_power_edit(new QLineEdit(this)),
+          m_distance_influence_power_edit(new QLineEdit(this)),
+          m_size_influence_power_edit(new QLineEdit(this)),
+          m_penalty_power_edit(new QLineEdit(this)),
 
         // operators
           m_operators_selector(new QComboBox(this)),
@@ -213,6 +238,11 @@ SettingsWidget::SettingsWidget(const SettingsWidget& settings,
     m_species_link_probability_edit->setReadOnly(true);
     m_species_link_min_edit->setReadOnly(true);
     m_species_link_max_edit->setReadOnly(true);
+    m_scattering_power_edit->setReadOnly(true);
+    m_fitness_influence_power_edit->setReadOnly(true);
+    m_distance_influence_power_edit->setReadOnly(true);
+    m_size_influence_power_edit->setReadOnly(true);
+    m_penalty_power_edit->setReadOnly(true);
 
     m_operators_selector->setEnabled(false);
 
@@ -331,6 +361,21 @@ QGroupBox* SettingsWidget::create_evolution_box()
     layout->addWidget(new QLabel("Species link max", this), 17, 0);
     layout->addWidget(m_species_link_max_edit, 17, 1);
 
+    layout->addWidget(new QLabel("Scattering power", this), 0, 2);
+    layout->addWidget(m_scattering_power_edit, 0, 3);
+
+    layout->addWidget(new QLabel("Fitness influence power", this), 1, 2);
+    layout->addWidget(m_fitness_influence_power_edit, 1, 3);
+
+    layout->addWidget(new QLabel("Distance influence power", this), 2, 2);
+    layout->addWidget(m_distance_influence_power_edit, 2, 3);
+
+    layout->addWidget(new QLabel("Size influence power", this), 3, 2);
+    layout->addWidget(m_size_influence_power_edit, 3, 3);
+
+    layout->addWidget(new QLabel("Penalty power", this), 4, 2);
+    layout->addWidget(m_penalty_power_edit, 4, 3);
+
     return group_box;
 }
 
@@ -419,6 +464,16 @@ void SettingsWidget::save_parameters()
             m_species_link_min_edit->text().toDouble();
     m_parameters.species_link_max =
             m_species_link_max_edit->text().toDouble();
+    m_parameters.scattering_power =
+            m_scattering_power_edit->text().toDouble();
+    m_parameters.fitness_influence_power =
+            m_fitness_influence_power_edit->text().toDouble();
+    m_parameters.distance_influence_power =
+            m_distance_influence_power_edit->text().toDouble();
+    m_parameters.size_influence_power =
+            m_size_influence_power_edit->text().toDouble();
+    m_parameters.penalty_power =
+            m_penalty_power_edit->text().toDouble();
 
     m_ui_settings.graph_params.objective = current_objective;
     m_ui_settings.graph_params.args_count = get_chromosome_size(&m_parameters);
@@ -481,6 +536,21 @@ void SettingsWidget::save_parameters()
     settings.setValue(
             "species_link_max",
             m_parameters.species_link_max);
+    settings.setValue(
+            "scattering_power",
+            m_parameters.scattering_power);
+    settings.setValue(
+            "fitness_influence_power",
+            m_parameters.fitness_influence_power);
+    settings.setValue(
+            "distance_influence_power",
+            m_parameters.distance_influence_power);
+    settings.setValue(
+            "size_influence_power",
+            m_parameters.size_influence_power);
+    settings.setValue(
+            "penalty_power",
+            m_parameters.penalty_power);
 
     settings.sync();
 }
@@ -533,6 +603,16 @@ void SettingsWidget::reset_parameters()
             QString::number(m_parameters.species_link_min));
     m_species_link_max_edit->setText(
             QString::number(m_parameters.species_link_max));
+    m_scattering_power_edit->setText(
+            QString::number(m_parameters.scattering_power));
+    m_fitness_influence_power_edit->setText(
+            QString::number(m_parameters.fitness_influence_power));
+    m_distance_influence_power_edit->setText(
+            QString::number(m_parameters.distance_influence_power));
+    m_size_influence_power_edit->setText(
+            QString::number(m_parameters.size_influence_power));
+    m_penalty_power_edit->setText(
+            QString::number(m_parameters.penalty_power));
 }
 
 void SettingsWidget::save_operators()

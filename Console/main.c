@@ -113,23 +113,28 @@ int main(int argc, char* argv[]) {
 #endif
 
     GAParameters parameters = {
-            .initial_world_size = 61,
+            .initial_world_size = 200,
             .chromosome_size = 25,
-            .mutation_probability = 0.6,
+            .mutation_probability = 0.2,
             .mutation_on_iteration_dependence = 5.0,
             .crossover_probability = 0.6,
             .selection_worst_probability = 0.5,
             .selection_best_probability = 1.5,
             .selection_elitists_count = 5,
             .min_pts = 1,
-            .eps = 0.09,
-            .max_generations_count = 5000,
-            .stable_value_iterations_count = 100,
-            .stable_value_eps = 1e-5,
+            .eps = 0.2,
+            .max_generations_count = 500,
+            .stable_value_iterations_count = 25,
+            .stable_value_eps = 0.001,
             .species_link_iterations_count = 10,
             .species_link_probability = 0.5,
             .species_link_min = -1.0,
             .species_link_max = 1.0,
+            .scattering_power = 0.01,
+            .fitness_influence_power = 0.5,
+            .distance_influence_power = 0.15,
+            .size_influence_power = 0.2,
+            .penalty_power = 0.75,
     };
     list_for_each(ConstGAOperatorsPtr, g_plugin_operators, var) {
         printf("\n---Operators: %s ---\n", list_var_value(var)->name);
