@@ -9,7 +9,7 @@ const GAOperators operators = {
         .mutation = Mutation_NonUniform,
         .crossover = Crossover_DHX,
         .clustering = Clustering_OPTICS,
-        .selection = Selection_Scattering,
+        .selection = Selection_Scattering_SpeciesSizePenalty,
         .iteration_info_hook = GAO_ConvergenceStopIterationHook,
-        .name = "Scattering Clustering"
+        .name = "Scattering Penalty Clustering"
 };

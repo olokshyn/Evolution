@@ -711,7 +711,10 @@ bool Selection_LinearRanking(World* world) {
                                            NULL);
 }
 
-bool Selection_Scattering(World* world) {
+bool Selection_Scattering_Template(
+        World* world,
+        bool (*adjust_fitnesses)(const World* world,
+                                 LIST_TYPE(double) fitnesses)) {
     LOG_FUNC_START;
 
     if (list_len(world->population) == 1) {
@@ -757,7 +760,7 @@ bool Selection_Scattering(World* world) {
 
     if (!Selection_Template_FitnessBased(world,
                                          Selection_Entities_Scattering,
-                                         NULL)) {
+                                         adjust_fitnesses)) {
         goto destroy_g_species_fitnesses;
     }
 
@@ -789,6 +792,16 @@ destroy_g_centroids:
 error:
     LOG_FUNC_ERROR;
     return false;
+}
+
+bool Selection_Scattering(World* world) {
+    return Selection_Scattering_Template(world, NULL);
+}
+
+bool Selection_Scattering_SpeciesSizePenalty(World* world) {
+    return Selection_Scattering_Template(
+            world,
+            Selection_AdjustFitnesses_SpeciesSizePenalty);
 }
 
 bool Selection_Children_Linear(World* world, LIST_TYPE(EntityPtr)* new_entities) {

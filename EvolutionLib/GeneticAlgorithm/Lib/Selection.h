@@ -65,7 +65,14 @@ bool Selection_Linear_BestWorstPenalty(World* world);
 
 bool Selection_LinearRanking(World* world);
 
+bool Selection_Scattering_Template(
+        World* world,
+        bool (*adjust_fitnesses)(const World* world,
+                                 LIST_TYPE(double) fitnesses));
+
 bool Selection_Scattering(World* world);
+
+bool Selection_Scattering_SpeciesSizePenalty(World* world);
 
 bool Selection_Children_Linear(World* world, LIST_TYPE(EntityPtr)* new_entities);
 

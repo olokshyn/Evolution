@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include <memory>
 
 #include <QApplication>
@@ -10,9 +12,11 @@ extern "C"
 #include "PluginManager/PluginManager.h"
 }
 
-int main(int argv, char* args[])
+int main(int argc, char* argv[])
 {
-    srand((unsigned int)time(NULL));
+    if (argc <= 1 || strncmp("-ns", argv[1], 3) != 0) {
+        srand((unsigned int)time(NULL));
+    }
 
     if (!load_plugins("../Plugins/Objectives", "../Plugins/Operators"))
     {
@@ -24,7 +28,7 @@ int main(int argv, char* args[])
     std::unique_ptr<void, decltype(plugins_deleter)>
             plugins_guard(reinterpret_cast<void*>(1), plugins_deleter);
 
-    QApplication app(argv, args);
+    QApplication app(argc, argv);
 
     QApplication::setOrganizationName("Genesis");
     QApplication::setOrganizationDomain("genesis.com");
