@@ -15,6 +15,14 @@ DEFINE_LIST(VoidPtr)
 #define LIST_DEFINED_VOIDPTR
 #endif
 
+#if defined(__linux__)
+#define SHARED_LIBRARY_EXTENSION ".so"
+#elif defined(__APPLE__)
+#define SHARED_LIBRARY_EXTENSION ".dylib"
+#else
+#error "Unknown platform - shared library extension is not defined"
+#endif
+
 LIST_TYPE(ConstObjectivePtr) g_plugin_objectives = NULL;
 LIST_TYPE(ConstGAOperatorsPtr) g_plugin_operators = NULL;
 
@@ -181,15 +189,16 @@ static bool load_each_lib(const char* plugins_dir,
     char* buffer = NULL;
     struct dirent* entry = NULL;
     while ((entry = readdir(dir)) != NULL) {
-        // Check that the file has .so extension
-        char* so_pos = strstr(entry->d_name, ".so");
-        if (so_pos && strlen(so_pos) == strlen(".so")) {
+        // Check that the file has SHARED_LIBRARY_EXTENSION extension
+        char* so_pos = strstr(entry->d_name, SHARED_LIBRARY_EXTENSION);
+        if (so_pos && strlen(so_pos) == strlen(SHARED_LIBRARY_EXTENSION)) {
             size_t buffer_size = strlen(plugins_dir) + strlen(entry->d_name) + 2;
             buffer = (char*)malloc(sizeof(char) * buffer_size);
             if (!buffer) {
                 goto close_dir;
             }
-            if (snprintf(buffer, buffer_size, "%s/%s", plugins_dir, entry->d_name) < 0) {
+            if (snprintf(buffer, buffer_size, "%s/%s",
+                         plugins_dir, entry->d_name) < 0) {
                 goto free_buffer;
             }
             if (!plugin_loader(buffer)) {
